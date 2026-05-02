@@ -43,8 +43,9 @@ export default function Topbar() {
         flexShrink: 0,
         gap: 12,
       }}>
-        {/* Sidebar toggle */}
+        {/* Sidebar toggle — mobile only */}
         <button
+          className="topbar-hamburger"
           onClick={() => setSidebarOpen(!sidebarOpen)}
           title={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
           style={{

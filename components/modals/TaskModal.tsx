@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Task, Alert } from '@/lib/types';
+import { Task, Alert, Subtask } from '@/lib/types';
 import { useAppStore } from '@/store/useAppStore';
 import { STATUS_ORDER, STATUS_META } from '@/lib/constants';
 
@@ -25,11 +25,26 @@ export default function TaskModal({ task, defaultProjectId, defaultPhaseId, onCl
     dueTime: task?.dueTime ?? '',
     assignee: task?.assignee ?? '',
     alerts: task?.alerts ?? [] as Alert[],
+    recurring: task?.recurring ?? '',
+    subtasks: task?.subtasks ?? [] as Subtask[],
+    newSubtask: '',
   });
 
   const projectPhases = phases.filter(p => p.projectId === form.projectId);
 
   function setF(k: string, v: unknown) { setForm(f => ({ ...f, [k]: v })); }
+
+  function addSubtask() {
+    if (!form.newSubtask.trim()) return;
+    const sub: Subtask = { id: Date.now().toString(36), title: form.newSubtask.trim(), done: false };
+    setForm(f => ({ ...f, subtasks: [...f.subtasks, sub], newSubtask: '' }));
+  }
+  function removeSubtask(id: string) {
+    setForm(f => ({ ...f, subtasks: f.subtasks.filter(s => s.id !== id) }));
+  }
+  function toggleSubtaskModal(id: string) {
+    setForm(f => ({ ...f, subtasks: f.subtasks.map(s => s.id === id ? { ...s, done: !s.done } : s) }));
+  }
 
   function addAlert() { setF('alerts', [...form.alerts, { value: 1, unit: 'hours' }]); }
   function removeAlert(i: number) { setF('alerts', form.alerts.filter((_, idx) => idx !== i)); }
@@ -50,6 +65,8 @@ export default function TaskModal({ task, defaultProjectId, defaultPhaseId, onCl
       dueTime: form.dueTime || undefined,
       assignee: form.assignee || undefined,
       alerts: form.alerts,
+      recurring: form.recurring || undefined,
+      subtasks: form.subtasks,
     };
     if (task) updateTask(task.id, data);
     else addTask(data);
@@ -116,6 +133,17 @@ export default function TaskModal({ task, defaultProjectId, defaultPhaseId, onCl
         </div>
 
         <div className="form-group">
+          <label>Recurring</label>
+          <select value={form.recurring} onChange={e => setF('recurring', e.target.value)}>
+            <option value="">None</option>
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+            <option value="yearly">Yearly</option>
+          </select>
+        </div>
+
+        <div className="form-group">
           <label>Assignee</label>
           <input value={form.assignee} onChange={e => setF('assignee', e.target.value)} placeholder="Name" />
         </div>
@@ -135,6 +163,43 @@ export default function TaskModal({ task, defaultProjectId, defaultPhaseId, onCl
               </select>
               <button type="button" className="btn-icon" onClick={() => removeAlert(i)}>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+          ))}
+        </div>
+
+        <div className="form-group">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+            <label style={{ margin: 0 }}>Subtasks</label>
+          </div>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+            <input
+              value={form.newSubtask}
+              onChange={e => setF('newSubtask', e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addSubtask(); } }}
+              placeholder="Add a subtask..."
+              style={{ flex: 1 }}
+            />
+            <button type="button" className="btn btn-outline" style={{ padding: '4px 12px', fontSize: 12, flexShrink: 0 }} onClick={addSubtask}>Add</button>
+          </div>
+          {form.subtasks.map((sub, i) => (
+            <div key={sub.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '1px solid var(--border)' }}>
+              <div
+                onClick={() => toggleSubtaskModal(sub.id)}
+                style={{
+                  width: 15, height: 15, borderRadius: 4, flexShrink: 0, cursor: 'pointer',
+                  border: `1.5px solid ${sub.done ? 'var(--success)' : 'var(--border-strong)'}`,
+                  background: sub.done ? 'var(--success)' : 'transparent',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}
+              >
+                {sub.done && <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" style={{ width: 9, height: 9 }}><polyline points="20 6 9 17 4 12"/></svg>}
+              </div>
+              <span style={{ flex: 1, fontSize: 13, textDecoration: sub.done ? 'line-through' : 'none', opacity: sub.done ? 0.6 : 1 }}>{sub.title}</span>
+              <button type="button" className="btn-icon" onClick={() => removeSubtask(sub.id)}>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                   <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                 </svg>
               </button>

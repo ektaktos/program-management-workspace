@@ -50,23 +50,64 @@ export default function Sidebar() {
           borderBottom: '1px solid var(--sidebar-border)',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: open ? 'flex-start' : 'center',
+          justifyContent: open ? 'space-between' : 'center',
           transition: 'padding 0.25s',
         }}>
           {open ? (
-            <div>
-              <div style={{ fontFamily: 'var(--font-serif), "Instrument Serif", Georgia, serif', fontSize: 22, fontWeight: 400, color: 'var(--text)', letterSpacing: '-0.01em' }}>
-                Workspace
+            <>
+              <div>
+                <div style={{ fontFamily: 'var(--font-serif), "Instrument Serif", Georgia, serif', fontSize: 22, fontWeight: 400, color: 'var(--text)', letterSpacing: '-0.01em' }}>
+                  Workspace
+                </div>
+                <div style={{ fontSize: 12, color: 'var(--sidebar-text)', marginTop: 2 }}>
+                  OyinT&rsquo;s projects
+                </div>
               </div>
-              <div style={{ fontSize: 12, color: 'var(--sidebar-text)', marginTop: 2 }}>
-                OyinT&rsquo;s projects
-              </div>
-            </div>
+              <button
+                onClick={() => setSidebarOpen(!open)}
+                title="Collapse sidebar"
+                style={{
+                  width: 28, height: 28, borderRadius: 7,
+                  border: '1px solid var(--sidebar-border)',
+                  background: 'transparent',
+                  color: 'var(--sidebar-text)',
+                  cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  flexShrink: 0,
+                  transition: 'all 0.15s',
+                }}
+                onMouseOver={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--sidebar-active)'; }}
+                onMouseOut={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ width: 14, height: 14 }}>
+                  <line x1="3" y1="6" x2="21" y2="6"/>
+                  <line x1="3" y1="12" x2="21" y2="12"/>
+                  <line x1="3" y1="18" x2="21" y2="18"/>
+                </svg>
+              </button>
+            </>
           ) : (
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: 20, height: 20, color: 'var(--sidebar-text)' }}>
-              <rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/>
-              <rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/>
-            </svg>
+            <button
+              onClick={() => setSidebarOpen(!open)}
+              title="Expand sidebar"
+              style={{
+                width: 28, height: 28, borderRadius: 7,
+                border: '1px solid var(--sidebar-border)',
+                background: 'transparent',
+                color: 'var(--sidebar-text)',
+                cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                transition: 'all 0.15s',
+              }}
+              onMouseOver={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--sidebar-active)'; }}
+              onMouseOut={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ width: 14, height: 14 }}>
+                <line x1="3" y1="6" x2="21" y2="6"/>
+                <line x1="3" y1="12" x2="21" y2="12"/>
+                <line x1="3" y1="18" x2="21" y2="18"/>
+              </svg>
+            </button>
           )}
         </div>
 

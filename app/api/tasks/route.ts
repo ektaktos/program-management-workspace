@@ -22,6 +22,8 @@ export async function POST(req: NextRequest) {
       dueTime:     body.dueTime  ?? null,
       assignee:    body.assignee ?? null,
       alerts:      body.alerts   ?? [],
+      recurring:   body.recurring ?? null,
+      subtasks:    body.subtasks  ?? [],
     },
   });
   return NextResponse.json(toTask(task as Record<string, unknown>), { status: 201 });

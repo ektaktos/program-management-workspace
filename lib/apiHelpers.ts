@@ -1,4 +1,4 @@
-import { Alert, Note, Task } from './types';
+import { Alert, Note, Subtask, Task } from './types';
 
 export function toTask(t: Record<string, unknown>): Task {
   return {
@@ -13,6 +13,8 @@ export function toTask(t: Record<string, unknown>): Task {
     dueTime:     (t.dueTime as string) ?? undefined,
     assignee:    (t.assignee as string) ?? undefined,
     alerts:      (t.alerts as Alert[]) ?? [],
+    recurring:   (t.recurring as string) ?? undefined,
+    subtasks:    (t.subtasks as Subtask[]) ?? [],
   };
 }
 

@@ -14,6 +14,12 @@ export interface Project {
   end?: string;
 }
 
+export interface Subtask {
+  id: string;
+  title: string;
+  done: boolean;
+}
+
 export interface Task {
   id: string;
   projectId: string;
@@ -26,6 +32,8 @@ export interface Task {
   dueTime?: string;
   assignee?: string;
   alerts?: Alert[];
+  recurring?: string;
+  subtasks?: Subtask[];
 }
 
 export interface Milestone {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Task } from '@/lib/types';
+import { Task, Subtask } from '@/lib/types';
 import { useAppStore } from '@/store/useAppStore';
 import { fmtDate } from '@/lib/utils';
 import StatusPill from '../ui/StatusPill';
@@ -41,8 +41,14 @@ export default function TaskCard({ task, showProject, isHighlighted }: TaskCardP
   const { projects, toggleTaskDone, updateTask, deleteTask, setView } = useAppStore();
   const [editing, setEditing]     = useState(false);
   const [confirming, setConfirming] = useState(false);
+  const [subtasksOpen, setSubtasksOpen] = useState(false);
   const project = projects.find(p => p.id === task.projectId);
   const isDone  = task.status === 'done';
+
+  function toggleSubtask(subtaskId: string) {
+    const updated = (task.subtasks ?? []).map(s => s.id === subtaskId ? { ...s, done: !s.done } : s);
+    updateTask(task.id, { subtasks: updated });
+  }
 
   return (
     <>
@@ -129,6 +135,16 @@ export default function TaskCard({ task, showProject, isHighlighted }: TaskCardP
               </span>
             )}
 
+            {task.recurring && (
+              <span className="badge badge-gray" style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 10, height: 10 }}>
+                  <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+                  <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+                </svg>
+                {task.recurring}
+              </span>
+            )}
+
             {showProject && project && (
               <span
                 className="badge badge-gray"
@@ -139,6 +155,45 @@ export default function TaskCard({ task, showProject, isHighlighted }: TaskCardP
               </span>
             )}
           </div>
+
+          {task.subtasks && task.subtasks.length > 0 && (
+            <div style={{ marginTop: 10 }}>
+              <button
+                onClick={() => setSubtasksOpen(v => !v)}
+                style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ width: 12, height: 12, transform: subtasksOpen ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s' }}>
+                  <polyline points="9 18 15 12 9 6"/>
+                </svg>
+                <span>{task.subtasks.filter(s => s.done).length}/{task.subtasks.length} subtasks</span>
+                {/* mini progress bar */}
+                <div style={{ flex: 1, maxWidth: 60, height: 4, background: 'var(--border)', borderRadius: 999, overflow: 'hidden' }}>
+                  <div style={{ height: '100%', background: 'var(--success)', borderRadius: 999, width: `${Math.round((task.subtasks.filter(s => s.done).length / task.subtasks.length) * 100)}%`, transition: 'width 0.3s ease' }} />
+                </div>
+              </button>
+              {subtasksOpen && (
+                <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  {task.subtasks.map(sub => (
+                    <div key={sub.id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div
+                        onClick={() => toggleSubtask(sub.id)}
+                        style={{
+                          width: 14, height: 14, borderRadius: 4, flexShrink: 0, cursor: 'pointer',
+                          border: `1.5px solid ${sub.done ? 'var(--success)' : 'var(--border-strong)'}`,
+                          background: sub.done ? 'var(--success)' : 'var(--surface)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          transition: 'all 0.15s',
+                        }}
+                      >
+                        {sub.done && <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" style={{ width: 8, height: 8 }}><polyline points="20 6 9 17 4 12"/></svg>}
+                      </div>
+                      <span style={{ fontSize: 12.5, color: 'var(--text)', textDecoration: sub.done ? 'line-through' : 'none', opacity: sub.done ? 0.55 : 1 }}>{sub.title}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Actions */}

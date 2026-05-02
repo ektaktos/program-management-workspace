@@ -119,29 +119,31 @@ export default function Dashboard() {
             {upcomingTasks.length === 0 ? (
               <div style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 14 }}>No upcoming deadlines.</div>
             ) : (
-              upcomingTasks.map(t => {
-                const proj = projects.find(p => p.id === t.projectId);
-                const dl = daysLeft(t.due!);
-                return (
-                  <div
-                    key={t.id}
-                    onClick={() => navigateToTask(t.id, t.projectId)}
-                    style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 10px', borderRadius: 10, cursor: 'pointer', transition: 'background 0.12s' }}
-                    onMouseOver={e => (e.currentTarget as HTMLDivElement).style.background = 'var(--bg)'}
-                    onMouseOut={e => (e.currentTarget as HTMLDivElement).style.background = 'transparent'}
-                  >
-                    {proj && <div style={{ width: 8, height: 8, borderRadius: '50%', background: proj.color, flexShrink: 0 }} />}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13.5, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.title}</div>
-                      {proj && <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 2 }}>{proj.name}</div>}
+              <div style={{ maxHeight: 280, overflowY: 'auto' }}>
+                {upcomingTasks.map(t => {
+                  const proj = projects.find(p => p.id === t.projectId);
+                  const dl = daysLeft(t.due!);
+                  return (
+                    <div
+                      key={t.id}
+                      onClick={() => navigateToTask(t.id, t.projectId)}
+                      style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 10px', borderRadius: 10, cursor: 'pointer', transition: 'background 0.12s' }}
+                      onMouseOver={e => (e.currentTarget as HTMLDivElement).style.background = 'var(--bg)'}
+                      onMouseOut={e => (e.currentTarget as HTMLDivElement).style.background = 'transparent'}
+                    >
+                      {proj && <div style={{ width: 8, height: 8, borderRadius: '50%', background: proj.color, flexShrink: 0 }} />}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 13.5, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.title}</div>
+                        {proj && <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 2 }}>{proj.name}</div>}
+                      </div>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: dl === 'overdue' ? 'var(--danger)' : 'var(--text-muted)', whiteSpace: 'nowrap' }}>{dl}</div>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="var(--text-faint)" strokeWidth="2" style={{ width: 13, height: 13, flexShrink: 0 }}>
+                        <polyline points="9 18 15 12 9 6"/>
+                      </svg>
                     </div>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: dl === 'overdue' ? 'var(--danger)' : 'var(--text-muted)', whiteSpace: 'nowrap' }}>{dl}</div>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="var(--text-faint)" strokeWidth="2" style={{ width: 13, height: 13, flexShrink: 0 }}>
-                      <polyline points="9 18 15 12 9 6"/>
-                    </svg>
-                  </div>
-                );
-              })
+                  );
+                })}
+              </div>
             )}
           </div>
 

@@ -387,6 +387,9 @@ label {
 .search-input-wrap input::placeholder { color: var(--text-faint); }
 .search-input-wrap svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); }
 
+/* ── Hamburger: hide on desktop ── */
+@media (min-width: 768px) { .topbar-hamburger { display: none !important; } }
+
 /* ── Sidebar ── */
 .sidebar {
   width: 248px;
