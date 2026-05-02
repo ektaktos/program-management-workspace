@@ -41,7 +41,7 @@ export default function NotesTab({ projectId }: { projectId: string }) {
           >
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 8 }}>
               <div>
-                <div style={{ fontFamily: '"Instrument Serif", Georgia, serif', fontSize: 16, fontWeight: 400, color: 'var(--text)' }}>{n.title}</div>
+                <div style={{ fontFamily: 'Georgia, "Times New Roman", serif', fontSize: 16, fontWeight: 400, color: 'var(--text)' }}>{n.title}</div>
                 <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 3 }}>
                   {new Date(n.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                 </div>

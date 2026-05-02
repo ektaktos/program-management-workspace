@@ -89,7 +89,7 @@ export default function AllProjects() {
               {/* Header */}
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 10, gap: 12 }}>
                 <div>
-                  <div style={{ fontFamily: '"Instrument Serif", Georgia, serif', fontSize: 18, fontWeight: 400, letterSpacing: '-0.01em', lineHeight: 1.2 }}>{p.name}</div>
+                  <div style={{ fontFamily: 'Georgia, "Times New Roman", serif', fontSize: 18, fontWeight: 400, letterSpacing: '-0.01em', lineHeight: 1.2 }}>{p.name}</div>
                   <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 4, textTransform: 'uppercase', letterSpacing: '0.6px', fontWeight: 500 }}>{p.type}</div>
                 </div>
                 <span className={`badge ${statusMeta.badgeClass}`}>{p.status}</span>

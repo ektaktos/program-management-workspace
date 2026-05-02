@@ -71,7 +71,7 @@ export default function Topbar() {
 
         <div style={{ flex: 1, minWidth: 0 }}>
           <div className="topbar-title-text" style={{
-            fontFamily: 'var(--font-serif), "Instrument Serif", Georgia, serif',
+            fontFamily: 'Georgia, "Times New Roman", serif',
             fontSize: 26, fontWeight: 400,
             color: 'var(--text)', letterSpacing: '-0.01em', lineHeight: 1.1,
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',

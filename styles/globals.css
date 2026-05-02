@@ -50,7 +50,7 @@
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: Georgia, 'Times New Roman', serif;
   font-size: 14px;
   font-weight: 400;
   letter-spacing: -0.005em;
@@ -218,7 +218,7 @@ label {
   padding: 28px;
 }
 .modal-title {
-  font-family: 'Instrument Serif', Georgia, serif;
+  font-family: Georgia, 'Times New Roman', serif;
   font-size: 26px;
   font-weight: 400;
   color: var(--text);
@@ -349,7 +349,7 @@ label {
 .empty-state h3 {
   font-size: 22px;
   font-weight: 400;
-  font-family: 'Instrument Serif', Georgia, serif;
+  font-family: Georgia, 'Times New Roman', serif;
   color: var(--text);
   margin-bottom: 8px;
   letter-spacing: -0.01em;
@@ -360,7 +360,7 @@ label {
 .section-title {
   font-size: 22px;
   font-weight: 400;
-  font-family: 'Instrument Serif', Georgia, serif;
+  font-family: Georgia, 'Times New Roman', serif;
   margin-bottom: 16px;
   color: var(--text);
   display: flex;

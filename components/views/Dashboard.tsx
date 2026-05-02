@@ -65,7 +65,7 @@ export default function Dashboard() {
             </div>
             <div className="stat-value" style={{
               fontSize: 44, fontWeight: 700,
-              fontFamily: "'Outfit', sans-serif",
+              fontFamily: 'Georgia, "Times New Roman", serif',
               letterSpacing: '-0.025em', lineHeight: 1,
               color: c.danger ? 'var(--danger)' : 'var(--text)',
             }}>

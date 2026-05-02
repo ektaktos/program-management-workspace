@@ -40,7 +40,7 @@ export default function PhasesTab({ projectId }: { projectId: string }) {
             }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14 }}>
                 <div>
-                  <div style={{ fontFamily: '"Instrument Serif", Georgia, serif', fontSize: 19, fontWeight: 400, color: 'var(--text)' }}>{phase.name}</div>
+                  <div style={{ fontFamily: 'Georgia, "Times New Roman", serif', fontSize: 19, fontWeight: 400, color: 'var(--text)' }}>{phase.name}</div>
                   {(phase.start || phase.end) && (
                     <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>
                       {phase.start && fmtDate(phase.start)}{phase.start && phase.end && ' — '}{phase.end && fmtDate(phase.end)}
