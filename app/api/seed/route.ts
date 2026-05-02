@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getSeedData } from '@/lib/utils';
+import { Prisma } from '@prisma/client';
 
 export async function POST() {
   const count = await prisma.project.count();
@@ -17,7 +18,7 @@ export async function POST() {
         due:      t.due      ?? null,
         dueTime:  t.dueTime  ?? null,
         assignee: t.assignee ?? null,
-        alerts:   t.alerts   ?? [],
+        alerts:   (t.alerts ?? []) as Prisma.InputJsonValue,
       })),
     }),
     prisma.milestone.createMany({
