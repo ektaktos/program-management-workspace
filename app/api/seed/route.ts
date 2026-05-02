@@ -19,6 +19,8 @@ export async function POST() {
       dueTime:  t.dueTime  ?? null,
       assignee: t.assignee ?? null,
       alerts:   (t.alerts ?? []) as unknown as Prisma.InputJsonValue,
+      recurring: t.recurring ?? null,
+      subtasks:  (t.subtasks ?? []) as unknown as Prisma.InputJsonValue,
     })),
   });
   await prisma.milestone.createMany({
