@@ -56,10 +56,9 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
         <div className="form-row">
           <div className="form-group">
             <label>Type</label>
-            <input value={form.type} onChange={e => set('type', e.target.value)} list="project-types" placeholder="Team / Work" />
-            <datalist id="project-types">
-              {PROJECT_TYPES.map(t => <option key={t} value={t} />)}
-            </datalist>
+            <select value={form.type} onChange={e => set('type', e.target.value)}>
+              {PROJECT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
           </div>
           <div className="form-group">
             <label>Status</label>

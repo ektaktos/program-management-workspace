@@ -22,11 +22,10 @@ export const COLORS = [
 ];
 
 export const PROJECT_TYPES = [
-  'Team / Work',
   'Research / Academic',
+  'Business / Consulting',
   'Personal / Side Project',
-  'Client Project',
-  'Event / Campaign',
+  'Team / Work',
 ];
 
 export const PRIORITY_META = {
