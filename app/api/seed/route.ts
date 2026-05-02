@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db';
 import { getSeedData } from '@/lib/utils';
 
@@ -17,7 +18,7 @@ export async function POST() {
         due:      t.due      ?? null,
         dueTime:  t.dueTime  ?? null,
         assignee: t.assignee ?? null,
-        alerts:   t.alerts   ?? [],
+        alerts:   (t.alerts ?? []) as unknown as Prisma.InputJsonValue,
       })),
     }),
     prisma.milestone.createMany({
@@ -29,7 +30,7 @@ export async function POST() {
         projectId: n.projectId,
         title:     n.title,
         body:      n.body,
-        tags:      n.tags,
+        tags:      n.tags as unknown as Prisma.InputJsonValue,
         createdAt: new Date(n.createdAt),
       })),
     }),
