@@ -17,9 +17,25 @@ interface TaskCardProps {
 const PRIORITY_DOT: Record<string, string> = {
   high: 'var(--danger)', medium: 'var(--warning)', low: 'var(--success)',
 };
-const PRIORITY_BADGE: Record<string, string> = {
-  high: 'badge-danger', medium: 'badge-warning', low: 'badge-success',
+
+const PRIORITY_CFG: Record<string, { cls: string; color: string; bars: [number, number, number]; label: string }> = {
+  high:   { cls: 'badge-danger',  color: '#d68a8a', bars: [1, 1, 1],          label: 'High priority' },
+  medium: { cls: 'badge-warning', color: '#d49a5d', bars: [1, 1, 0.18],       label: 'Medium priority' },
+  low:    { cls: 'badge-success', color: '#6fa885', bars: [1, 0.18, 0.18],    label: 'Low priority' },
 };
+
+function PriorityIcon({ priority }: { priority: string }) {
+  const cfg = PRIORITY_CFG[priority] ?? PRIORITY_CFG.medium;
+  return (
+    <span className={`badge ${cfg.cls}`} title={cfg.label} style={{ padding: '3px 6px', display: 'inline-flex', alignItems: 'center', lineHeight: 1 }}>
+      <svg width="14" height="12" viewBox="0 0 14 12" fill={cfg.color}>
+        <rect x="0"    y="6"  width="3.2" height="6"  rx="0.8" opacity={cfg.bars[0]} />
+        <rect x="5.4"  y="3"  width="3.2" height="9"  rx="0.8" opacity={cfg.bars[1]} />
+        <rect x="10.8" y="0"  width="3.2" height="12" rx="0.8" opacity={cfg.bars[2]} />
+      </svg>
+    </span>
+  );
+}
 
 export default function TaskCard({ task, showProject, isHighlighted }: TaskCardProps) {
   const { projects, toggleTaskDone, updateTask, deleteTask, setView } = useAppStore();
@@ -91,8 +107,7 @@ export default function TaskCard({ task, showProject, isHighlighted }: TaskCardP
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
             <StatusPill status={task.status} onChange={s => updateTask(task.id, { status: s })} />
 
-            {/* Priority as text badge */}
-            <span className={`badge ${PRIORITY_BADGE[task.priority]}`}>{task.priority}</span>
+            <PriorityIcon priority={task.priority} />
 
             {task.due && (
               <span className={`badge ${task.status === 'overdue' ? 'badge-danger' : 'badge-gray'}`}>
