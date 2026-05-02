@@ -21,9 +21,11 @@ export default function ProjectDetail() {
 
   const pct        = calcProjectProgress(project.id, tasks);
   const statusMeta = PROJECT_STATUS_META[project.status] ?? { badgeClass: 'badge-gray' };
+  const projectTasks = tasks.filter(t => t.projectId === project.id);
+  const doneTasks    = projectTasks.filter(t => t.status === 'done').length;
 
   const tabCounts: Record<Tab, number> = {
-    Tasks:      tasks.filter(t => t.projectId === project.id).length,
+    Tasks:      projectTasks.length,
     Phases:     phases.filter(p => p.projectId === project.id).length,
     Milestones: milestones.filter(m => m.projectId === project.id).length,
     Notes:      notes.filter(n => n.projectId === project.id).length,
@@ -37,33 +39,45 @@ export default function ProjectDetail() {
         borderRadius: 'var(--radius-lg)',
         padding: '24px 28px',
         border: '1px solid var(--border)',
+        borderTop: `4px solid ${project.color}`,
         marginBottom: 22,
+        overflow: 'hidden',
       }}>
         <div className="project-header-inner" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14, gap: 24 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{
-              fontFamily: 'Georgia, "Times New Roman", serif',
-              fontSize: 32, fontWeight: 400,
-              color: 'var(--text)', letterSpacing: '-0.015em', lineHeight: 1.1,
-            }}>{project.name}</div>
-            <div style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 8, display: 'flex', gap: 18, flexWrap: 'wrap', alignItems: 'center' }}>
+            {/* Title row: dot + name + status badge */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6, flexWrap: 'wrap' }}>
+              <span style={{ width: 14, height: 14, borderRadius: '50%', background: project.color, flexShrink: 0, display: 'inline-block' }} />
+              <div style={{
+                fontFamily: 'Georgia, "Times New Roman", serif',
+                fontSize: 32, fontWeight: 400,
+                color: 'var(--text)', letterSpacing: '-0.015em', lineHeight: 1.1,
+              }}>{project.name}</div>
               <span className={`badge ${statusMeta.badgeClass}`}>{project.status}</span>
+            </div>
+            {/* Meta: type · start · deadline */}
+            <div style={{ fontSize: 12.5, color: 'var(--text-muted)', display: 'flex', gap: 18, flexWrap: 'wrap', alignItems: 'center' }}>
               {project.type && <span>{project.type}</span>}
-              {project.start && <span>Started {fmtDate(project.start)}</span>}
-              {project.end && <span>Due {fmtDate(project.end)}</span>}
+              {project.start && <span>Start · {fmtDate(project.start)}</span>}
+              {project.end && <span>Deadline · {fmtDate(project.end)}</span>}
             </div>
             {project.description && (
               <p style={{ fontSize: 13.5, color: 'var(--text-muted)', marginTop: 12, lineHeight: 1.6, maxWidth: '60ch' }}>{project.description}</p>
             )}
           </div>
-          <div className="project-header-pct" style={{ textAlign: 'right', flexShrink: 0 }}>
+          {/* Percentage + task count */}
+          <div className="project-header-pct" style={{ textAlign: 'right', flexShrink: 0, minWidth: 90 }}>
             <div className="pct-number" style={{
               fontFamily: 'Georgia, "Times New Roman", serif',
-              fontSize: 48, fontWeight: 400,
-              color: project.color, lineHeight: 1,
-            }}>{pct}<span style={{ fontSize: 24, opacity: 0.7 }}>%</span></div>
-            <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>complete</div>
+              fontSize: 44, fontWeight: 400,
+              color: project.color, lineHeight: 1, letterSpacing: '-0.02em',
+            }}>{pct}<span style={{ fontSize: 24, color: 'var(--text-muted)' }}>%</span></div>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>{doneTasks}/{projectTasks.length} tasks</div>
           </div>
+        </div>
+        {/* Progress bar */}
+        <div style={{ height: 8, background: '#f1ebe1', borderRadius: 999, overflow: 'hidden', marginTop: 14 }}>
+          <div style={{ height: '100%', borderRadius: 999, background: project.color, width: `${pct}%`, transition: 'width 0.4s ease' }} />
         </div>
       </div>
 
