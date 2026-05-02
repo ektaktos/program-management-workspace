@@ -56,7 +56,7 @@ export default function Home() {
       <Sidebar />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <Topbar />
-        <main style={{ flex: 1, overflowY: 'auto', padding: '28px 32px' }}>
+        <main className="main-content" style={{ flex: 1, overflowY: 'auto', padding: '28px 32px' }}>
           {currentView === 'dashboard' && <Dashboard />}
           {currentView === 'projects'  && <AllProjects />}
           {currentView === 'tasks'     && <AllTasks />}

@@ -39,6 +39,7 @@ interface UIState {
   highlightedTaskId: string | null;
   searchQuery: string;
   toasts: Toast[];
+  sidebarOpen: boolean;
 }
 
 interface Store extends AppState, UIState {
@@ -48,6 +49,7 @@ interface Store extends AppState, UIState {
   navigateToTask: (taskId: string, projectId: string) => void;
   clearHighlight: () => void;
   setSearch: (q: string) => void;
+  setSidebarOpen: (open: boolean) => void;
 
   addProject:    (p: Omit<Project, 'id'>)    => Promise<void>;
   updateProject: (id: string, p: Partial<Project>) => Promise<void>;
@@ -92,6 +94,7 @@ export const useAppStore = create<Store>((set, get) => ({
   highlightedTaskId: null,
   searchQuery:     '',
   toasts:          [],
+  sidebarOpen:     true,
 
   // ── Bootstrap ──
   loadAll: async () => {
@@ -122,8 +125,9 @@ export const useAppStore = create<Store>((set, get) => ({
     setTimeout(() => set({ highlightedTaskId: null }), 2100);
   },
 
-  clearHighlight: () => set({ highlightedTaskId: null }),
-  setSearch:      (q) => set({ searchQuery: q }),
+  clearHighlight:  () => set({ highlightedTaskId: null }),
+  setSearch:       (q) => set({ searchQuery: q }),
+  setSidebarOpen:  (open) => set({ sidebarOpen: open }),
 
   // ── Projects ──
   addProject: async (p) => {

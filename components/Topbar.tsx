@@ -13,7 +13,7 @@ const VIEW_META: Record<string, { title: string; subtitle: string }> = {
 };
 
 export default function Topbar() {
-  const { currentView, activeProjectId, projects, toasts, setView, deleteProject } = useAppStore();
+  const { currentView, activeProjectId, projects, toasts, sidebarOpen, setSidebarOpen, setView, deleteProject } = useAppStore();
   const [editProject, setEditProject] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -37,12 +37,38 @@ export default function Topbar() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '0 28px',
+        padding: '0 20px 0 16px',
         borderBottom: '1px solid var(--border)',
         background: 'var(--bg)',
         flexShrink: 0,
+        gap: 12,
       }}>
-        <div>
+        {/* Sidebar toggle */}
+        <button
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          title={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+          style={{
+            flexShrink: 0,
+            width: 36, height: 36,
+            borderRadius: 8,
+            border: '1px solid var(--border)',
+            background: 'transparent',
+            color: 'var(--text-muted)',
+            cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            transition: 'all 0.15s',
+          }}
+          onMouseOver={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--primary-light)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text)'; }}
+          onMouseOut={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)'; }}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ width: 16, height: 16 }}>
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <line x1="3" y1="12" x2="21" y2="12"/>
+            <line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
+
+        <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{
             fontFamily: 'var(--font-serif), "Instrument Serif", Georgia, serif',
             fontSize: 26, fontWeight: 400,
