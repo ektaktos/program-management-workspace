@@ -1,0 +1,39 @@
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/db';
+import { getSeedData } from '@/lib/utils';
+
+export async function POST() {
+  const count = await prisma.project.count();
+  if (count > 0) return NextResponse.json({ seeded: false });
+
+  const seed = getSeedData();
+
+  await prisma.$transaction([
+    prisma.project.createMany({ data: seed.projects }),
+    prisma.task.createMany({
+      data: seed.tasks.map(t => ({
+        ...t,
+        phaseId:  t.phaseId  ?? null,
+        due:      t.due      ?? null,
+        dueTime:  t.dueTime  ?? null,
+        assignee: t.assignee ?? null,
+        alerts:   t.alerts   ?? [],
+      })),
+    }),
+    prisma.milestone.createMany({
+      data: seed.milestones.map(m => ({ ...m, date: m.date ?? null })),
+    }),
+    prisma.note.createMany({
+      data: seed.notes.map(n => ({
+        id:        n.id,
+        projectId: n.projectId,
+        title:     n.title,
+        body:      n.body,
+        tags:      n.tags,
+        createdAt: new Date(n.createdAt),
+      })),
+    }),
+  ]);
+
+  return NextResponse.json({ seeded: true });
+}
