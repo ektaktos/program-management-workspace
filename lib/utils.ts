@@ -53,40 +53,25 @@ export function getOverdueCount(projectId: string, tasks: Task[]): number {
 }
 
 export function getSeedData(): AppState {
-  const now = new Date();
-  const p1id = uid(), p2id = uid(), p3id = uid();
-  const t1 = uid(), t2 = uid(), t3 = uid(), t4 = uid();
-  const t5 = uid(), t6 = uid(), t7 = uid();
-  const t8 = uid(), t9 = uid();
-  const m1 = uid(), m2 = uid();
-  const n1 = uid(), n2 = uid();
-
   return {
     projects: [
-      { id: p1id, name: 'Spring Brand Refresh', type: 'Team / Work', description: 'Refreshing our brand identity for Q2 — new palette, typography, and updated copy across all touchpoints.', status: 'Active', color: '#b6a4e8', start: '2026-04-01', end: '2026-05-23' },
-      { id: p2id, name: 'Quarterly Research Report', type: 'Research / Academic', description: 'Synthesising user interview findings and usage data into a polished quarterly report for stakeholders.', status: 'Active', color: '#f5c5d3', start: '2026-04-15', end: '2026-05-12' },
-      { id: p3id, name: 'Garden Renovation', type: 'Personal / Side Project', description: 'Planning and executing a full redesign of the back garden — new layout, raised beds, and planting scheme.', status: 'Planning', color: '#b9dfc8', end: '2026-07-01' },
+      { id: 'mond8mndfiqx', name: 'SCD Symposium 2026', type: 'Team / Work', status: 'Active', start: '2026-05-01', end: '2026-09-10', description: 'Supporting the planning of the upcoming sickle cell disease symposium 2026', color: '#d4b896' },
     ],
     tasks: [
-      { id: t1, projectId: p1id, title: 'Finalize new color palette', description: 'Review shortlisted swatches and lock in primary + accent colors.', status: 'inreview', priority: 'high', due: '2026-05-04', assignee: 'Mira', alerts: [] },
-      { id: t2, projectId: p1id, title: 'Draft typography guidelines', description: 'Define heading and body typefaces, scale, and usage rules.', status: 'inprogress', priority: 'medium', due: '2026-05-07', assignee: 'You', alerts: [] },
-      { id: t3, projectId: p1id, title: 'Audit homepage copy', description: 'Review all homepage copy against new brand voice guidelines.', status: 'todo', priority: 'low', due: '2026-05-11', alerts: [] },
-      { id: t4, projectId: p1id, title: 'Kickoff sync notes', description: 'Write up and share the notes from the brand kickoff meeting.', status: 'done', priority: 'low', alerts: [] },
-      { id: t5, projectId: p2id, title: 'Synthesize interview themes', description: 'Group findings from 12 interviews into clear thematic clusters.', status: 'inprogress', priority: 'high', due: '2026-05-03', assignee: 'You', alerts: [] },
-      { id: t6, projectId: p2id, title: 'Draft executive summary', description: 'Write the two-page executive summary for non-technical stakeholders.', status: 'todo', priority: 'high', due: '2026-05-09', alerts: [] },
-      { id: t7, projectId: p2id, title: 'Send report for review', description: 'Share the near-final report with the research lead for sign-off.', status: 'todo', priority: 'medium', due: '2026-05-11', alerts: [] },
-      { id: t8, projectId: p3id, title: 'Sketch layout options', description: 'Draw up three different layout options for the new garden design.', status: 'todo', priority: 'medium', due: '2026-05-14', alerts: [] },
-      { id: t9, projectId: p3id, title: 'Research raised bed suppliers', description: 'Get quotes from at least two raised bed suppliers.', status: 'done', priority: 'low', alerts: [] },
+      { id: 'mondhwtavpir', projectId: 'mond8mndfiqx', phaseId: 'monda3m58l72', title: 'Email Sarim to update Slide deck', description: '', priority: 'medium', status: 'done', due: '2026-05-01', dueTime: '22:30', assignee: 'Oyin', alerts: [{ amount: 10, unit: 'minutes' }] },
+      { id: 'monhzjdp8ild', projectId: 'mond8mndfiqx', phaseId: 'monda3m58l72', title: 'Send meeting Summary', description: '', priority: 'medium', status: 'done', due: '2026-05-01', dueTime: '20:00', assignee: 'Oyin', alerts: [{ amount: 30, unit: 'minutes' }] },
+      { id: 'moni8blze391', projectId: 'mond8mndfiqx', phaseId: 'monda3m58l72', title: 'Create two versions of posters', description: '', priority: 'high', status: 'inreview', due: '2026-05-04', dueTime: '12:00', assignee: 'Oyin', alerts: [{ amount: 1, unit: 'days' }] },
+      { id: 'monimjeebu0v', projectId: 'mond8mndfiqx', phaseId: 'monda3m58l72', title: 'Update Agenda', description: '', priority: 'medium', status: 'todo', due: '2026-05-05', dueTime: '17:00', assignee: '', alerts: [] },
+      { id: 'monio3cre0x6', projectId: 'mond8mndfiqx', phaseId: 'monda3m58l72', title: 'Email to Nafesa', description: '', priority: 'medium', status: 'overdue', due: '2026-05-02', dueTime: '09:00', assignee: '', alerts: [] },
+      { id: 'monjc4fwf7pk', projectId: 'mond8mndfiqx', phaseId: 'monda3m58l72', title: 'Panelist Invitation Draft', description: '', priority: 'medium', status: 'todo', due: '2026-05-05', dueTime: '13:00', assignee: 'Oyin', alerts: [] },
+      { id: 'monk0oq53m0z', projectId: 'mond8mndfiqx', phaseId: 'monda3m58l72', title: 'Follow up on Sarim for slide deck', description: '', priority: 'medium', status: 'todo', due: '2026-05-05', dueTime: '11:00', assignee: '', alerts: [] },
     ],
-    milestones: [
-      { id: m1, projectId: p1id, title: 'Brand Guidelines v1', desc: 'First complete version of the brand guidelines document.', date: '2026-05-15', status: 'upcoming' },
-      { id: m2, projectId: p2id, title: 'Report submitted', desc: 'Final report delivered to stakeholders.', date: '2026-05-12', status: 'upcoming' },
+    milestones: [],
+    phases: [
+      { id: 'monda3m58l72', projectId: 'mond8mndfiqx', name: 'Pre-event planning (May)', start: '2026-05-01', end: '2026-05-31', progress: 0, notes: '' },
+      { id: 'mondbu6vb2i8', projectId: 'mond8mndfiqx', name: 'Event pahse', start: '2026-08-01', end: '2026-09-10', progress: 0, notes: '' },
     ],
-    phases: [],
-    notes: [
-      { id: n1, projectId: p2id, title: 'Interview themes — round one', body: 'Three recurring themes emerged from the round one interviews: (1) users want faster onboarding, (2) reporting features feel buried, (3) mobile experience is a growing priority.', tags: ['research', 'themes'], createdAt: now.getTime() - 86400000 * 2 },
-      { id: n2, projectId: p2id, title: 'Color direction notes', body: 'Stakeholders responded positively to the warm palette. Keep the blush and butter tones as primaries, use sky blue as a secondary accent.', tags: ['design', 'color'], createdAt: now.getTime() - 86400000 },
-    ],
+    notes: [],
     notifiedAlerts: [],
   };
 }
