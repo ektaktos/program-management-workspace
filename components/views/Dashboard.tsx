@@ -119,7 +119,7 @@ export default function Dashboard() {
             {upcomingTasks.length === 0 ? (
               <div style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 14 }}>No upcoming deadlines.</div>
             ) : (
-              <div style={{ maxHeight: 280, overflowY: 'auto' }}>
+              <div>
                 {upcomingTasks.map(t => {
                   const proj = projects.find(p => p.id === t.projectId);
                   const dl = daysLeft(t.due!);
