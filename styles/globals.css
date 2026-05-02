@@ -412,6 +412,7 @@ label {
 
 /* ── Mobile (≤ 767px) ── */
 @media (max-width: 767px) {
+  /* Sidebar: fixed overlay drawer */
   .sidebar {
     position: fixed;
     top: 0;
@@ -440,9 +441,105 @@ label {
     background: rgba(0, 0, 0, 0.35);
     pointer-events: all;
   }
-  /* Full-width main content on mobile */
+
+  /* Main content padding */
   .main-content {
-    padding: 20px 16px !important;
+    padding: 16px !important;
   }
-  .topbar-title { font-size: 20px !important; }
+
+  /* Dashboard stat grid: 2 columns on mobile */
+  .stat-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+    margin-bottom: 16px !important;
+  }
+  .stat-grid > div { padding: 14px 16px !important; }
+  .stat-grid .stat-value { font-size: 32px !important; }
+
+  /* Dashboard bottom grid: stack */
+  .dashboard-bottom {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  /* Project detail header: stack percentage below title */
+  .project-header-inner {
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+  .project-header-pct {
+    text-align: left !important;
+  }
+  .project-header-pct .pct-number {
+    font-size: 36px !important;
+  }
+
+  /* Project detail tab pills: scroll horizontally */
+  .tabs-pill-wrap {
+    width: 100% !important;
+    overflow-x: auto !important;
+    border-radius: 999px !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .tabs-pill-wrap::-webkit-scrollbar { display: none; }
+
+  /* TasksTab toolbar: chips scroll, button stays right */
+  .tasks-toolbar { gap: 8px !important; }
+  .tasks-toolbar .filter-chips-wrap {
+    flex: 1;
+    min-width: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+  .tasks-toolbar .filter-chips-wrap::-webkit-scrollbar { display: none; }
+
+  /* Topbar: reduce padding, truncate title */
+  .topbar-title-text {
+    font-size: 20px !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .topbar-subtitle { display: none !important; }
+  .topbar-actions { gap: 4px !important; }
+  .topbar-actions .btn span,
+  .topbar-actions .btn-label { display: none !important; }
+  .topbar-actions .btn { min-width: 32px; padding: 0 8px !important; }
+
+  /* AllTasks toolbar */
+  .alltasks-toolbar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .alltasks-toolbar input,
+  .alltasks-toolbar select {
+    width: 100% !important;
+    min-width: unset !important;
+    flex: unset !important;
+  }
+
+  /* Modals: full-width on small screens */
+  .modal-overlay { padding: 12px 8px !important; align-items: flex-end; }
+  .modal-panel {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 20px 20px 0 0 !important;
+    max-height: 92vh !important;
+    padding: 20px 18px !important;
+  }
+  .form-row { grid-template-columns: 1fr !important; }
+  .modal-footer { flex-wrap: wrap; }
+  .modal-footer .btn { flex: 1; justify-content: center; }
+
+  /* Card base padding */
+  .card { padding: 16px !important; }
+
+  /* Upcoming: milestone project name hidden if too long */
+  .milestone-project-name { display: none !important; }
+
+  /* TaskCard: tighter on mobile */
+  .task-card-actions { gap: 0 !important; }
 }

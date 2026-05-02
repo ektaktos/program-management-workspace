@@ -74,7 +74,7 @@ export default function Upcoming() {
                     {m.date && <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 3 }}>{fmtDate(m.date)}</div>}
                   </div>
                   {proj && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-muted)', flexShrink: 0 }}>
+                    <div className="milestone-project-name" style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-muted)', flexShrink: 0 }}>
                       <span style={{ width: 7, height: 7, borderRadius: '50%', background: proj.color }} />
                       {proj.name}
                     </div>

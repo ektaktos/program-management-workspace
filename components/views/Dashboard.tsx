@@ -42,7 +42,7 @@ export default function Dashboard() {
   return (
     <div>
       {/* Stat cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
+      <div className="stat-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
         {statCards.map(c => (
           <div
             key={c.label}
@@ -63,7 +63,7 @@ export default function Dashboard() {
             <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.7px' }}>
               {c.label}
             </div>
-            <div style={{
+            <div className="stat-value" style={{
               fontSize: 44, fontWeight: 700,
               fontFamily: "'Outfit', sans-serif",
               letterSpacing: '-0.025em', lineHeight: 1,
@@ -77,7 +77,7 @@ export default function Dashboard() {
       </div>
 
       {/* Bottom grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+      <div className="dashboard-bottom" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
         {/* Active Projects */}
         <div>
           <div className="card">

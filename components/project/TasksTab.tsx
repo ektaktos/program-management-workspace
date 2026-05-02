@@ -33,9 +33,11 @@ export default function TasksTab({ projectId, highlightedTaskId }: TasksTabProps
   return (
     <div>
       {/* Toolbar — Add Task button THEN chips (matching HTML layout) */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
-        <FilterChips active={filter} counts={counts} onChange={handleFilterChange} />
-        <button className="btn btn-primary btn-sm" onClick={() => setShowAdd(true)}>
+      <div className="tasks-toolbar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
+        <div className="filter-chips-wrap">
+          <FilterChips active={filter} counts={counts} onChange={handleFilterChange} />
+        </div>
+        <button className="btn btn-primary btn-sm" style={{ flexShrink: 0 }} onClick={() => setShowAdd(true)}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" style={{ width: 13, height: 13 }}>
             <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
           </svg>

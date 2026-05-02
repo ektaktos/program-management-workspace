@@ -39,8 +39,8 @@ export default function ProjectDetail() {
         border: '1px solid var(--border)',
         marginBottom: 22,
       }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14, gap: 24 }}>
-          <div style={{ flex: 1 }}>
+        <div className="project-header-inner" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14, gap: 24 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{
               fontFamily: '"Instrument Serif", Georgia, serif',
               fontSize: 32, fontWeight: 400,
@@ -56,8 +56,8 @@ export default function ProjectDetail() {
               <p style={{ fontSize: 13.5, color: 'var(--text-muted)', marginTop: 12, lineHeight: 1.6, maxWidth: '60ch' }}>{project.description}</p>
             )}
           </div>
-          <div style={{ textAlign: 'right', flexShrink: 0 }}>
-            <div style={{
+          <div className="project-header-pct" style={{ textAlign: 'right', flexShrink: 0 }}>
+            <div className="pct-number" style={{
               fontFamily: '"Instrument Serif", Georgia, serif',
               fontSize: 48, fontWeight: 400,
               color: project.color, lineHeight: 1,

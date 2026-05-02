@@ -24,13 +24,13 @@ export default function AllTasks() {
   return (
     <div>
       {/* Toolbar */}
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 16, flexWrap: 'wrap' }}>
+      <div className="alltasks-toolbar" style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 16, flexWrap: 'wrap' }}>
         <input
           className="toolbar-input"
           placeholder="Search tasks..."
           value={searchQuery}
           onChange={e => setSearch(e.target.value)}
-          style={{ flex: 1, minWidth: 200 }}
+          style={{ flex: 1, minWidth: 160 }}
         />
         <select
           className="toolbar-input"

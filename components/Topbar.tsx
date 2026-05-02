@@ -69,17 +69,18 @@ export default function Topbar() {
         </button>
 
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{
+          <div className="topbar-title-text" style={{
             fontFamily: 'var(--font-serif), "Instrument Serif", Georgia, serif',
             fontSize: 26, fontWeight: 400,
             color: 'var(--text)', letterSpacing: '-0.01em', lineHeight: 1.1,
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
           }}>{meta.title}</div>
           {meta.subtitle && (
-            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 1 }}>{meta.subtitle}</div>
+            <div className="topbar-subtitle" style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 1 }}>{meta.subtitle}</div>
           )}
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div className="topbar-actions" style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
           {isProject && project && (
             <>
               <button className="btn btn-outline btn-sm" onClick={() => setEditProject(true)}>
@@ -87,20 +88,20 @@ export default function Topbar() {
                   <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
                   <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
                 </svg>
-                Edit
+                <span className="btn-label">Edit</span>
               </button>
               <button className="btn btn-danger btn-sm" onClick={() => setConfirmDelete(true)}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
                   <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
                   <path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
                 </svg>
-                Delete
+                <span className="btn-label">Delete</span>
               </button>
               <button className="btn btn-outline btn-sm" onClick={() => setView('projects')}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
                   <polyline points="15 18 9 12 15 6"/>
                 </svg>
-                Back
+                <span className="btn-label">Back</span>
               </button>
             </>
           )}
