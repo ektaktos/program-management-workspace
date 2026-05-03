@@ -3,14 +3,25 @@
     <clipPath id="circ">
       <circle cx="32" cy="32" r="32"/>
     </clipPath>
+    <clipPath id="dark-half">
+      <polygon points="0,0 64,64 0,64"/>
+    </clipPath>
+    <clipPath id="light-half">
+      <polygon points="0,0 64,0 64,64"/>
+    </clipPath>
   </defs>
-  <!-- Diagonal split: top-left dark brown, bottom-right sand -->
-  <g clip-path="url(#circ)">
-    <polygon points="0,0 64,0 0,64" fill="#5f441c"/>
-    <polygon points="64,0 64,64 0,64" fill="#e4d2b4"/>
-  </g>
-  <!-- O on dark half in cream -->
-  <text x="21" y="40" font-family="Georgia, 'Times New Roman', serif" font-size="28" font-weight="400" fill="#faf7f3" text-anchor="middle" dominant-baseline="auto">O</text>
-  <!-- T on light half in dark brown -->
-  <text x="44" y="46" font-family="Georgia, 'Times New Roman', serif" font-size="28" font-weight="400" fill="#5f441c" text-anchor="middle" dominant-baseline="auto">T</text>
+
+  <!-- Sand base -->
+  <circle cx="32" cy="32" r="32" fill="#e4d2b4"/>
+
+  <!-- Dark brown bottom-left triangle -->
+  <polygon points="0,0 64,64 0,64" fill="#5f441c" clip-path="url(#circ)"/>
+
+  <!-- O: cream where dark, brown where light -->
+  <text x="23" y="41" font-family="Georgia, 'Times New Roman', serif" font-size="23" font-weight="400" fill="#faf7f3" text-anchor="middle" clip-path="url(#circ)">O</text>
+  <text x="23" y="41" font-family="Georgia, 'Times New Roman', serif" font-size="23" font-weight="400" fill="#5f441c" text-anchor="middle" clip-path="url(#light-half)">O</text>
+
+  <!-- T: brown where light, cream where dark -->
+  <text x="41" y="41" font-family="Georgia, 'Times New Roman', serif" font-size="23" font-weight="400" fill="#5f441c" text-anchor="middle" clip-path="url(#circ)">T</text>
+  <text x="41" y="41" font-family="Georgia, 'Times New Roman', serif" font-size="23" font-weight="400" fill="#faf7f3" text-anchor="middle" clip-path="url(#dark-half)">T</text>
 </svg>
