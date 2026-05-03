@@ -5,7 +5,8 @@ import { calcProjectProgress, fmtDate } from '@/lib/utils';
 import ProgressBar from '../ui/ProgressBar';
 
 function daysLeft(iso: string): string {
-  const diff = Math.ceil((new Date(iso).getTime() - Date.now()) / 86400000);
+  const endOfDay = new Date(iso + 'T23:59:59').getTime();
+  const diff = Math.ceil((endOfDay - Date.now()) / 86400000);
   if (diff < 0) return 'overdue';
   if (diff === 0) return 'today';
   return `${diff}d left`;

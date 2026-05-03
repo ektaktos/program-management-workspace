@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Task, Subtask } from '@/lib/types';
 import { useAppStore } from '@/store/useAppStore';
-import { fmtDate } from '@/lib/utils';
+import { fmtDate, fmt12hr } from '@/lib/utils';
 import StatusPill from '../ui/StatusPill';
 import TaskModal from '../modals/TaskModal';
 import ConfirmModal from '../modals/ConfirmModal';
@@ -117,7 +117,7 @@ export default function TaskCard({ task, showProject, isHighlighted }: TaskCardP
 
             {task.due && (
               <span className={`badge ${task.status === 'overdue' ? 'badge-danger' : 'badge-gray'}`}>
-                Due {fmtDate(task.due)}{task.dueTime ? ` ${task.dueTime}` : ''}
+                Due {fmtDate(task.due)}{task.dueTime ? ` ${fmt12hr(task.dueTime)}` : ''}
               </span>
             )}
 
@@ -198,12 +198,7 @@ export default function TaskCard({ task, showProject, isHighlighted }: TaskCardP
 
         {/* Actions */}
         <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
-          <button className="btn-icon" title="Filter by status">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
-              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
-            </svg>
-          </button>
-          <button className="btn-icon" title="Edit task" onClick={() => setEditing(true)}>
+<button className="btn-icon" title="Edit task" onClick={() => setEditing(true)}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
               <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
               <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>

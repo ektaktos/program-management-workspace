@@ -270,6 +270,22 @@ export const useAppStore = create<Store>((set, get) => ({
         if (now >= new Date(due.getTime() - ms)) {
           addToast({ title: 'Task reminder', message: `"${t.title}" is due soon`, type: 'alert' });
           newNotified.push(alertId);
+          try {
+            const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(880, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.3);
+            gain.gain.setValueAtTime(0.4, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 0.5);
+            osc.onended = () => ctx.close();
+          } catch (_) {}
+
         }
       });
     });
