@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <clipPath id="circ">
+      <circle cx="32" cy="32" r="32"/>
+    </clipPath>
+  </defs>
+  <!-- Diagonal split: top-left dark brown, bottom-right sand -->
+  <g clip-path="url(#circ)">
+    <polygon points="0,0 64,0 0,64" fill="#5f441c"/>
+    <polygon points="64,0 64,64 0,64" fill="#e4d2b4"/>
+  </g>
+  <!-- O on dark half in cream -->
+  <text x="21" y="40" font-family="Georgia, 'Times New Roman', serif" font-size="28" font-weight="400" fill="#faf7f3" text-anchor="middle" dominant-baseline="auto">O</text>
+  <!-- T on light half in dark brown -->
+  <text x="44" y="46" font-family="Georgia, 'Times New Roman', serif" font-size="28" font-weight="400" fill="#5f441c" text-anchor="middle" dominant-baseline="auto">T</text>
+</svg>
