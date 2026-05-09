@@ -205,6 +205,9 @@ export default function WeeklyPlanner() {
   const [goalInput, setGoalInput] = useState('');
   const [goalInputVisible, setGoalInputVisible] = useState(false);
 
+  // Focus items input
+  const [focusInput, setFocusInput] = useState('');
+
   // Week data
   const weekStart = getWeekStart(plannerWeekOffset);
   const days = Array.from({ length: 7 }, (_, i) => {
@@ -236,6 +239,15 @@ export default function WeeklyPlanner() {
 
   function deleteGoal(id: string) {
     updatePlannerWeekly(weekKey, { goals: weekData.goals.filter(g => g.id !== id) });
+  }
+
+  function handleAddFocusItem() {
+    if (!focusInput.trim()) return;
+    const existing = weekData.focusItems ?? [];
+    updatePlannerWeekly(weekKey, {
+      focusItems: [...existing, { id: uid(), text: focusInput.trim() }],
+    });
+    setFocusInput('');
   }
 
   function toggleGoal(id: string) {
@@ -330,12 +342,32 @@ export default function WeeklyPlanner() {
           <div className="card">
             <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>Due this week</div>
             <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 12 }}>Where will most of your energy go this week?</div>
-            <input
-              value={weekData.focus}
-              onChange={e => updatePlannerWeekly(weekKey, { focus: e.target.value })}
-              placeholder="e.g. brand launch, deep work…"
-              style={{ marginBottom: 0 }}
-            />
+            <div className="todo-list">
+              {(weekData.focusItems ?? []).length === 0 && (
+                <div style={{ fontSize: 13, color: 'var(--text-faint)', fontStyle: 'italic', padding: '4px 4px 8px' }}>Nothing added yet.</div>
+              )}
+              {(weekData.focusItems ?? []).map(item => (
+                <div key={item.id} className="todo-item">
+                  <span className="todo-text" style={{ cursor: 'default' }}>{item.text}</span>
+                  <button
+                    className="todo-del"
+                    title="Remove"
+                    onClick={() => updatePlannerWeekly(weekKey, {
+                      focusItems: (weekData.focusItems ?? []).filter(f => f.id !== item.id),
+                    })}
+                  >&#215;</button>
+                </div>
+              ))}
+            </div>
+            <div className="todo-input-row">
+              <input
+                value={focusInput}
+                onChange={e => setFocusInput(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') handleAddFocusItem(); }}
+                placeholder="e.g. brand launch, deep work…"
+              />
+              <button onClick={handleAddFocusItem}>Add</button>
+            </div>
           </div>
 
           {/* Reflection */}

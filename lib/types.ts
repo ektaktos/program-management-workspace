@@ -95,7 +95,8 @@ export interface PlannerAppointment {
 export interface PlannerWeekData {
   goals: { id: string; text: string; done: boolean }[];
   notes: string;
-  focus: string;
+  focus: string; // kept for backward-compat; UI now uses focusItems
+  focusItems: { id: string; text: string }[];
 }
 
 export interface AppState {

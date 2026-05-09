@@ -347,7 +347,7 @@ export const useAppStore = create<Store>((set, get) => ({
 
   updatePlannerWeekly: (weekKey, data) => {
     set(s => {
-      const defaults: PlannerWeekData = { goals: [], notes: '', focus: '' };
+      const defaults: PlannerWeekData = { goals: [], notes: '', focus: '', focusItems: [] };
       const existing = s.plannerWeekly[weekKey] ?? defaults;
       return {
         plannerWeekly: {
