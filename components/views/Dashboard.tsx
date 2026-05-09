@@ -199,7 +199,7 @@ export default function Dashboard() {
               <div>
                 {upcomingTasks.map(t => {
                   const proj = projects.find(p => p.id === t.projectId);
-                  const dl = daysLeft(t.due!);
+                  const dl = t.status === 'overdue' ? 'overdue' : daysLeft(t.due!);
                   return (
                     <div
                       key={t.id}
