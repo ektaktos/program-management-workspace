@@ -340,18 +340,19 @@ export const useAppStore = create<Store>((set, get) => ({
     savePlannerData({ todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset: n });
   },
   updatePlannerWeekly: (weekKey, data) => {
-    set(s => ({
-      plannerWeekly: {
-        ...s.plannerWeekly,
-        [weekKey]: {
-          goals: [],
-          notes: '',
-          focus: '',
-          ...s.plannerWeekly[weekKey],
-          ...data,
+    set(s => {
+      const defaults: PlannerWeekData = { goals: [], notes: '', focus: '' };
+      const existing = s.plannerWeekly[weekKey] ?? defaults;
+      return {
+        plannerWeekly: {
+          ...s.plannerWeekly,
+          [weekKey]: {
+            ...existing,
+            ...data,
+          },
         },
-      },
-    }));
+      };
+    });
     const { todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset } = get();
     savePlannerData({ todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset });
   },
