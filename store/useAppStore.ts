@@ -122,6 +122,9 @@ interface Store extends AppState, UIState, PlannerState {
 
   setPlannerWeekOffset: (n: number) => void;
   updatePlannerWeekly: (weekKey: string, data: Partial<PlannerWeekData>) => void;
+
+  plannerModalTrigger: 'task' | 'appt' | null;
+  setPlannerModalTrigger: (v: 'task' | 'appt' | null) => void;
 }
 
 export const useAppStore = create<Store>((set, get) => ({
@@ -138,6 +141,7 @@ export const useAppStore = create<Store>((set, get) => ({
   plannerEvents:        [],
   plannerAppointments:  [],
   plannerWeekly:        {},
+  plannerModalTrigger:  null,
   plannerWeekOffset:    0,
 
   // ── UI ──
@@ -339,6 +343,8 @@ export const useAppStore = create<Store>((set, get) => ({
     const { todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset } = get();
     savePlannerData({ todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset: n });
   },
+  setPlannerModalTrigger: (v) => set({ plannerModalTrigger: v }),
+
   updatePlannerWeekly: (weekKey, data) => {
     set(s => {
       const defaults: PlannerWeekData = { goals: [], notes: '', focus: '' };

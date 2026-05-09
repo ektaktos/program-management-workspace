@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { PlannerEvent, PlannerAppointment } from '@/lib/types';
 import { uid } from '@/lib/utils';
@@ -180,6 +180,7 @@ export default function WeeklyPlanner() {
     plannerAppointments,
     plannerWeekly, updatePlannerWeekly,
     plannerWeekOffset, setPlannerWeekOffset,
+    plannerModalTrigger, setPlannerModalTrigger,
   } = useAppStore();
 
   const [layout, setLayout] = useState<'grid' | 'agenda'>('grid');
@@ -189,6 +190,17 @@ export default function WeeklyPlanner() {
   const [editEventModal, setEditEventModal] = useState<{ open: boolean; event?: PlannerEvent }>({ open: false });
   const [newApptModal, setNewApptModal] = useState<{ open: boolean; presetDate?: string }>({ open: false });
   const [editApptModal, setEditApptModal] = useState<{ open: boolean; appt?: PlannerAppointment }>({ open: false });
+
+  // Watch store trigger from Topbar buttons
+  useEffect(() => {
+    if (plannerModalTrigger === 'task') {
+      setNewEventModal({ open: true });
+      setPlannerModalTrigger(null);
+    } else if (plannerModalTrigger === 'appt') {
+      setNewApptModal({ open: true });
+      setPlannerModalTrigger(null);
+    }
+  }, [plannerModalTrigger]);
 
   // Todo input
   const [todoInput, setTodoInput] = useState('');
@@ -240,10 +252,13 @@ export default function WeeklyPlanner() {
 
   return (
     <div>
-      {/* Toolbar */}
-      <div className="planner-toolbar">
-        {/* Left: week nav */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      {/* Toolbar — 3-column grid: empty | centered nav | seg control */}
+      <div className="planner-toolbar" style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center' }}>
+        {/* Left: empty spacer */}
+        <div />
+
+        {/* Center: week navigation */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, justifySelf: 'center' }}>
           <button className="pweek-btn" onClick={() => setPlannerWeekOffset(plannerWeekOffset - 1)} title="Previous week">&#8249;</button>
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontFamily: 'Georgia, "Times New Roman", serif', fontSize: 15, fontWeight: 400, color: 'var(--text)', letterSpacing: '-0.01em' }}>
@@ -257,16 +272,8 @@ export default function WeeklyPlanner() {
           )}
         </div>
 
-        {/* Right: new buttons + segmented control */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <button className="btn btn-primary btn-sm" onClick={() => setNewEventModal({ open: true })}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ width: 13, height: 13 }}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            New Task
-          </button>
-          <button className="btn btn-outline btn-sm" onClick={() => setNewApptModal({ open: true })}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ width: 13, height: 13 }}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            New Meeting
-          </button>
+        {/* Right: segmented view control */}
+        <div style={{ display: 'flex', alignItems: 'center', justifySelf: 'end' }}>
           <div className="seg">
             <button className={`seg-btn${layout === 'grid' ? ' active' : ''}`} onClick={() => setLayout('grid')}>Week grid</button>
             <button className={`seg-btn${layout === 'agenda' ? ' active' : ''}`} onClick={() => setLayout('agenda')}>Agenda</button>

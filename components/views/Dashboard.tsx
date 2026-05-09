@@ -103,8 +103,11 @@ export default function Dashboard() {
 
       {/* Bottom grid */}
       <div className="dashboard-bottom" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-        {/* Active Projects */}
-        <div>
+
+        {/* Left column: Active Projects + To-Do List */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+          {/* Active Projects */}
           <div className="card">
             <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: 'var(--text)' }}>
               Active Projects
@@ -134,10 +137,59 @@ export default function Dashboard() {
               })
             )}
           </div>
+
+          {/* To-Do List */}
+          <div className="card">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+              <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>
+                To-Do List
+                {todos.length > 0 && (
+                  <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-muted)', marginLeft: 8 }}>
+                    {openCount} open &middot; {todos.length} total
+                  </span>
+                )}
+              </div>
+              <span
+                style={{ fontSize: 12, color: 'var(--primary-dark)', cursor: 'pointer', fontWeight: 500 }}
+                onClick={() => setView('planner')}
+              >
+                Open weekly planner →
+              </span>
+            </div>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14 }}>
+              Quick captures for this week. Open the planner to schedule meetings and tasks by day.
+            </div>
+            <div className="todo-list">
+              {sortedTodos.length === 0 && (
+                <div style={{ fontSize: 13, color: 'var(--text-faint)', fontStyle: 'italic', padding: '8px 4px' }}>No to-dos yet.</div>
+              )}
+              {sortedTodos.map(t => (
+                <div key={t.id} className={`todo-item${t.done ? ' done' : ''}`}>
+                  <span className={`todo-check${t.done ? ' checked' : ''}`} onClick={() => toggleTodo(t.id)}>
+                    {t.done && <CheckIcon />}
+                  </span>
+                  <span className="todo-text" onClick={() => toggleTodo(t.id)}>{t.text}</span>
+                  <button className="todo-del" onClick={() => deleteTodo(t.id)} title="Delete">&#215;</button>
+                </div>
+              ))}
+            </div>
+            <div className="todo-input-row">
+              <input
+                ref={todoRef}
+                value={todoInput}
+                onChange={e => setTodoInput(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') handleAddTodo(); }}
+                placeholder="Add a to-do..."
+              />
+              <button onClick={handleAddTodo}>Add</button>
+            </div>
+          </div>
+
         </div>
 
-        {/* Right column */}
+        {/* Right column: Upcoming Deadlines + Recent Notes */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+
           {/* Upcoming deadlines */}
           <div className="card">
             <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 0, color: 'var(--text)' }}>Upcoming Deadlines</div>
@@ -192,52 +244,6 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* To-Do List widget */}
-          <div className="card">
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-              <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>
-                To-Do List
-                {todos.length > 0 && (
-                  <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-muted)', marginLeft: 8 }}>
-                    {openCount} open &middot; {todos.length} total
-                  </span>
-                )}
-              </div>
-              <span
-                style={{ fontSize: 12, color: 'var(--primary-dark)', cursor: 'pointer', fontWeight: 500 }}
-                onClick={() => setView('planner')}
-              >
-                Open weekly planner →
-              </span>
-            </div>
-            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14 }}>
-              Quick captures for this week. Open the planner to schedule meetings and tasks by day.
-            </div>
-            <div className="todo-list">
-              {sortedTodos.length === 0 && (
-                <div style={{ fontSize: 13, color: 'var(--text-faint)', fontStyle: 'italic', padding: '8px 4px' }}>No to-dos yet.</div>
-              )}
-              {sortedTodos.map(t => (
-                <div key={t.id} className={`todo-item${t.done ? ' done' : ''}`}>
-                  <span className={`todo-check${t.done ? ' checked' : ''}`} onClick={() => toggleTodo(t.id)}>
-                    {t.done && <CheckIcon />}
-                  </span>
-                  <span className="todo-text" onClick={() => toggleTodo(t.id)}>{t.text}</span>
-                  <button className="todo-del" onClick={() => deleteTodo(t.id)} title="Delete">&#215;</button>
-                </div>
-              ))}
-            </div>
-            <div className="todo-input-row">
-              <input
-                ref={todoRef}
-                value={todoInput}
-                onChange={e => setTodoInput(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') handleAddTodo(); }}
-                placeholder="Add a to-do..."
-              />
-              <button onClick={handleAddTodo}>Add</button>
-            </div>
-          </div>
         </div>
       </div>
     </div>

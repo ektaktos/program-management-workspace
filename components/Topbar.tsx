@@ -14,7 +14,7 @@ const VIEW_META: Record<string, { title: string; subtitle: string }> = {
 };
 
 export default function Topbar() {
-  const { currentView, activeProjectId, projects, toasts, sidebarOpen, setSidebarOpen, setView, deleteProject } = useAppStore();
+  const { currentView, activeProjectId, projects, toasts, sidebarOpen, setSidebarOpen, setView, deleteProject, setPlannerModalTrigger } = useAppStore();
   const [editProject, setEditProject] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -83,6 +83,19 @@ export default function Topbar() {
         </div>
 
         <div className="topbar-actions" style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+          {currentView === 'planner' && (
+            <>
+              <button className="btn btn-primary btn-sm" onClick={() => setPlannerModalTrigger('task')}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ width: 13, height: 13 }}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span className="btn-label">New Task</span>
+              </button>
+              <button className="btn btn-outline btn-sm" onClick={() => setPlannerModalTrigger('appt')}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ width: 13, height: 13 }}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span className="btn-label">New Meeting</span>
+              </button>
+            </>
+          )}
+
           {isProject && project && (
             <>
               <button className="btn btn-outline btn-sm" onClick={() => setEditProject(true)}>
