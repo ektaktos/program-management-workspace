@@ -50,16 +50,15 @@ function EventModal({ presetDate, event, onClose }: EventModalProps) {
   const { addPlannerEvent, updatePlannerEvent, deletePlannerEvent } = useAppStore();
   const [title, setTitle] = useState(event?.title ?? '');
   const [date, setDate] = useState(event?.date ?? presetDate ?? '');
-  const [time, setTime] = useState(event?.time ?? '');
   const [category, setCategory] = useState(event?.category ?? 'personal');
   const [notes, setNotes] = useState(event?.notes ?? '');
 
   function handleSave() {
     if (!title.trim() || !date) return;
     if (event) {
-      updatePlannerEvent(event.id, { title: title.trim(), date, time: time || undefined, category, notes });
+      updatePlannerEvent(event.id, { title: title.trim(), date, category, notes });
     } else {
-      addPlannerEvent({ title: title.trim(), date, time: time || undefined, category, notes, done: false });
+      addPlannerEvent({ title: title.trim(), date, category, notes, done: false });
     }
     onClose();
   }
@@ -70,7 +69,7 @@ function EventModal({ presetDate, event, onClose }: EventModalProps) {
         <div className="modal-title">{event ? 'Edit Task' : 'New Task'}</div>
         <div className="form-group">
           <label>Title</label>
-          <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Task title..." autoFocus />
+          <input value={title} onChange={e => setTitle(e.target.value)} placeholder="What's happening?" autoFocus />
         </div>
         <div className="form-row">
           <div className="form-group">
@@ -78,19 +77,15 @@ function EventModal({ presetDate, event, onClose }: EventModalProps) {
             <input type="date" value={date} onChange={e => setDate(e.target.value)} />
           </div>
           <div className="form-group">
-            <label>Time (optional)</label>
-            <input type="time" value={time} onChange={e => setTime(e.target.value)} />
+            <label>Category</label>
+            <select value={category} onChange={e => setCategory(e.target.value)}>
+              {CATEGORIES.map(c => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
+            </select>
           </div>
         </div>
         <div className="form-group">
-          <label>Category</label>
-          <select value={category} onChange={e => setCategory(e.target.value)}>
-            {CATEGORIES.map(c => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
-          </select>
-        </div>
-        <div className="form-group">
           <label>Notes</label>
-          <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Optional notes..." />
+          <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Anything to remember..." />
         </div>
         <div className="modal-footer">
           {event && (
@@ -100,7 +95,7 @@ function EventModal({ presetDate, event, onClose }: EventModalProps) {
           )}
           <button className="btn btn-outline btn-sm" onClick={onClose}>Cancel</button>
           <button className="btn btn-primary btn-sm" onClick={handleSave} disabled={!title.trim() || !date}>
-            {event ? 'Save' : 'Add Task'}
+            Save Task
           </button>
         </div>
       </div>
@@ -208,6 +203,7 @@ export default function WeeklyPlanner() {
 
   // Goal input
   const [goalInput, setGoalInput] = useState('');
+  const [goalInputVisible, setGoalInputVisible] = useState(false);
 
   // Week data
   const weekStart = getWeekStart(plannerWeekOffset);
@@ -235,6 +231,11 @@ export default function WeeklyPlanner() {
     const newGoal = { id: uid(), text: goalInput.trim(), done: false };
     updatePlannerWeekly(weekKey, { goals: [...weekData.goals, newGoal] });
     setGoalInput('');
+    setGoalInputVisible(false);
+  }
+
+  function deleteGoal(id: string) {
+    updatePlannerWeekly(weekKey, { goals: weekData.goals.filter(g => g.id !== id) });
   }
 
   function toggleGoal(id: string) {
@@ -325,14 +326,14 @@ export default function WeeklyPlanner() {
             </div>
           </div>
 
-          {/* Focus / Priority for week */}
+          {/* Due this week */}
           <div className="card">
             <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>Due this week</div>
-            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 12 }}>What is the single most important thing this week?</div>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 12 }}>Where will most of your energy go this week?</div>
             <input
               value={weekData.focus}
               onChange={e => updatePlannerWeekly(weekKey, { focus: e.target.value })}
-              placeholder="My top focus for the week..."
+              placeholder="e.g. brand launch, deep work…"
               style={{ marginBottom: 0 }}
             />
           </div>
@@ -355,12 +356,13 @@ export default function WeeklyPlanner() {
 
           {/* Priorities card */}
           <div className="card" style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', marginBottom: 12 }}>
-              Priorities this week
+            <div style={{ marginBottom: 12, display: 'flex', alignItems: 'baseline', gap: 10 }}>
+              <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>Priorities</span>
+              <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 500 }}>Top tasks for this week</span>
             </div>
-            {weekData.goals.length === 0 && (
-              <div style={{ fontSize: 13, color: 'var(--text-faint)', fontStyle: 'italic', marginBottom: 10 }}>
-                No priorities set yet — add some below.
+            {weekData.goals.length === 0 && !goalInputVisible && (
+              <div style={{ fontSize: 12.5, color: 'var(--text-muted)', padding: '12px 6px', textAlign: 'center', fontStyle: 'italic' }}>
+                Set 1–3 intentions for the week.
               </div>
             )}
             {weekData.goals.map(g => (
@@ -369,18 +371,31 @@ export default function WeeklyPlanner() {
                   {g.done && <CheckIcon />}
                 </span>
                 <span className="pgoal-text">{g.text}</span>
+                <button className="pgoal-del" onClick={() => deleteGoal(g.id)} title="Remove">×</button>
               </div>
             ))}
-            <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-              <input
-                value={goalInput}
-                onChange={e => setGoalInput(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') handleAddGoal(); }}
-                placeholder="Add a priority..."
-                style={{ flex: 1 }}
-              />
-              <button className="btn btn-primary btn-sm" onClick={handleAddGoal}>Add</button>
-            </div>
+            {goalInputVisible && (
+              <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+                <input
+                  autoFocus
+                  value={goalInput}
+                  onChange={e => setGoalInput(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') { handleAddGoal(); }
+                    if (e.key === 'Escape') { setGoalInputVisible(false); setGoalInput(''); }
+                  }}
+                  placeholder="e.g. finish brand deck, ship v2…"
+                  style={{ flex: 1 }}
+                />
+                <button className="btn btn-primary btn-sm" onClick={handleAddGoal}>Add</button>
+                <button className="btn btn-ghost btn-sm" onClick={() => { setGoalInputVisible(false); setGoalInput(''); }}>✕</button>
+              </div>
+            )}
+            {!goalInputVisible && (
+              <button className="btn btn-outline btn-sm" style={{ marginTop: 10 }} onClick={() => setGoalInputVisible(true)}>
+                + Add priority
+              </button>
+            )}
           </div>
 
           {/* Week grid */}
