@@ -1,10 +1,11 @@
 'use client';
 
 import { create } from 'zustand';
-import { AppState, Project, Task, Milestone, Phase, Note } from '@/lib/types';
+import { AppState, Project, Task, Milestone, Phase, Note, Todo, PlannerEvent, PlannerAppointment, PlannerWeekData } from '@/lib/types';
 import { uid, autoMarkOverdue } from '@/lib/utils';
 
-const NOTIFIED_KEY = 'pm_oyint_notified';
+const NOTIFIED_KEY  = 'pm_oyint_notified';
+const PLANNER_KEY   = 'pm_oyint_planner';
 
 function loadNotified(): string[] {
   if (typeof window === 'undefined') return [];
@@ -13,6 +14,28 @@ function loadNotified(): string[] {
 function saveNotified(ids: string[]) {
   if (typeof window === 'undefined') return;
   localStorage.setItem(NOTIFIED_KEY, JSON.stringify(ids));
+}
+
+interface PlannerLocalData {
+  todos: Todo[];
+  plannerEvents: PlannerEvent[];
+  plannerAppointments: PlannerAppointment[];
+  plannerWeekly: Record<string, PlannerWeekData>;
+  plannerWeekOffset: number;
+}
+
+function loadPlannerData(): PlannerLocalData {
+  if (typeof window === 'undefined') return { todos: [], plannerEvents: [], plannerAppointments: [], plannerWeekly: {}, plannerWeekOffset: 0 };
+  try {
+    const raw = localStorage.getItem(PLANNER_KEY);
+    if (!raw) return { todos: [], plannerEvents: [], plannerAppointments: [], plannerWeekly: {}, plannerWeekOffset: 0 };
+    return JSON.parse(raw);
+  } catch { return { todos: [], plannerEvents: [], plannerAppointments: [], plannerWeekly: {}, plannerWeekOffset: 0 }; }
+}
+
+function savePlannerData(data: PlannerLocalData) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(PLANNER_KEY, JSON.stringify(data));
 }
 
 async function api(path: string, method = 'GET', body?: unknown) {
@@ -42,7 +65,15 @@ interface UIState {
   sidebarOpen: boolean;
 }
 
-interface Store extends AppState, UIState {
+interface PlannerState {
+  todos: Todo[];
+  plannerEvents: PlannerEvent[];
+  plannerAppointments: PlannerAppointment[];
+  plannerWeekly: Record<string, PlannerWeekData>;
+  plannerWeekOffset: number;
+}
+
+interface Store extends AppState, UIState, PlannerState {
   loadAll: () => Promise<void>;
 
   setView: (view: string, projectId?: string) => void;
@@ -76,6 +107,21 @@ interface Store extends AppState, UIState {
   removeToast:  (id: string)           => void;
   runAlertCheck:  () => void;
   runAutoOverdue: () => Promise<void>;
+
+  addTodo: (text: string) => void;
+  toggleTodo: (id: string) => void;
+  deleteTodo: (id: string) => void;
+
+  addPlannerEvent: (ev: Omit<PlannerEvent, 'id' | 'createdAt'>) => void;
+  updatePlannerEvent: (id: string, data: Partial<PlannerEvent>) => void;
+  deletePlannerEvent: (id: string) => void;
+
+  addPlannerAppointment: (appt: Omit<PlannerAppointment, 'id' | 'createdAt'>) => void;
+  updatePlannerAppointment: (id: string, data: Partial<PlannerAppointment>) => void;
+  deletePlannerAppointment: (id: string) => void;
+
+  setPlannerWeekOffset: (n: number) => void;
+  updatePlannerWeekly: (weekKey: string, data: Partial<PlannerWeekData>) => void;
 }
 
 export const useAppStore = create<Store>((set, get) => ({
@@ -86,6 +132,13 @@ export const useAppStore = create<Store>((set, get) => ({
   phases:         [],
   notes:          [],
   notifiedAlerts: [],
+
+  // ── Planner ──
+  todos:                [],
+  plannerEvents:        [],
+  plannerAppointments:  [],
+  plannerWeekly:        {},
+  plannerWeekOffset:    0,
 
   // ── UI ──
   isLoaded:        false,
@@ -100,16 +153,18 @@ export const useAppStore = create<Store>((set, get) => ({
   loadAll: async () => {
     try {
       const data: AppState = await api('/api/data');
+      const planner = loadPlannerData();
       if (data.projects.length === 0) {
         await api('/api/seed', 'POST');
         const seeded: AppState = await api('/api/data');
-        set({ ...seeded, notifiedAlerts: loadNotified(), isLoaded: true });
+        set({ ...seeded, notifiedAlerts: loadNotified(), ...planner, isLoaded: true });
       } else {
-        set({ ...data, notifiedAlerts: loadNotified(), isLoaded: true });
+        set({ ...data, notifiedAlerts: loadNotified(), ...planner, isLoaded: true });
       }
     } catch (err) {
       console.error('loadAll failed:', err);
-      set({ isLoaded: true });
+      const planner = loadPlannerData();
+      set({ ...planner, isLoaded: true });
     }
   },
 
@@ -222,6 +277,83 @@ export const useAppStore = create<Store>((set, get) => ({
   deleteNote: async (id) => {
     set(s => ({ notes: s.notes.filter(x => x.id !== id) }));
     await api(`/api/notes/${id}`, 'DELETE').catch(console.error);
+  },
+
+  // ── Todos ──
+  addTodo: (text) => {
+    const todo: Todo = { id: uid(), text, done: false, createdAt: Date.now() };
+    set(s => ({ todos: [todo, ...s.todos] }));
+    const { todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset } = get();
+    savePlannerData({ todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset });
+  },
+  toggleTodo: (id) => {
+    set(s => ({ todos: s.todos.map(t => t.id === id ? { ...t, done: !t.done } : t) }));
+    const { todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset } = get();
+    savePlannerData({ todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset });
+  },
+  deleteTodo: (id) => {
+    set(s => ({ todos: s.todos.filter(t => t.id !== id) }));
+    const { todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset } = get();
+    savePlannerData({ todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset });
+  },
+
+  // ── Planner Events ──
+  addPlannerEvent: (ev) => {
+    const event: PlannerEvent = { ...ev, id: uid(), createdAt: Date.now() };
+    set(s => ({ plannerEvents: [...s.plannerEvents, event] }));
+    const { todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset } = get();
+    savePlannerData({ todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset });
+  },
+  updatePlannerEvent: (id, data) => {
+    set(s => ({ plannerEvents: s.plannerEvents.map(e => e.id === id ? { ...e, ...data } : e) }));
+    const { todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset } = get();
+    savePlannerData({ todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset });
+  },
+  deletePlannerEvent: (id) => {
+    set(s => ({ plannerEvents: s.plannerEvents.filter(e => e.id !== id) }));
+    const { todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset } = get();
+    savePlannerData({ todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset });
+  },
+
+  // ── Planner Appointments ──
+  addPlannerAppointment: (appt) => {
+    const appointment: PlannerAppointment = { ...appt, id: uid(), createdAt: Date.now() };
+    set(s => ({ plannerAppointments: [...s.plannerAppointments, appointment] }));
+    const { todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset } = get();
+    savePlannerData({ todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset });
+  },
+  updatePlannerAppointment: (id, data) => {
+    set(s => ({ plannerAppointments: s.plannerAppointments.map(a => a.id === id ? { ...a, ...data } : a) }));
+    const { todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset } = get();
+    savePlannerData({ todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset });
+  },
+  deletePlannerAppointment: (id) => {
+    set(s => ({ plannerAppointments: s.plannerAppointments.filter(a => a.id !== id) }));
+    const { todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset } = get();
+    savePlannerData({ todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset });
+  },
+
+  // ── Planner weekly meta ──
+  setPlannerWeekOffset: (n) => {
+    set({ plannerWeekOffset: n });
+    const { todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset } = get();
+    savePlannerData({ todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset: n });
+  },
+  updatePlannerWeekly: (weekKey, data) => {
+    set(s => ({
+      plannerWeekly: {
+        ...s.plannerWeekly,
+        [weekKey]: {
+          goals: [],
+          notes: '',
+          focus: '',
+          ...s.plannerWeekly[weekKey],
+          ...data,
+        },
+      },
+    }));
+    const { todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset } = get();
+    savePlannerData({ todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset });
   },
 
   // ── Toasts ──

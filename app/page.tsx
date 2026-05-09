@@ -9,6 +9,7 @@ import AllProjects from '@/components/views/AllProjects';
 import AllTasks from '@/components/views/AllTasks';
 import Upcoming from '@/components/views/Upcoming';
 import ProjectDetail from '@/components/views/ProjectDetail';
+import WeeklyPlanner from '@/components/views/WeeklyPlanner';
 import ToastContainer from '@/components/ui/Toast';
 
 export default function Home() {
@@ -62,6 +63,7 @@ export default function Home() {
           {currentView === 'tasks'     && <AllTasks />}
           {currentView === 'upcoming'  && <Upcoming />}
           {currentView === 'project'   && <ProjectDetail />}
+          {currentView === 'planner'   && <WeeklyPlanner />}
         </main>
       </div>
       <ToastContainer />

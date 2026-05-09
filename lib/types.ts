@@ -64,6 +64,40 @@ export interface Note {
   createdAt: number;
 }
 
+export interface Todo {
+  id: string;
+  text: string;
+  done: boolean;
+  createdAt: number;
+}
+
+export interface PlannerEvent {
+  id: string;
+  title: string;
+  date: string;
+  category: string;
+  notes: string;
+  done: boolean;
+  createdAt: number;
+  time?: string;
+}
+
+export interface PlannerAppointment {
+  id: string;
+  title: string;
+  date: string;
+  time: string;
+  notes: string;
+  done: boolean;
+  createdAt: number;
+}
+
+export interface PlannerWeekData {
+  goals: { id: string; text: string; done: boolean }[];
+  notes: string;
+  focus: string;
+}
+
 export interface AppState {
   projects: Project[];
   tasks: Task[];

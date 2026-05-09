@@ -9,7 +9,8 @@ const VIEW_META: Record<string, { title: string; subtitle: string }> = {
   dashboard: { title: 'Dashboard',         subtitle: 'A gentle overview of everything' },
   projects:  { title: 'All Projects',       subtitle: 'Browse and manage all your projects' },
   tasks:     { title: 'All Tasks',          subtitle: 'Every task across every project' },
-  upcoming:  { title: 'Upcoming',           subtitle: 'Deadlines and milestones on the horizon' },
+  upcoming:  { title: 'Upcoming Deadlines',  subtitle: 'What is on the horizon' },
+  planner:   { title: 'Weekly Planner',     subtitle: 'Plan your week, day by day' },
 };
 
 export default function Topbar() {
