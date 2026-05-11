@@ -38,6 +38,22 @@ function savePlannerData(data: PlannerLocalData) {
   localStorage.setItem(PLANNER_KEY, JSON.stringify(data));
 }
 
+function isoDate(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function calcNextDue(iso: string, pattern: string): string | null {
+  const d = new Date(iso + 'T00:00:00');
+  switch (pattern) {
+    case 'daily':   d.setDate(d.getDate() + 1); break;
+    case 'weekly':  d.setDate(d.getDate() + 7); break;
+    case 'monthly': d.setMonth(d.getMonth() + 1); break;
+    case 'yearly':  d.setFullYear(d.getFullYear() + 1); break;
+    default: return null;
+  }
+  return isoDate(d);
+}
+
 async function api(path: string, method = 'GET', body?: unknown) {
   const res = await fetch(path, {
     method,
@@ -227,6 +243,12 @@ export const useAppStore = create<Store>((set, get) => ({
     await api(`/api/tasks/${id}`, 'DELETE').catch(console.error);
   },
   toggleTaskDone: async (id) => {
+    const task = get().tasks.find(t => t.id === id);
+    if (!task) return;
+
+    const isMarkingDone = task.status !== 'done';
+
+    // Toggle the current task
     set(s => ({
       tasks: s.tasks.map(t =>
         t.id !== id ? t : { ...t, status: t.status === 'done' ? 'todo' : 'done' }
@@ -234,6 +256,26 @@ export const useAppStore = create<Store>((set, get) => ({
     }));
     const updated = get().tasks.find(x => x.id === id);
     await api(`/api/tasks/${id}`, 'PUT', updated).catch(console.error);
+
+    // When marking done, spawn the next recurrence instance
+    if (isMarkingDone && task.recurring && task.due) {
+      const nextDue = calcNextDue(task.due, task.recurring);
+      if (nextDue) {
+        const nextTask: Task = {
+          ...task,
+          id: uid(),
+          status: 'todo',
+          due: nextDue,
+        };
+        set(s => ({ tasks: [...s.tasks, nextTask] }));
+        await api('/api/tasks', 'POST', nextTask).catch(console.error);
+        get().addToast({
+          title: 'Recurring task',
+          message: `Next "${task.title}" scheduled for ${nextDue}`,
+          type: 'info',
+        });
+      }
+    }
   },
 
   // ── Milestones ──
