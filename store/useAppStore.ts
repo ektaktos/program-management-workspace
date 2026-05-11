@@ -16,26 +16,22 @@ function saveNotified(ids: string[]) {
   localStorage.setItem(NOTIFIED_KEY, JSON.stringify(ids));
 }
 
-interface PlannerLocalData {
-  todos: Todo[];
-  plannerEvents: PlannerEvent[];
-  plannerAppointments: PlannerAppointment[];
-  plannerWeekly: Record<string, PlannerWeekData>;
-  plannerWeekOffset: number;
-}
-
-function loadPlannerData(): PlannerLocalData {
-  if (typeof window === 'undefined') return { todos: [], plannerEvents: [], plannerAppointments: [], plannerWeekly: {}, plannerWeekOffset: 0 };
+// Read legacy localStorage planner data for one-time migration
+function readLegacyPlannerData() {
+  if (typeof window === 'undefined') return null;
   try {
     const raw = localStorage.getItem(PLANNER_KEY);
-    if (!raw) return { todos: [], plannerEvents: [], plannerAppointments: [], plannerWeekly: {}, plannerWeekOffset: 0 };
-    return JSON.parse(raw);
-  } catch { return { todos: [], plannerEvents: [], plannerAppointments: [], plannerWeekly: {}, plannerWeekOffset: 0 }; }
+    if (!raw) return null;
+    return JSON.parse(raw) as {
+      todos?: Todo[];
+      plannerEvents?: PlannerEvent[];
+      plannerAppointments?: PlannerAppointment[];
+      plannerWeekly?: Record<string, PlannerWeekData>;
+    };
+  } catch { return null; }
 }
-
-function savePlannerData(data: PlannerLocalData) {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem(PLANNER_KEY, JSON.stringify(data));
+function clearLegacyPlannerData() {
+  if (typeof window !== 'undefined') localStorage.removeItem(PLANNER_KEY);
 }
 
 function isoDate(d: Date): string {
@@ -173,19 +169,48 @@ export const useAppStore = create<Store>((set, get) => ({
   // ── Bootstrap ──
   loadAll: async () => {
     try {
-      const data: AppState = await api('/api/data');
-      const planner = loadPlannerData();
+      const [data, plannerData]: [AppState, {
+        todos: Todo[];
+        plannerEvents: PlannerEvent[];
+        plannerAppointments: PlannerAppointment[];
+        plannerWeekly: Record<string, PlannerWeekData>;
+      }] = await Promise.all([
+        api('/api/data'),
+        api('/api/planner/data'),
+      ]);
+
       if (data.projects.length === 0) {
         await api('/api/seed', 'POST');
         const seeded: AppState = await api('/api/data');
-        set({ ...seeded, notifiedAlerts: loadNotified(), ...planner, isLoaded: true });
+        set({ ...seeded, notifiedAlerts: loadNotified(), ...plannerData, isLoaded: true });
       } else {
-        set({ ...data, notifiedAlerts: loadNotified(), ...planner, isLoaded: true });
+        set({ ...data, notifiedAlerts: loadNotified(), ...plannerData, isLoaded: true });
+      }
+
+      // One-time migration: if DB planner is empty but localStorage has data, migrate it
+      const legacy = readLegacyPlannerData();
+      if (legacy && plannerData.todos.length === 0 && plannerData.plannerEvents.length === 0 && plannerData.plannerAppointments.length === 0) {
+        const migrationCalls: Promise<unknown>[] = [];
+        for (const t of legacy.todos ?? []) migrationCalls.push(api('/api/planner/todos', 'POST', t).catch(() => {}));
+        for (const e of legacy.plannerEvents ?? []) migrationCalls.push(api('/api/planner/events', 'POST', e).catch(() => {}));
+        for (const a of legacy.plannerAppointments ?? []) migrationCalls.push(api('/api/planner/appointments', 'POST', a).catch(() => {}));
+        for (const [weekKey, weekData] of Object.entries(legacy.plannerWeekly ?? {})) {
+          migrationCalls.push(api(`/api/planner/weekly/${weekKey}`, 'PUT', weekData).catch(() => {}));
+        }
+        if (migrationCalls.length > 0) {
+          await Promise.all(migrationCalls);
+          set({
+            todos:               legacy.todos ?? [],
+            plannerEvents:       legacy.plannerEvents ?? [],
+            plannerAppointments: legacy.plannerAppointments ?? [],
+            plannerWeekly:       legacy.plannerWeekly ?? {},
+          });
+        }
+        clearLegacyPlannerData();
       }
     } catch (err) {
       console.error('loadAll failed:', err);
-      const planner = loadPlannerData();
-      set({ ...planner, isLoaded: true });
+      set({ isLoaded: true });
     }
   },
 
@@ -330,85 +355,68 @@ export const useAppStore = create<Store>((set, get) => ({
   addTodo: (text) => {
     const todo: Todo = { id: uid(), text, done: false, createdAt: Date.now() };
     set(s => ({ todos: [todo, ...s.todos] }));
-    const { todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset } = get();
-    savePlannerData({ todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset });
+    api('/api/planner/todos', 'POST', todo).catch(console.error);
   },
   updateTodo: (id, text) => {
     set(s => ({ todos: s.todos.map(t => t.id === id ? { ...t, text } : t) }));
-    const { todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset } = get();
-    savePlannerData({ todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset });
+    const updated = get().todos.find(t => t.id === id);
+    api(`/api/planner/todos/${id}`, 'PUT', updated).catch(console.error);
   },
   toggleTodo: (id) => {
     set(s => ({ todos: s.todos.map(t => t.id === id ? { ...t, done: !t.done } : t) }));
-    const { todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset } = get();
-    savePlannerData({ todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset });
+    const updated = get().todos.find(t => t.id === id);
+    api(`/api/planner/todos/${id}`, 'PUT', updated).catch(console.error);
   },
   deleteTodo: (id) => {
     set(s => ({ todos: s.todos.filter(t => t.id !== id) }));
-    const { todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset } = get();
-    savePlannerData({ todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset });
+    api(`/api/planner/todos/${id}`, 'DELETE').catch(console.error);
   },
 
   // ── Planner Events ──
   addPlannerEvent: (ev) => {
     const event: PlannerEvent = { ...ev, id: uid(), createdAt: Date.now() };
     set(s => ({ plannerEvents: [...s.plannerEvents, event] }));
-    const { todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset } = get();
-    savePlannerData({ todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset });
+    api('/api/planner/events', 'POST', event).catch(console.error);
   },
   updatePlannerEvent: (id, data) => {
     set(s => ({ plannerEvents: s.plannerEvents.map(e => e.id === id ? { ...e, ...data } : e) }));
-    const { todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset } = get();
-    savePlannerData({ todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset });
+    const updated = get().plannerEvents.find(e => e.id === id);
+    api(`/api/planner/events/${id}`, 'PUT', updated).catch(console.error);
   },
   deletePlannerEvent: (id) => {
     set(s => ({ plannerEvents: s.plannerEvents.filter(e => e.id !== id) }));
-    const { todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset } = get();
-    savePlannerData({ todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset });
+    api(`/api/planner/events/${id}`, 'DELETE').catch(console.error);
   },
 
   // ── Planner Appointments ──
   addPlannerAppointment: (appt) => {
     const appointment: PlannerAppointment = { ...appt, id: uid(), createdAt: Date.now() };
     set(s => ({ plannerAppointments: [...s.plannerAppointments, appointment] }));
-    const { todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset } = get();
-    savePlannerData({ todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset });
+    api('/api/planner/appointments', 'POST', appointment).catch(console.error);
   },
   updatePlannerAppointment: (id, data) => {
     set(s => ({ plannerAppointments: s.plannerAppointments.map(a => a.id === id ? { ...a, ...data } : a) }));
-    const { todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset } = get();
-    savePlannerData({ todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset });
+    const updated = get().plannerAppointments.find(a => a.id === id);
+    api(`/api/planner/appointments/${id}`, 'PUT', updated).catch(console.error);
   },
   deletePlannerAppointment: (id) => {
     set(s => ({ plannerAppointments: s.plannerAppointments.filter(a => a.id !== id) }));
-    const { todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset } = get();
-    savePlannerData({ todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset });
+    api(`/api/planner/appointments/${id}`, 'DELETE').catch(console.error);
   },
 
   // ── Planner weekly meta ──
-  setPlannerWeekOffset: (n) => {
-    set({ plannerWeekOffset: n });
-    const { todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset } = get();
-    savePlannerData({ todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset: n });
-  },
+  setPlannerWeekOffset: (n) => set({ plannerWeekOffset: n }),
   setPlannerModalTrigger: (v) => set({ plannerModalTrigger: v }),
 
   updatePlannerWeekly: (weekKey, data) => {
     set(s => {
       const defaults: PlannerWeekData = { goals: [], notes: '', focus: '', focusItems: [] };
       const existing = s.plannerWeekly[weekKey] ?? defaults;
-      return {
-        plannerWeekly: {
-          ...s.plannerWeekly,
-          [weekKey]: {
-            ...existing,
-            ...data,
-          },
-        },
-      };
+      const merged = { ...existing, ...data };
+      return { plannerWeekly: { ...s.plannerWeekly, [weekKey]: merged } };
     });
-    const { todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset } = get();
-    savePlannerData({ todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset });
+    const weekData = get().plannerWeekly[weekKey];
+    api(`/api/planner/weekly/${weekKey}`, 'PUT', weekData).catch(console.error);
   },
 
   // ── Toasts ──

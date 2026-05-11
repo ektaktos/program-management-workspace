@@ -1,4 +1,4 @@
-import { Alert, Note, Subtask, Task } from './types';
+import { Alert, Note, PlannerAppointment, PlannerEvent, PlannerWeekData, Subtask, Task, Todo } from './types';
 
 export function toTask(t: Record<string, unknown>): Task {
   return {
@@ -30,5 +30,57 @@ export function toNote(n: Record<string, unknown>): Note {
       : typeof n.createdAt === 'string'
         ? new Date(n.createdAt).getTime()
         : Number(n.createdAt),
+  };
+}
+
+function toMs(createdAt: unknown): number {
+  if (createdAt instanceof Date) return createdAt.getTime();
+  if (typeof createdAt === 'string') return new Date(createdAt).getTime();
+  return Number(createdAt);
+}
+
+export function toTodo(t: Record<string, unknown>): Todo {
+  return {
+    id:        t.id as string,
+    text:      t.text as string,
+    done:      Boolean(t.done),
+    createdAt: toMs(t.createdAt),
+  };
+}
+
+export function toPlannerEvent(e: Record<string, unknown>): PlannerEvent {
+  return {
+    id:        e.id as string,
+    title:     e.title as string,
+    date:      e.date as string,
+    category:  e.category as string,
+    notes:     (e.notes as string) ?? '',
+    done:      Boolean(e.done),
+    time:      (e.time as string) ?? undefined,
+    createdAt: toMs(e.createdAt),
+  };
+}
+
+export function toPlannerAppointment(a: Record<string, unknown>): PlannerAppointment {
+  return {
+    id:        a.id as string,
+    title:     a.title as string,
+    date:      a.date as string,
+    time:      a.time as string,
+    notes:     (a.notes as string) ?? '',
+    done:      Boolean(a.done),
+    createdAt: toMs(a.createdAt),
+  };
+}
+
+export function toPlannerWeekly(w: Record<string, unknown>): { weekKey: string; data: PlannerWeekData } {
+  return {
+    weekKey: w.weekKey as string,
+    data: {
+      goals:      (w.goals as PlannerWeekData['goals']) ?? [],
+      notes:      (w.notes as string) ?? '',
+      focus:      (w.focus as string) ?? '',
+      focusItems: (w.focusItems as PlannerWeekData['focusItems']) ?? [],
+    },
   };
 }

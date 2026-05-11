@@ -69,3 +69,39 @@ model Note {
   createdAt DateTime @default(now())
   project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
+
+model PlannerTodo {
+  id        String   @id
+  text      String
+  done      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model PlannerEvent {
+  id        String   @id
+  title     String
+  date      String
+  category  String
+  notes     String   @db.Text
+  done      Boolean  @default(false)
+  time      String?
+  createdAt DateTime @default(now())
+}
+
+model PlannerAppointment {
+  id        String   @id
+  title     String
+  date      String
+  time      String
+  notes     String   @db.Text
+  done      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model PlannerWeekly {
+  weekKey    String @id
+  goals      Json   @default("[]")
+  notes      String @db.Text @default("")
+  focus      String @default("")
+  focusItems Json   @default("[]")
+}
