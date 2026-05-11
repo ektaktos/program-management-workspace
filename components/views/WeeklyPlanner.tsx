@@ -508,16 +508,18 @@ export default function WeeklyPlanner() {
                             className={`pevent cat-${ev.category}${ev.done ? ' done' : ''}`}
                             onClick={() => setEditEventModal({ open: true, event: ev })}
                           >
-                            <span
+                            <button
+                              type="button"
                               className={`pevent-check${ev.done ? ' checked' : ''}`}
-                              onClick={e => { e.stopPropagation(); updatePlannerEvent(ev.id, { done: !ev.done }); }}
+                              onMouseDown={e => e.stopPropagation()}
+                              onClick={e => { e.stopPropagation(); e.preventDefault(); updatePlannerEvent(ev.id, { done: !ev.done }); }}
                             >
                               {ev.done && (
                                 <svg viewBox="0 0 12 12" fill="none" style={{ width: 5, height: 5 }}>
                                   <polyline points="2,6 5,9 10,3" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
                                 </svg>
                               )}
-                            </span>
+                            </button>
                             <div className="pevent-title">{ev.title}</div>
                           </div>
                         ))}
