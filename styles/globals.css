@@ -570,7 +570,6 @@ label {
 .planner-shell { display: grid; grid-template-columns: 300px 1fr; gap: 20px; align-items: start; }
 .planner-side { display: flex; flex-direction: column; gap: 16px; }
 .planner-main { min-width: 0; }
-.planner-week-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
 .pday { background: var(--bg); border-radius: 14px; padding: 14px 12px; min-height: 380px; display: flex; flex-direction: column; }
 .pday.today { background: #f4e8d2; border: 1px solid #e4d2b4; }
 .pday.weekend { background: #faf6ee; }
@@ -588,10 +587,15 @@ label {
 .pday-add-appt:hover { background: var(--accent-blush-light); color: #b06868; border-color: #f5c5d3; }
 .pday-empty { font-size: 10.5px; color: var(--text-faint); font-style: italic; padding: 2px 4px; }
 .pday-events { flex: 1; display: flex; flex-direction: column; gap: 6px; }
-.pevent { background: var(--surface); border-radius: 8px; padding: 7px 9px; line-height: 1.35; cursor: pointer; border-left: 3px solid var(--primary); transition: all 0.12s; }
+.pevent { background: var(--surface); border-radius: 8px; padding: 7px 9px; line-height: 1.35; cursor: pointer; border-left: 3px solid var(--primary); transition: all 0.12s; display: flex; align-items: flex-start; gap: 7px; }
 .pevent:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
-.pevent.done .pevent-title { opacity: 0.45; text-decoration: line-through; }
-.pevent-title { font-size: 11.5px; font-weight: 500; color: var(--text); }
+.pevent.done .pevent-title { opacity: 0.45; }
+.pevent-title { flex: 1; font-size: 11.5px; font-weight: 500; color: var(--text); word-break: break-word; }
+.pevent-check { width: 14px; height: 14px; border: 1.5px solid var(--border-strong); border-radius: 50%; cursor: pointer; flex-shrink: 0; margin-top: 1px; display: inline-flex; align-items: center; justify-content: center; background: var(--surface); transition: all 0.15s; }
+.pevent-check:hover { border-color: #5f441c; }
+.pevent-check.checked { background: #5f441c; border-color: #5f441c; }
+.planner-week-grid-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.planner-week-grid { display: grid; grid-template-columns: repeat(7, minmax(110px, 1fr)); gap: 10px; }
 .pevent.cat-personal { border-left-color: #b6a4e8; }
 .pevent.cat-work { border-left-color: #8aaed1; }
 .pevent.cat-health { border-left-color: #b9dfc8; }
