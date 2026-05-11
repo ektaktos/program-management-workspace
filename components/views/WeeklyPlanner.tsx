@@ -176,6 +176,7 @@ export default function WeeklyPlanner() {
     plannerWeekly, updatePlannerWeekly,
     plannerWeekOffset, setPlannerWeekOffset,
     plannerModalTrigger, setPlannerModalTrigger,
+    sidebarOpen,
   } = useAppStore();
 
   const [layout, setLayout] = useState<'grid' | 'agenda'>('grid');
@@ -432,8 +433,8 @@ export default function WeeklyPlanner() {
 
           {/* Week grid */}
           {layout === 'grid' && (
-            <div className="card planner-week-grid-wrap" style={{ padding: 16 }}>
-              <div className="planner-week-grid">
+            <div className="card" style={{ padding: 16, overflowX: sidebarOpen ? 'auto' : 'visible' }}>
+              <div className="planner-week-grid" style={sidebarOpen ? { gridTemplateColumns: 'repeat(7, minmax(110px, 1fr))' } : undefined}>
                 {days.map((day, i) => {
                   const iso = isoOf(day);
                   const isToday = iso === todayIso;
@@ -488,8 +489,8 @@ export default function WeeklyPlanner() {
                               onClick={e => { e.stopPropagation(); updatePlannerEvent(ev.id, { done: !ev.done }); }}
                             >
                               {ev.done && (
-                                <svg viewBox="0 0 12 12" fill="none" style={{ width: 8, height: 8 }}>
-                                  <polyline points="2,6 5,9 10,3" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                <svg viewBox="0 0 12 12" fill="none" style={{ width: 6, height: 6 }}>
+                                  <polyline points="2,6 5,9 10,3" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
                                 </svg>
                               )}
                             </span>
