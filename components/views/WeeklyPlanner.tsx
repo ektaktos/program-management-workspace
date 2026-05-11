@@ -170,7 +170,7 @@ function ApptModal({ presetDate, appt, onClose }: ApptModalProps) {
 
 export default function WeeklyPlanner() {
   const {
-    todos, addTodo, toggleTodo, deleteTodo,
+    todos, addTodo, updateTodo, toggleTodo, deleteTodo,
     plannerEvents, updatePlannerEvent,
     plannerAppointments,
     plannerWeekly, updatePlannerWeekly,
@@ -201,6 +201,19 @@ export default function WeeklyPlanner() {
   // Todo input
   const [todoInput, setTodoInput] = useState('');
   const todoRef = useRef<HTMLInputElement>(null);
+  const [editingTodoId, setEditingTodoId] = useState<string | null>(null);
+  const [editingTodoText, setEditingTodoText] = useState('');
+
+  function startEditTodo(id: string, text: string) {
+    setEditingTodoId(id);
+    setEditingTodoText(text);
+  }
+  function saveEditTodo() {
+    if (editingTodoId && editingTodoText.trim()) updateTodo(editingTodoId, editingTodoText.trim());
+    setEditingTodoId(null);
+    setEditingTodoText('');
+  }
+  function cancelEditTodo() { setEditingTodoId(null); setEditingTodoText(''); }
 
   // Goal input
   const [goalInput, setGoalInput] = useState('');
@@ -322,7 +335,18 @@ export default function WeeklyPlanner() {
                   <span className={`todo-check${t.done ? ' checked' : ''}`} onClick={() => toggleTodo(t.id)}>
                     {t.done && <CheckIcon />}
                   </span>
-                  <span className="todo-text" onClick={() => toggleTodo(t.id)}>{t.text}</span>
+                  {editingTodoId === t.id ? (
+                    <input
+                      className="todo-edit-input"
+                      autoFocus
+                      value={editingTodoText}
+                      onChange={e => setEditingTodoText(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') saveEditTodo(); if (e.key === 'Escape') cancelEditTodo(); }}
+                      onBlur={saveEditTodo}
+                    />
+                  ) : (
+                    <span className="todo-text" onClick={() => startEditTodo(t.id, t.text)}>{t.text}</span>
+                  )}
                   <button className="todo-del" onClick={() => deleteTodo(t.id)} title="Delete">&#215;</button>
                 </div>
               ))}

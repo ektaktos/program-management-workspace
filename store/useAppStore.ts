@@ -109,6 +109,7 @@ interface Store extends AppState, UIState, PlannerState {
   runAutoOverdue: () => Promise<void>;
 
   addTodo: (text: string) => void;
+  updateTodo: (id: string, text: string) => void;
   toggleTodo: (id: string) => void;
   deleteTodo: (id: string) => void;
 
@@ -287,6 +288,11 @@ export const useAppStore = create<Store>((set, get) => ({
   addTodo: (text) => {
     const todo: Todo = { id: uid(), text, done: false, createdAt: Date.now() };
     set(s => ({ todos: [todo, ...s.todos] }));
+    const { todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset } = get();
+    savePlannerData({ todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset });
+  },
+  updateTodo: (id, text) => {
+    set(s => ({ todos: s.todos.map(t => t.id === id ? { ...t, text } : t) }));
     const { todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset } = get();
     savePlannerData({ todos, plannerEvents, plannerAppointments, plannerWeekly, plannerWeekOffset });
   },

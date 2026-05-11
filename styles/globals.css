@@ -591,7 +591,7 @@ label {
 .pevent:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
 .pevent.done .pevent-title { opacity: 0.6; }
 .pevent-title { font-size: 11.5px; font-weight: 500; color: var(--text); word-break: break-word; padding-right: 14px; }
-.pevent-check { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; border: 1.5px solid var(--border-strong); border-radius: 50%; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; background: var(--surface); transition: all 0.15s; }
+.pevent-check { position: absolute; top: 6px; right: 6px; width: 10px; height: 10px; border: 1.5px solid var(--border-strong); border-radius: 50%; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; background: var(--surface); transition: all 0.15s; }
 .pevent-check:hover { border-color: #5f441c; }
 .pevent-check.checked { background: #5f441c; border-color: #5f441c; }
 .planner-week-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
@@ -611,7 +611,8 @@ label {
 .todo-item:hover { background: #f4e8d2; }
 .todo-check { width: 16px; height: 16px; border: 1.5px solid var(--border-strong); border-radius: 50%; cursor: pointer; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; background: var(--surface); transition: all 0.15s; }
 .todo-check.checked { background: #5f441c; border-color: #5f441c; }
-.todo-text { flex: 1; font-size: 13px; line-height: 1.35; word-break: break-word; cursor: pointer; }
+.todo-text { flex: 1; font-size: 13px; line-height: 1.35; word-break: break-word; cursor: text; }
+.todo-edit-input { flex: 1; border: none; background: transparent; font-size: 13px; font-family: inherit; color: var(--text); outline: none; padding: 0; min-width: 0; line-height: 1.35; }
 .todo-item.done .todo-text { text-decoration: line-through; color: var(--text-faint); }
 .todo-del { width: 22px; height: 22px; border: none; background: none; cursor: pointer; color: var(--text-faint); border-radius: 6px; opacity: 0; transition: opacity 0.12s; padding: 0; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; }
 .todo-item:hover .todo-del { opacity: 1; }
