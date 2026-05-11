@@ -489,8 +489,8 @@ export default function WeeklyPlanner() {
                               onClick={e => { e.stopPropagation(); updatePlannerEvent(ev.id, { done: !ev.done }); }}
                             >
                               {ev.done && (
-                                <svg viewBox="0 0 12 12" fill="none" style={{ width: 6, height: 6 }}>
-                                  <polyline points="2,6 5,9 10,3" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                                <svg viewBox="0 0 12 12" fill="none" style={{ width: 5, height: 5 }}>
+                                  <polyline points="2,6 5,9 10,3" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
                                 </svg>
                               )}
                             </span>
