@@ -101,7 +101,7 @@ model PlannerAppointment {
 model PlannerWeekly {
   weekKey    String @id
   goals      Json   @default("[]")
-  notes      String @db.Text @default("")
+  notes      String @db.Text
   focus      String @default("")
   focusItems Json   @default("[]")
 }
