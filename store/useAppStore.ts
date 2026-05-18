@@ -259,7 +259,19 @@ export const useAppStore = create<Store>((set, get) => ({
     await api('/api/tasks', 'POST', task).catch(console.error);
   },
   updateTask: async (id, t) => {
-    set(s => ({ tasks: s.tasks.map(x => x.id === id ? { ...x, ...t } : x) }));
+    set(s => ({
+      tasks: s.tasks.map(x => {
+        if (x.id !== id) return x;
+        const patch: Task = { ...x, ...t };
+        // If a new due date is supplied and task was overdue, revert to todo if the new date is today or future
+        if (t.due !== undefined && x.status === 'overdue') {
+          const today = new Date(); today.setHours(0, 0, 0, 0);
+          const newDue = new Date(t.due + 'T00:00:00'); newDue.setHours(0, 0, 0, 0);
+          if (newDue >= today) patch.status = 'todo';
+        }
+        return patch;
+      }),
+    }));
     const updated = get().tasks.find(x => x.id === id);
     await api(`/api/tasks/${id}`, 'PUT', updated).catch(console.error);
   },
