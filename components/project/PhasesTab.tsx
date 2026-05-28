@@ -6,6 +6,7 @@ import { fmtDate } from '@/lib/utils';
 import ProgressBar from '../ui/ProgressBar';
 import TaskCard from './TaskCard';
 import PhaseModal from '../modals/PhaseModal';
+import TaskModal from '../modals/TaskModal';
 import ConfirmModal from '../modals/ConfirmModal';
 import { Phase } from '@/lib/types';
 
@@ -14,6 +15,7 @@ export default function PhasesTab({ projectId }: { projectId: string }) {
   const [showAdd, setShowAdd] = useState(false);
   const [editing, setEditing] = useState<Phase | null>(null);
   const [confirming, setConfirming] = useState<string | null>(null);
+  const [addingTaskToPhase, setAddingTaskToPhase] = useState<string | null>(null);
 
   const projectPhases = phases.filter(p => p.projectId === projectId);
 
@@ -73,15 +75,31 @@ export default function PhasesTab({ projectId }: { projectId: string }) {
 
               {phase.notes && <p style={{ fontSize: 13, color: '#5a5048', lineHeight: 1.6, marginBottom: 14 }}>{phase.notes}</p>}
 
-              {phaseTasks.length > 0 && (
-                <div style={{ borderTop: '1px solid var(--border)', paddingTop: 14, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  {phaseTasks.map(t => (
-                    <div key={t.id} style={{ background: 'var(--bg)', borderRadius: 10, padding: '8px 12px' }}>
-                      <TaskCard task={t} />
-                    </div>
-                  ))}
-                </div>
-              )}
+              <div style={{ borderTop: '1px solid var(--border)', paddingTop: 14 }}>
+                {phaseTasks.length === 0 ? (
+                  <div style={{ fontSize: 13, color: 'var(--text-faint)', fontStyle: 'italic', marginBottom: 10 }}>
+                    No tasks in this phase yet.
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
+                    {phaseTasks.map(t => (
+                      <div key={t.id} style={{ background: 'var(--bg)', borderRadius: 10, padding: '8px 12px' }}>
+                        <TaskCard task={t} />
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <button
+                  className="btn btn-ghost btn-sm"
+                  style={{ fontSize: 12, color: 'var(--primary-dark)' }}
+                  onClick={() => setAddingTaskToPhase(phase.id)}
+                >
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                  </svg>
+                  Add task to phase
+                </button>
+              </div>
             </div>
           );
         })
@@ -89,6 +107,13 @@ export default function PhasesTab({ projectId }: { projectId: string }) {
 
       {showAdd && <PhaseModal defaultProjectId={projectId} onClose={() => setShowAdd(false)} />}
       {editing && <PhaseModal phase={editing} onClose={() => setEditing(null)} />}
+      {addingTaskToPhase && (
+        <TaskModal
+          defaultProjectId={projectId}
+          defaultPhaseId={addingTaskToPhase}
+          onClose={() => setAddingTaskToPhase(null)}
+        />
+      )}
       {confirming && (
         <ConfirmModal
           message="Delete this phase?"
