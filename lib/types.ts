@@ -90,6 +90,7 @@ export interface PlannerAppointment {
   notes: string;
   done: boolean;
   createdAt: number;
+  alertMinutes?: number; // minutes before meeting to fire alert; undefined = no alert
 }
 
 export interface PlannerWeekData {

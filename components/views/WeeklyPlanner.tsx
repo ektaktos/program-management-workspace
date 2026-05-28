@@ -111,19 +111,32 @@ interface ApptModalProps {
   onClose: () => void;
 }
 
+const ALERT_OPTIONS = [
+  { label: 'No alert',      value: -1 },
+  { label: '5 min before',  value: 5 },
+  { label: '10 min before', value: 10 },
+  { label: '15 min before', value: 15 },
+  { label: '30 min before', value: 30 },
+  { label: '1 hour before', value: 60 },
+  { label: '2 hours before',value: 120 },
+  { label: '1 day before',  value: 1440 },
+];
+
 function ApptModal({ presetDate, appt, onClose }: ApptModalProps) {
   const { addPlannerAppointment, updatePlannerAppointment, deletePlannerAppointment } = useAppStore();
   const [title, setTitle] = useState(appt?.title ?? '');
   const [date, setDate] = useState(appt?.date ?? presetDate ?? '');
   const [time, setTime] = useState(appt?.time ?? '09:00');
   const [notes, setNotes] = useState(appt?.notes ?? '');
+  const [alertMinutes, setAlertMinutes] = useState<number>(appt?.alertMinutes ?? -1);
 
   function handleSave() {
     if (!title.trim() || !date || !time) return;
+    const alertVal = alertMinutes >= 0 ? alertMinutes : undefined;
     if (appt) {
-      updatePlannerAppointment(appt.id, { title: title.trim(), date, time, notes });
+      updatePlannerAppointment(appt.id, { title: title.trim(), date, time, notes, alertMinutes: alertVal });
     } else {
-      addPlannerAppointment({ title: title.trim(), date, time, notes, done: false });
+      addPlannerAppointment({ title: title.trim(), date, time, notes, done: false, alertMinutes: alertVal });
     }
     onClose();
   }
@@ -144,6 +157,16 @@ function ApptModal({ presetDate, appt, onClose }: ApptModalProps) {
           <div className="form-group">
             <label>Time</label>
             <input type="time" value={time} onChange={e => setTime(e.target.value)} />
+          </div>
+        </div>
+        <div className="form-row">
+          <div className="form-group">
+            <label>Alert</label>
+            <select value={alertMinutes} onChange={e => setAlertMinutes(Number(e.target.value))}>
+              {ALERT_OPTIONS.map(o => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
           </div>
         </div>
         <div className="form-group">
