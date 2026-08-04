@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { Task, Subtask } from '@/lib/types';
+import { useRef, useState } from 'react';
+import { Task } from '@/lib/types';
 import { useAppStore } from '@/store/useAppStore';
 import { fmtDate, fmt12hr } from '@/lib/utils';
 import StatusPill from '../ui/StatusPill';
@@ -19,35 +19,154 @@ const PRIORITY_DOT: Record<string, string> = {
 };
 
 const PRIORITY_CFG: Record<string, { cls: string; color: string; bars: [number, number, number]; label: string }> = {
-  high:   { cls: 'badge-danger',  color: '#d68a8a', bars: [1, 1, 1],          label: 'High priority' },
-  medium: { cls: 'badge-warning', color: '#d49a5d', bars: [1, 1, 0.18],       label: 'Medium priority' },
-  low:    { cls: 'badge-success', color: '#6fa885', bars: [1, 0.18, 0.18],    label: 'Low priority' },
+  high:   { cls: 'badge-danger',  color: '#d68a8a', bars: [1, 1, 1],       label: 'High' },
+  medium: { cls: 'badge-warning', color: '#d49a5d', bars: [1, 1, 0.18],    label: 'Medium' },
+  low:    { cls: 'badge-success', color: '#6fa885', bars: [1, 0.18, 0.18], label: 'Low' },
 };
 
-function PriorityIcon({ priority }: { priority: string }) {
+const PRIORITY_ORDER: Array<Task['priority']> = ['low', 'medium', 'high'];
+
+function PriorityBadge({ priority, onCycle }: { priority: string; onCycle: () => void }) {
   const cfg = PRIORITY_CFG[priority] ?? PRIORITY_CFG.medium;
   return (
-    <span className={`badge ${cfg.cls}`} title={cfg.label} style={{ padding: '3px 6px', display: 'inline-flex', alignItems: 'center', lineHeight: 1 }}>
+    <span
+      className={`badge ${cfg.cls}`}
+      title="Click to change priority"
+      onClick={e => { e.stopPropagation(); onCycle(); }}
+      style={{ padding: '3px 6px', display: 'inline-flex', alignItems: 'center', gap: 5, cursor: 'pointer' }}
+    >
       <svg width="14" height="12" viewBox="0 0 14 12" fill={cfg.color}>
         <rect x="0"    y="6"  width="3.2" height="6"  rx="0.8" opacity={cfg.bars[0]} />
         <rect x="5.4"  y="3"  width="3.2" height="9"  rx="0.8" opacity={cfg.bars[1]} />
         <rect x="10.8" y="0"  width="3.2" height="12" rx="0.8" opacity={cfg.bars[2]} />
       </svg>
+      {cfg.label}
     </span>
   );
 }
 
+function InlineDateBadge({ due, status, onSave }: { due?: string; status: string; onSave: (val: string | undefined) => void }) {
+  const [editing, setEditing] = useState(false);
+  const [val, setVal] = useState(due ?? '');
+
+  if (editing) {
+    return (
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+        <input
+          type="date"
+          value={val}
+          autoFocus
+          onChange={e => setVal(e.target.value)}
+          onBlur={() => { setEditing(false); onSave(val || undefined); }}
+          onKeyDown={e => {
+            if (e.key === 'Enter') { setEditing(false); onSave(val || undefined); }
+            if (e.key === 'Escape') { setEditing(false); setVal(due ?? ''); }
+          }}
+          style={{
+            fontSize: 11.5, padding: '2px 6px', borderRadius: 6,
+            border: '1px solid var(--primary-dark)', background: 'var(--surface)',
+            color: 'var(--text)', outline: 'none',
+          }}
+          onClick={e => e.stopPropagation()}
+        />
+        {due && (
+          <button
+            title="Clear due date"
+            onClick={e => { e.stopPropagation(); setEditing(false); onSave(undefined); }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 14, lineHeight: 1, padding: '0 2px' }}
+          >×</button>
+        )}
+      </span>
+    );
+  }
+
+  if (!due) {
+    return (
+      <span
+        className="badge badge-gray"
+        title="Click to set due date"
+        style={{ cursor: 'pointer', opacity: 0.6 }}
+        onClick={e => { e.stopPropagation(); setEditing(true); setVal(''); }}
+      >+ Due date</span>
+    );
+  }
+
+  return (
+    <span
+      className={`badge ${status === 'overdue' ? 'badge-danger' : 'badge-gray'}`}
+      title="Click to edit due date"
+      style={{ cursor: 'pointer' }}
+      onClick={e => { e.stopPropagation(); setEditing(true); setVal(due); }}
+    >Due {fmtDate(due)}</span>
+  );
+}
+
+function InlineAssigneeBadge({ assignee, onSave }: { assignee?: string; onSave: (val: string | undefined) => void }) {
+  const [editing, setEditing] = useState(false);
+  const [val, setVal] = useState(assignee ?? '');
+
+  if (editing) {
+    return (
+      <input
+        type="text"
+        value={val}
+        autoFocus
+        placeholder="Assignee name…"
+        onChange={e => setVal(e.target.value)}
+        onBlur={() => { setEditing(false); onSave(val.trim() || undefined); }}
+        onKeyDown={e => {
+          if (e.key === 'Enter') { setEditing(false); onSave(val.trim() || undefined); }
+          if (e.key === 'Escape') { setEditing(false); setVal(assignee ?? ''); }
+        }}
+        onClick={e => e.stopPropagation()}
+        style={{
+          fontSize: 11.5, padding: '2px 8px', borderRadius: 6,
+          border: '1px solid var(--primary-dark)', background: 'var(--surface)',
+          color: 'var(--text)', outline: 'none', width: 120,
+        }}
+      />
+    );
+  }
+
+  if (!assignee) {
+    return (
+      <span
+        className="badge badge-gray"
+        title="Click to assign"
+        style={{ cursor: 'pointer', opacity: 0.6 }}
+        onClick={e => { e.stopPropagation(); setEditing(true); setVal(''); }}
+      >+ Assignee</span>
+    );
+  }
+
+  return (
+    <span
+      className="badge badge-purple"
+      title="Click to edit assignee"
+      style={{ cursor: 'pointer' }}
+      onClick={e => { e.stopPropagation(); setEditing(true); setVal(assignee); }}
+    >{assignee}</span>
+  );
+}
+
 export default function TaskCard({ task, showProject, isHighlighted }: TaskCardProps) {
-  const { projects, toggleTaskDone, updateTask, deleteTask, setView } = useAppStore();
-  const [editing, setEditing]     = useState(false);
+  const { projects, toggleTaskDone, updateTask, deleteTask, setView, archiveTask, archivedTaskIds } = useAppStore();
+  const [editing, setEditing]       = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [subtasksOpen, setSubtasksOpen] = useState(false);
   const project = projects.find(p => p.id === task.projectId);
   const isDone  = task.status === 'done';
+  const isArchived = archivedTaskIds.includes(task.id);
 
   function toggleSubtask(subtaskId: string) {
     const updated = (task.subtasks ?? []).map(s => s.id === subtaskId ? { ...s, done: !s.done } : s);
     updateTask(task.id, { subtasks: updated });
+  }
+
+  function cyclePriority() {
+    const idx  = PRIORITY_ORDER.indexOf(task.priority);
+    const next = PRIORITY_ORDER[(idx + 1) % PRIORITY_ORDER.length];
+    updateTask(task.id, { priority: next });
   }
 
   return (
@@ -109,21 +228,26 @@ export default function TaskCard({ task, showProject, isHighlighted }: TaskCardP
             </div>
           )}
 
-          {/* Tags */}
+          {/* Tags — all inline-editable */}
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
             <StatusPill status={task.status} onChange={s => updateTask(task.id, { status: s })} />
 
-            <PriorityIcon priority={task.priority} />
+            <PriorityBadge priority={task.priority} onCycle={cyclePriority} />
 
-            {task.due && (
-              <span className={`badge ${task.status === 'overdue' ? 'badge-danger' : 'badge-gray'}`}>
-                Due {fmtDate(task.due)}{task.dueTime ? ` ${fmt12hr(task.dueTime)}` : ''}
-              </span>
+            <InlineDateBadge
+              due={task.due}
+              status={task.status}
+              onSave={val => updateTask(task.id, { due: val })}
+            />
+
+            {task.dueTime && (
+              <span className="badge badge-gray">{fmt12hr(task.dueTime)}</span>
             )}
 
-            {task.assignee && (
-              <span className="badge badge-purple">{task.assignee}</span>
-            )}
+            <InlineAssigneeBadge
+              assignee={task.assignee}
+              onSave={val => updateTask(task.id, { assignee: val })}
+            />
 
             {task.alerts && task.alerts.length > 0 && (
               <span className="badge badge-gray" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
@@ -166,7 +290,6 @@ export default function TaskCard({ task, showProject, isHighlighted }: TaskCardP
                   <polyline points="9 18 15 12 9 6"/>
                 </svg>
                 <span>{task.subtasks.filter(s => s.done).length}/{task.subtasks.length} subtasks</span>
-                {/* mini progress bar */}
                 <div style={{ flex: 1, maxWidth: 60, height: 4, background: 'var(--border)', borderRadius: 999, overflow: 'hidden' }}>
                   <div style={{ height: '100%', background: 'var(--success)', borderRadius: 999, width: `${Math.round((task.subtasks.filter(s => s.done).length / task.subtasks.length) * 100)}%`, transition: 'width 0.3s ease' }} />
                 </div>
@@ -198,12 +321,26 @@ export default function TaskCard({ task, showProject, isHighlighted }: TaskCardP
 
         {/* Actions */}
         <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
-<button className="btn-icon" title="Edit task" onClick={() => setEditing(true)}>
+          <button className="btn-icon" title="Edit task" onClick={() => setEditing(true)}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
               <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
               <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
             </svg>
           </button>
+          {!isArchived && (
+            <button
+              className="btn-icon"
+              title="Archive task"
+              onClick={() => archiveTask(task.id)}
+              style={{ color: 'var(--text-faint)' }}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
+                <polyline points="21 8 21 21 3 21 3 8"/>
+                <rect x="1" y="3" width="22" height="5" rx="1"/>
+                <line x1="10" y1="12" x2="14" y2="12"/>
+              </svg>
+            </button>
+          )}
           <button className="btn-icon" title="Delete task" style={{ color: 'var(--danger)' }} onClick={() => setConfirming(true)}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
               <polyline points="3 6 5 6 21 6"/>

@@ -6,6 +6,8 @@ import { uid, autoMarkOverdue } from '@/lib/utils';
 
 const NOTIFIED_KEY  = 'pm_oyint_notified';
 const PLANNER_KEY   = 'pm_oyint_planner';
+const ARCHIVED_KEY  = 'pm_oyint_archived';
+const ORDER_KEY     = 'pm_oyint_proj_order';
 
 function loadNotified(): string[] {
   if (typeof window === 'undefined') return [];
@@ -14,6 +16,26 @@ function loadNotified(): string[] {
 function saveNotified(ids: string[]) {
   if (typeof window === 'undefined') return;
   localStorage.setItem(NOTIFIED_KEY, JSON.stringify(ids));
+}
+
+function loadArchived(): { projectIds: string[]; taskIds: string[] } {
+  if (typeof window === 'undefined') return { projectIds: [], taskIds: [] };
+  try { return JSON.parse(localStorage.getItem(ARCHIVED_KEY) ?? '{"projectIds":[],"taskIds":[]}'); }
+  catch { return { projectIds: [], taskIds: [] }; }
+}
+function saveArchived(data: { projectIds: string[]; taskIds: string[] }) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(ARCHIVED_KEY, JSON.stringify(data));
+}
+
+function loadProjectOrder(): string[] {
+  if (typeof window === 'undefined') return [];
+  try { return JSON.parse(localStorage.getItem(ORDER_KEY) ?? '[]'); }
+  catch { return []; }
+}
+function saveProjectOrder(order: string[]) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(ORDER_KEY, JSON.stringify(order));
 }
 
 // Read legacy localStorage planner data for one-time migration
@@ -138,6 +160,18 @@ interface Store extends AppState, UIState, PlannerState {
 
   plannerModalTrigger: 'task' | 'appt' | null;
   setPlannerModalTrigger: (v: 'task' | 'appt' | null) => void;
+
+  // ── Archive ──
+  archivedProjectIds: string[];
+  archivedTaskIds:    string[];
+  archiveProject:   (id: string) => void;
+  unarchiveProject: (id: string) => void;
+  archiveTask:      (id: string) => void;
+  unarchiveTask:    (id: string) => void;
+
+  // ── Project ordering ──
+  projectOrder:    string[];
+  setProjectOrder: (ids: string[]) => void;
 }
 
 export const useAppStore = create<Store>((set, get) => ({
@@ -166,6 +200,13 @@ export const useAppStore = create<Store>((set, get) => ({
   toasts:          [],
   sidebarOpen:     true,
 
+  // ── Archive ──
+  archivedProjectIds: [],
+  archivedTaskIds:    [],
+
+  // ── Project ordering ──
+  projectOrder: [],
+
   // ── Bootstrap ──
   loadAll: async () => {
     try {
@@ -179,12 +220,15 @@ export const useAppStore = create<Store>((set, get) => ({
         api('/api/planner/data'),
       ]);
 
+      const archived = loadArchived();
+      const order    = loadProjectOrder();
+
       if (data.projects.length === 0) {
         await api('/api/seed', 'POST');
         const seeded: AppState = await api('/api/data');
-        set({ ...seeded, notifiedAlerts: loadNotified(), ...plannerData, isLoaded: true });
+        set({ ...seeded, notifiedAlerts: loadNotified(), ...plannerData, isLoaded: true, archivedProjectIds: archived.projectIds, archivedTaskIds: archived.taskIds, projectOrder: order });
       } else {
-        set({ ...data, notifiedAlerts: loadNotified(), ...plannerData, isLoaded: true });
+        set({ ...data, notifiedAlerts: loadNotified(), ...plannerData, isLoaded: true, archivedProjectIds: archived.projectIds, archivedTaskIds: archived.taskIds, projectOrder: order });
       }
 
       // One-time migration: if DB planner is empty but localStorage has data, migrate it
@@ -523,5 +567,37 @@ export const useAppStore = create<Store>((set, get) => ({
       set({ notifiedAlerts: newNotified });
       saveNotified(newNotified);
     }
+  },
+
+  // ── Archive ──
+  archiveProject: (id) => {
+    const s = get();
+    const newIds = [...s.archivedProjectIds, id];
+    saveArchived({ projectIds: newIds, taskIds: s.archivedTaskIds });
+    set({ archivedProjectIds: newIds });
+  },
+  unarchiveProject: (id) => {
+    const s = get();
+    const newIds = s.archivedProjectIds.filter(x => x !== id);
+    saveArchived({ projectIds: newIds, taskIds: s.archivedTaskIds });
+    set({ archivedProjectIds: newIds });
+  },
+  archiveTask: (id) => {
+    const s = get();
+    const newIds = [...s.archivedTaskIds, id];
+    saveArchived({ projectIds: s.archivedProjectIds, taskIds: newIds });
+    set({ archivedTaskIds: newIds });
+  },
+  unarchiveTask: (id) => {
+    const s = get();
+    const newIds = s.archivedTaskIds.filter(x => x !== id);
+    saveArchived({ projectIds: s.archivedProjectIds, taskIds: newIds });
+    set({ archivedTaskIds: newIds });
+  },
+
+  // ── Project ordering ──
+  setProjectOrder: (ids) => {
+    saveProjectOrder(ids);
+    set({ projectOrder: ids });
   },
 }));

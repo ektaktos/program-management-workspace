@@ -6,7 +6,7 @@ import { STATUS_META, STATUS_ORDER } from '@/lib/constants';
 
 interface StatusPillProps {
   status: TaskStatus;
-  onChange: (s: TaskStatus) => void;
+  onChange?: (s: TaskStatus) => void;
 }
 
 export default function StatusPill({ status, onChange }: StatusPillProps) {
@@ -27,8 +27,8 @@ export default function StatusPill({ status, onChange }: StatusPillProps) {
     <div ref={ref} style={{ position: 'relative', display: 'inline-block' }}>
       <span
         className={`badge ${meta.badgeClass}`}
-        style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 5 }}
-        onClick={(e) => { e.stopPropagation(); setOpen(o => !o); }}
+        style={{ cursor: onChange ? 'pointer' : 'default', display: 'inline-flex', alignItems: 'center', gap: 5 }}
+        onClick={(e) => { if (!onChange) return; e.stopPropagation(); setOpen(o => !o); }}
       >
         <span style={{ width: 6, height: 6, borderRadius: '50%', background: meta.dot, display: 'inline-block' }} />
         {meta.label}
@@ -41,7 +41,7 @@ export default function StatusPill({ status, onChange }: StatusPillProps) {
               <div
                 key={s}
                 className="status-popover-item"
-                onClick={(e) => { e.stopPropagation(); onChange(s as TaskStatus); setOpen(false); }}
+                onClick={(e) => { e.stopPropagation(); onChange?.(s as TaskStatus); setOpen(false); }}
               >
                 <span style={{ width: 8, height: 8, borderRadius: '50%', background: m.dot, display: 'inline-block', flexShrink: 0 }} />
                 <span>{m.label}</span>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import ProjectModal from './modals/ProjectModal';
 
@@ -25,11 +25,23 @@ const NAV = [
     id: 'planner', label: 'Weekly Planner',
     icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16, flexShrink: 0 }}><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="4" x2="9" y2="22"/><line x1="15" y1="4" x2="15" y2="22"/></svg>,
   },
+  {
+    id: 'archive', label: 'Archive',
+    icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16, flexShrink: 0 }}><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5" rx="1"/><line x1="10" y1="12" x2="14" y2="12"/></svg>,
+  },
 ];
 
 export default function Sidebar() {
-  const { currentView, activeProjectId, projects, tasks, sidebarOpen, setSidebarOpen, setView, setSearch, searchQuery } = useAppStore();
+  const {
+    currentView, activeProjectId, projects, tasks,
+    sidebarOpen, setSidebarOpen, setView, setSearch, searchQuery,
+    archivedProjectIds, projectOrder, setProjectOrder,
+  } = useAppStore();
   const [showNewProject, setShowNewProject] = useState(false);
+
+  // drag state
+  const dragIdRef   = useRef<string | null>(null);
+  const dragOverRef = useRef<string | null>(null);
 
   const open = sidebarOpen;
 
@@ -38,6 +50,51 @@ export default function Sidebar() {
   }
 
   const navActive = (id: string) => currentView === id && currentView !== 'project';
+
+  // Sort projects by stored order, exclude archived ones
+  const orderedProjects = [...projects]
+    .filter(p => !archivedProjectIds.includes(p.id))
+    .sort((a, b) => {
+      const ai = projectOrder.indexOf(a.id);
+      const bi = projectOrder.indexOf(b.id);
+      if (ai === -1 && bi === -1) return 0;
+      if (ai === -1) return 1;
+      if (bi === -1) return -1;
+      return ai - bi;
+    });
+
+  function handleDragStart(e: React.DragEvent, projectId: string) {
+    dragIdRef.current = projectId;
+    e.dataTransfer.effectAllowed = 'move';
+  }
+
+  function handleDragOver(e: React.DragEvent, projectId: string) {
+    e.preventDefault();
+    dragOverRef.current = projectId;
+  }
+
+  function handleDrop(e: React.DragEvent, targetId: string) {
+    e.preventDefault();
+    const fromId = dragIdRef.current;
+    if (!fromId || fromId === targetId) return;
+
+    const ids = orderedProjects.map(p => p.id);
+    const fromIdx = ids.indexOf(fromId);
+    const toIdx   = ids.indexOf(targetId);
+    if (fromIdx === -1 || toIdx === -1) return;
+
+    const next = [...ids];
+    next.splice(fromIdx, 1);
+    next.splice(toIdx, 0, fromId);
+    setProjectOrder(next);
+    dragIdRef.current   = null;
+    dragOverRef.current = null;
+  }
+
+  function handleDragEnd() {
+    dragIdRef.current   = null;
+    dragOverRef.current = null;
+  }
 
   return (
     <>
@@ -186,52 +243,81 @@ export default function Sidebar() {
           </div>
 
           <div style={{ flex: 1, overflowY: 'auto', padding: open ? '0 10px' : '0 8px' }}>
-            {projects.map(p => {
+            {orderedProjects.map(p => {
               const active = currentView === 'project' && activeProjectId === p.id;
-              const count = nonDoneCount(p.id);
+              const count  = nonDoneCount(p.id);
               return (
-                <button
+                <div
                   key={p.id}
-                  onClick={() => { setView('project', p.id); setSidebarOpen(window.innerWidth >= 768 ? open : false); }}
-                  title={!open ? p.name : undefined}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: open ? 10 : 0,
-                    justifyContent: open ? 'flex-start' : 'center',
-                    width: '100%',
-                    padding: open ? '8px 12px' : '9px 0',
-                    borderRadius: 10,
-                    background: active ? 'var(--primary-light)' : 'transparent',
-                    color: active ? 'var(--text)' : 'var(--sidebar-text)',
-                    fontWeight: 500,
-                    fontSize: 13,
-                    textAlign: 'left',
-                    border: 'none',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s',
-                    marginBottom: 1,
-                    overflow: 'hidden',
-                    whiteSpace: 'nowrap',
-                  }}
-                  onMouseOver={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'var(--sidebar-active)'; }}
-                  onMouseOut={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
+                  draggable={open}
+                  onDragStart={e => handleDragStart(e, p.id)}
+                  onDragOver={e => handleDragOver(e, p.id)}
+                  onDrop={e => handleDrop(e, p.id)}
+                  onDragEnd={handleDragEnd}
+                  style={{ position: 'relative' }}
                 >
-                  <span style={{ width: 9, height: 9, borderRadius: '50%', background: p.color, flexShrink: 0 }} />
                   {open && (
-                    <>
-                      <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
-                      {count > 0 && (
-                        <span style={{
-                          fontSize: 11, fontWeight: 600,
-                          background: active ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.6)',
-                          color: active ? 'var(--primary-dark)' : 'var(--sidebar-text)',
-                          padding: '1px 7px', borderRadius: 10, flexShrink: 0,
-                        }}>{count}</span>
-                      )}
-                    </>
+                    <span
+                      title="Drag to reorder"
+                      style={{
+                        position: 'absolute', left: 3, top: '50%', transform: 'translateY(-50%)',
+                        cursor: 'grab', color: 'var(--text-faint)', opacity: 0,
+                        fontSize: 10, lineHeight: 1, zIndex: 1, pointerEvents: 'none',
+                        transition: 'opacity 0.15s',
+                      }}
+                      className="proj-drag-handle"
+                    >⠿</span>
                   )}
-                </button>
+                  <button
+                    onClick={() => { setView('project', p.id); setSidebarOpen(window.innerWidth >= 768 ? open : false); }}
+                    title={!open ? p.name : undefined}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: open ? 10 : 0,
+                      justifyContent: open ? 'flex-start' : 'center',
+                      width: '100%',
+                      padding: open ? '8px 12px 8px 18px' : '9px 0',
+                      borderRadius: 10,
+                      background: active ? 'var(--primary-light)' : 'transparent',
+                      color: active ? 'var(--text)' : 'var(--sidebar-text)',
+                      fontWeight: 500,
+                      fontSize: 13,
+                      textAlign: 'left',
+                      border: 'none',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s',
+                      marginBottom: 1,
+                      overflow: 'hidden',
+                      whiteSpace: 'nowrap',
+                    }}
+                    onMouseOver={e => {
+                      if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'var(--sidebar-active)';
+                      const handle = (e.currentTarget.parentElement as HTMLElement)?.querySelector('.proj-drag-handle') as HTMLElement;
+                      if (handle) handle.style.opacity = '1';
+                    }}
+                    onMouseOut={e => {
+                      if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
+                      const handle = (e.currentTarget.parentElement as HTMLElement)?.querySelector('.proj-drag-handle') as HTMLElement;
+                      if (handle) handle.style.opacity = '0';
+                    }}
+                  >
+                    <span style={{ width: 9, height: 9, borderRadius: '50%', background: p.color, flexShrink: 0 }} />
+                    {open && (
+                      <>
+                        <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
+                        {count > 0 && (
+                          <span style={{
+                            fontSize: 11, fontWeight: 600,
+                            background: active ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.6)',
+                            color: active ? 'var(--primary-dark)' : 'var(--sidebar-text)',
+                            padding: '1px 7px', borderRadius: 10, flexShrink: 0,
+                          }}>{count}</span>
+                        )}
+                      </>
+                    )}
+                  </button>
+                </div>
               );
             })}
           </div>

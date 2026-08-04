@@ -23,7 +23,9 @@ function CheckIcon() {
 }
 
 export default function Dashboard() {
-  const { projects, tasks, notes, todos, addTodo, updateTodo, toggleTodo, deleteTodo, setView, navigateToTask } = useAppStore();
+  const { projects: allProjects, tasks: allTasks, notes, todos, addTodo, updateTodo, toggleTodo, deleteTodo, setView, navigateToTask, archivedProjectIds, archivedTaskIds } = useAppStore();
+  const projects = allProjects.filter(p => !archivedProjectIds.includes(p.id));
+  const tasks    = allTasks.filter(t => !archivedTaskIds.includes(t.id));
   const [todoInput, setTodoInput] = useState('');
   const todoRef = useRef<HTMLInputElement>(null);
   const [editingTodoId, setEditingTodoId] = useState<string | null>(null);

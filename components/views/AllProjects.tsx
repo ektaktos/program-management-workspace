@@ -9,10 +9,12 @@ import ProjectModal from '../modals/ProjectModal';
 import { Project } from '@/lib/types';
 
 export default function AllProjects() {
-  const { projects, tasks, milestones, phases, setView } = useAppStore();
+  const { projects, tasks, milestones, phases, setView, archivedProjectIds, archiveProject } = useAppStore();
   const [editing, setEditing] = useState<Project | null>(null);
 
-  if (projects.length === 0) {
+  const visibleProjects = projects.filter(p => !archivedProjectIds.includes(p.id));
+
+  if (visibleProjects.length === 0) {
     return (
       <div className="empty-state">
         <h3>No projects yet</h3>
@@ -24,7 +26,7 @@ export default function AllProjects() {
   return (
     <div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 18 }}>
-        {projects.map(p => {
+        {visibleProjects.map(p => {
           const pct       = calcProjectProgress(p.id, tasks);
           const pt        = tasks.filter(t => t.projectId === p.id);
           const done      = pt.filter(t => t.status === 'done').length;
@@ -52,39 +54,60 @@ export default function AllProjects() {
                 el.style.boxShadow = 'var(--shadow-md)';
                 el.style.transform = 'translateY(-2px)';
                 el.style.borderColor = 'var(--primary)';
-                const btn = el.querySelector('.proj-edit-btn') as HTMLElement;
-                if (btn) btn.style.opacity = '1';
+                el.querySelectorAll('.proj-hover-btn').forEach((b: Element) => (b as HTMLElement).style.opacity = '1');
               }}
               onMouseOut={e => {
                 const el = e.currentTarget as HTMLDivElement;
                 el.style.boxShadow = 'none';
                 el.style.transform = 'none';
                 el.style.borderColor = 'var(--border)';
-                const btn = el.querySelector('.proj-edit-btn') as HTMLElement;
-                if (btn) btn.style.opacity = '0';
+                el.querySelectorAll('.proj-hover-btn').forEach((b: Element) => (b as HTMLElement).style.opacity = '0');
               }}
             >
-              {/* Edit button */}
-              <button
-                className="proj-edit-btn"
-                onClick={e => { e.stopPropagation(); setEditing(p); }}
-                style={{
-                  position: 'absolute', top: 14, right: 14,
-                  opacity: 0, transition: 'opacity 0.18s',
-                  background: 'rgba(255,255,255,0.95)',
-                  border: '1px solid var(--border)',
-                  width: 28, height: 28, borderRadius: '50%',
-                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                  cursor: 'pointer', color: 'var(--text-muted)',
-                }}
-                onMouseOver={e => { (e.currentTarget as HTMLButtonElement).style.color = '#5f441c'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#5f441c'; }}
-                onMouseOut={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border)'; }}
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 12, height: 12 }}>
-                  <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
-                  <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                </svg>
-              </button>
+              {/* Edit + archive buttons */}
+              <div style={{ position: 'absolute', top: 14, right: 14, display: 'flex', gap: 4 }}>
+                <button
+                  className="proj-hover-btn proj-edit-btn"
+                  onClick={e => { e.stopPropagation(); setEditing(p); }}
+                  title="Edit project"
+                  style={{
+                    opacity: 0, transition: 'opacity 0.18s',
+                    background: 'rgba(255,255,255,0.95)',
+                    border: '1px solid var(--border)',
+                    width: 28, height: 28, borderRadius: '50%',
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: 'pointer', color: 'var(--text-muted)',
+                  }}
+                  onMouseOver={e => { (e.currentTarget as HTMLButtonElement).style.color = '#5f441c'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#5f441c'; }}
+                  onMouseOut={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border)'; }}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 12, height: 12 }}>
+                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                </button>
+                <button
+                  className="proj-hover-btn"
+                  onClick={e => { e.stopPropagation(); archiveProject(p.id); }}
+                  title="Archive project"
+                  style={{
+                    opacity: 0, transition: 'opacity 0.18s',
+                    background: 'rgba(255,255,255,0.95)',
+                    border: '1px solid var(--border)',
+                    width: 28, height: 28, borderRadius: '50%',
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: 'pointer', color: 'var(--text-muted)',
+                  }}
+                  onMouseOver={e => { (e.currentTarget as HTMLButtonElement).style.color = '#5f441c'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#5f441c'; }}
+                  onMouseOut={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border)'; }}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 12, height: 12 }}>
+                    <polyline points="21 8 21 21 3 21 3 8"/>
+                    <rect x="1" y="3" width="22" height="5" rx="1"/>
+                    <line x1="10" y1="12" x2="14" y2="12"/>
+                  </svg>
+                </button>
+              </div>
 
               {/* Header */}
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 10, gap: 12 }}>
