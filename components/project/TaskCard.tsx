@@ -227,7 +227,7 @@ function InlineRecurringBadge({ recurring, onSave }: { recurring?: string; onSav
               onClick={e => { e.stopPropagation(); onSave(opt); setOpen(false); }}
               style={{
                 padding: '7px 12px', fontSize: 12.5, cursor: 'pointer',
-                color: opt === recurring ? 'var(--primary-dark)' : 'var(--text)',
+                color: 'var(--text)',
                 fontWeight: opt === recurring ? 600 : 400,
                 background: opt === recurring ? 'var(--primary-light)' : 'transparent',
               }}
