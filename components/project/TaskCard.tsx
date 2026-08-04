@@ -1,7 +1,7 @@
 'use client';
 
-import { useRef, useState } from 'react';
-import { Task } from '@/lib/types';
+import { useEffect, useRef, useState } from 'react';
+import { Alert, Task } from '@/lib/types';
 import { useAppStore } from '@/store/useAppStore';
 import { fmtDate, fmt12hr } from '@/lib/utils';
 import StatusPill from '../ui/StatusPill';
@@ -26,6 +26,13 @@ const PRIORITY_CFG: Record<string, { cls: string; color: string; bars: [number, 
 
 const PRIORITY_ORDER: Array<Task['priority']> = ['low', 'medium', 'high'];
 
+const RECURRING_OPTIONS = ['daily', 'weekly', 'monthly', 'yearly'];
+
+function fmtAlert(a: Alert) {
+  return `${a.value} ${a.unit} before`;
+}
+
+// ── Priority badge — click to cycle ──────────────────────────────────────────
 function PriorityBadge({ priority, onCycle }: { priority: string; onCycle: () => void }) {
   const cfg = PRIORITY_CFG[priority] ?? PRIORITY_CFG.medium;
   return (
@@ -45,9 +52,12 @@ function PriorityBadge({ priority, onCycle }: { priority: string; onCycle: () =>
   );
 }
 
+// ── Due date — only shown when set, click to edit ────────────────────────────
 function InlineDateBadge({ due, status, onSave }: { due?: string; status: string; onSave: (val: string | undefined) => void }) {
   const [editing, setEditing] = useState(false);
   const [val, setVal] = useState(due ?? '');
+
+  if (!due && !editing) return null;
 
   if (editing) {
     return (
@@ -59,7 +69,7 @@ function InlineDateBadge({ due, status, onSave }: { due?: string; status: string
           onChange={e => setVal(e.target.value)}
           onBlur={() => { setEditing(false); onSave(val || undefined); }}
           onKeyDown={e => {
-            if (e.key === 'Enter') { setEditing(false); onSave(val || undefined); }
+            if (e.key === 'Enter')  { setEditing(false); onSave(val || undefined); }
             if (e.key === 'Escape') { setEditing(false); setVal(due ?? ''); }
           }}
           style={{
@@ -69,25 +79,12 @@ function InlineDateBadge({ due, status, onSave }: { due?: string; status: string
           }}
           onClick={e => e.stopPropagation()}
         />
-        {due && (
-          <button
-            title="Clear due date"
-            onClick={e => { e.stopPropagation(); setEditing(false); onSave(undefined); }}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 14, lineHeight: 1, padding: '0 2px' }}
-          >×</button>
-        )}
+        <button
+          title="Clear due date"
+          onClick={e => { e.stopPropagation(); setEditing(false); onSave(undefined); }}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 14, lineHeight: 1, padding: '0 2px' }}
+        >×</button>
       </span>
-    );
-  }
-
-  if (!due) {
-    return (
-      <span
-        className="badge badge-gray"
-        title="Click to set due date"
-        style={{ cursor: 'pointer', opacity: 0.6 }}
-        onClick={e => { e.stopPropagation(); setEditing(true); setVal(''); }}
-      >+ Due date</span>
     );
   }
 
@@ -96,14 +93,63 @@ function InlineDateBadge({ due, status, onSave }: { due?: string; status: string
       className={`badge ${status === 'overdue' ? 'badge-danger' : 'badge-gray'}`}
       title="Click to edit due date"
       style={{ cursor: 'pointer' }}
-      onClick={e => { e.stopPropagation(); setEditing(true); setVal(due); }}
-    >Due {fmtDate(due)}</span>
+      onClick={e => { e.stopPropagation(); setEditing(true); setVal(due!); }}
+    >Due {fmtDate(due!)}</span>
   );
 }
 
+// ── Due time — only shown when set, click to edit ────────────────────────────
+function InlineDueTimeBadge({ dueTime, onSave }: { dueTime?: string; onSave: (val: string | undefined) => void }) {
+  const [editing, setEditing] = useState(false);
+  const [val, setVal] = useState(dueTime ?? '');
+
+  if (!dueTime && !editing) return null;
+
+  if (editing) {
+    return (
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+        <input
+          type="time"
+          value={val}
+          autoFocus
+          onChange={e => setVal(e.target.value)}
+          onBlur={() => { setEditing(false); onSave(val || undefined); }}
+          onKeyDown={e => {
+            if (e.key === 'Enter')  { setEditing(false); onSave(val || undefined); }
+            if (e.key === 'Escape') { setEditing(false); setVal(dueTime ?? ''); }
+          }}
+          style={{
+            fontSize: 11.5, padding: '2px 6px', borderRadius: 6,
+            border: '1px solid var(--primary-dark)', background: 'var(--surface)',
+            color: 'var(--text)', outline: 'none',
+          }}
+          onClick={e => e.stopPropagation()}
+        />
+        <button
+          title="Clear time"
+          onClick={e => { e.stopPropagation(); setEditing(false); onSave(undefined); }}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 14, lineHeight: 1, padding: '0 2px' }}
+        >×</button>
+      </span>
+    );
+  }
+
+  return (
+    <span
+      className="badge badge-gray"
+      title="Click to edit time"
+      style={{ cursor: 'pointer' }}
+      onClick={e => { e.stopPropagation(); setEditing(true); setVal(dueTime!); }}
+    >{fmt12hr(dueTime!)}</span>
+  );
+}
+
+// ── Assignee — only shown when set, click to edit ────────────────────────────
 function InlineAssigneeBadge({ assignee, onSave }: { assignee?: string; onSave: (val: string | undefined) => void }) {
   const [editing, setEditing] = useState(false);
   const [val, setVal] = useState(assignee ?? '');
+
+  if (!assignee && !editing) return null;
 
   if (editing) {
     return (
@@ -115,7 +161,7 @@ function InlineAssigneeBadge({ assignee, onSave }: { assignee?: string; onSave: 
         onChange={e => setVal(e.target.value)}
         onBlur={() => { setEditing(false); onSave(val.trim() || undefined); }}
         onKeyDown={e => {
-          if (e.key === 'Enter') { setEditing(false); onSave(val.trim() || undefined); }
+          if (e.key === 'Enter')  { setEditing(false); onSave(val.trim() || undefined); }
           if (e.key === 'Escape') { setEditing(false); setVal(assignee ?? ''); }
         }}
         onClick={e => e.stopPropagation()}
@@ -128,34 +174,156 @@ function InlineAssigneeBadge({ assignee, onSave }: { assignee?: string; onSave: 
     );
   }
 
-  if (!assignee) {
-    return (
-      <span
-        className="badge badge-gray"
-        title="Click to assign"
-        style={{ cursor: 'pointer', opacity: 0.6 }}
-        onClick={e => { e.stopPropagation(); setEditing(true); setVal(''); }}
-      >+ Assignee</span>
-    );
-  }
-
   return (
     <span
       className="badge badge-purple"
       title="Click to edit assignee"
       style={{ cursor: 'pointer' }}
-      onClick={e => { e.stopPropagation(); setEditing(true); setVal(assignee); }}
+      onClick={e => { e.stopPropagation(); setEditing(true); setVal(assignee!); }}
     >{assignee}</span>
   );
 }
 
+// ── Recurring — only shown when set, click to change/remove ──────────────────
+function InlineRecurringBadge({ recurring, onSave }: { recurring?: string; onSave: (val: string | undefined) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  if (!recurring) return null;
+
+  return (
+    <div ref={ref} style={{ position: 'relative', display: 'inline-block' }}>
+      <span
+        className="badge badge-gray"
+        title="Click to change recurring pattern"
+        style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 3 }}
+        onClick={e => { e.stopPropagation(); setOpen(o => !o); }}
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 10, height: 10 }}>
+          <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+          <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+        </svg>
+        {recurring}
+      </span>
+      {open && (
+        <div style={{
+          position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 99,
+          background: 'var(--surface)', border: '1px solid var(--border)',
+          borderRadius: 8, boxShadow: 'var(--shadow-md)', minWidth: 120,
+          overflow: 'hidden',
+        }}>
+          {RECURRING_OPTIONS.map(opt => (
+            <div
+              key={opt}
+              onClick={e => { e.stopPropagation(); onSave(opt); setOpen(false); }}
+              style={{
+                padding: '7px 12px', fontSize: 12.5, cursor: 'pointer',
+                color: opt === recurring ? 'var(--primary-dark)' : 'var(--text)',
+                fontWeight: opt === recurring ? 600 : 400,
+                background: opt === recurring ? 'var(--primary-light)' : 'transparent',
+              }}
+              onMouseOver={e => { if (opt !== recurring) (e.currentTarget as HTMLElement).style.background = 'var(--bg)'; }}
+              onMouseOut={e => { if (opt !== recurring) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+            >
+              {opt.charAt(0).toUpperCase() + opt.slice(1)}
+            </div>
+          ))}
+          <div
+            onClick={e => { e.stopPropagation(); onSave(undefined); setOpen(false); }}
+            style={{
+              padding: '7px 12px', fontSize: 12.5, cursor: 'pointer',
+              color: 'var(--danger)', borderTop: '1px solid var(--border)',
+            }}
+            onMouseOver={e => { (e.currentTarget as HTMLElement).style.background = 'var(--bg)'; }}
+            onMouseOut={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+          >
+            Remove recurrence
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Alerts — only shown when set, click to manage ────────────────────────────
+function InlineAlertsBadge({ alerts, onSave }: { alerts?: Alert[]; onSave: (val: Alert[]) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  if (!alerts || alerts.length === 0) return null;
+
+  return (
+    <div ref={ref} style={{ position: 'relative', display: 'inline-block' }}>
+      <span
+        className="badge badge-gray"
+        title="Click to manage alerts"
+        style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4 }}
+        onClick={e => { e.stopPropagation(); setOpen(o => !o); }}
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 10, height: 10 }}>
+          <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 01-3.46 0"/>
+        </svg>
+        {alerts.length} alert{alerts.length !== 1 ? 's' : ''}
+      </span>
+      {open && (
+        <div style={{
+          position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 99,
+          background: 'var(--surface)', border: '1px solid var(--border)',
+          borderRadius: 8, boxShadow: 'var(--shadow-md)', minWidth: 160,
+          overflow: 'hidden',
+        }}>
+          {alerts.map((a, i) => (
+            <div
+              key={i}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '7px 12px', gap: 8,
+                borderBottom: i < alerts.length - 1 ? '1px solid var(--border)' : 'none',
+              }}
+            >
+              <span style={{ fontSize: 12.5, color: 'var(--text)' }}>{fmtAlert(a)}</span>
+              <button
+                onClick={e => { e.stopPropagation(); onSave(alerts.filter((_, j) => j !== i)); if (alerts.length === 1) setOpen(false); }}
+                title="Remove alert"
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 15, lineHeight: 1, padding: '0 2px', flexShrink: 0 }}
+                onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = 'var(--danger)'; }}
+                onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-faint)'; }}
+              >×</button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Main TaskCard ─────────────────────────────────────────────────────────────
 export default function TaskCard({ task, showProject, isHighlighted }: TaskCardProps) {
   const { projects, toggleTaskDone, updateTask, deleteTask, setView, archiveTask, archivedTaskIds } = useAppStore();
-  const [editing, setEditing]       = useState(false);
-  const [confirming, setConfirming] = useState(false);
+  const [editing, setEditing]           = useState(false);
+  const [confirming, setConfirming]     = useState(false);
   const [subtasksOpen, setSubtasksOpen] = useState(false);
-  const project = projects.find(p => p.id === task.projectId);
-  const isDone  = task.status === 'done';
+  const project    = projects.find(p => p.id === task.projectId);
+  const isDone     = task.status === 'done';
   const isArchived = archivedTaskIds.includes(task.id);
 
   function toggleSubtask(subtaskId: string) {
@@ -189,11 +357,7 @@ export default function TaskCard({ task, showProject, isHighlighted }: TaskCardP
         onMouseOut={e => { const el = e.currentTarget as HTMLDivElement; el.style.borderColor = 'var(--border)'; el.style.boxShadow = 'none'; }}
       >
         {/* Priority dot */}
-        <span style={{
-          width: 8, height: 8, borderRadius: '50%',
-          background: PRIORITY_DOT[task.priority],
-          flexShrink: 0, marginTop: 6,
-        }} />
+        <span style={{ width: 8, height: 8, borderRadius: '50%', background: PRIORITY_DOT[task.priority], flexShrink: 0, marginTop: 6 }} />
 
         {/* Checkbox */}
         <div
@@ -216,11 +380,9 @@ export default function TaskCard({ task, showProject, isHighlighted }: TaskCardP
 
         {/* Body */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{
-            fontSize: 13.5, fontWeight: 500,
-            marginBottom: 6, color: 'var(--text)',
-            textDecoration: isDone ? 'line-through' : 'none',
-          }}>{task.title}</div>
+          <div style={{ fontSize: 13.5, fontWeight: 500, marginBottom: 6, color: 'var(--text)', textDecoration: isDone ? 'line-through' : 'none' }}>
+            {task.title}
+          </div>
 
           {task.description && (
             <div style={{ fontSize: 12.5, color: 'var(--text-muted)', margin: '4px 0 6px', lineHeight: 1.5 }}>
@@ -228,7 +390,7 @@ export default function TaskCard({ task, showProject, isHighlighted }: TaskCardP
             </div>
           )}
 
-          {/* Tags — all inline-editable */}
+          {/* Inline-editable badges — only render when value exists */}
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
             <StatusPill status={task.status} onChange={s => updateTask(task.id, { status: s })} />
 
@@ -240,34 +402,25 @@ export default function TaskCard({ task, showProject, isHighlighted }: TaskCardP
               onSave={val => updateTask(task.id, { due: val })}
             />
 
-            {task.dueTime && (
-              <span className="badge badge-gray">{fmt12hr(task.dueTime)}</span>
-            )}
+            <InlineDueTimeBadge
+              dueTime={task.dueTime}
+              onSave={val => updateTask(task.id, { dueTime: val })}
+            />
 
             <InlineAssigneeBadge
               assignee={task.assignee}
               onSave={val => updateTask(task.id, { assignee: val })}
             />
 
-            {task.alerts && task.alerts.length > 0 && (
-              <span className="badge badge-gray" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 10, height: 10 }}>
-                  <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-                  <path d="M13.73 21a2 2 0 01-3.46 0"/>
-                </svg>
-                {task.alerts.length}
-              </span>
-            )}
+            <InlineRecurringBadge
+              recurring={task.recurring}
+              onSave={val => updateTask(task.id, { recurring: val })}
+            />
 
-            {task.recurring && (
-              <span className="badge badge-gray" style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 10, height: 10 }}>
-                  <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
-                  <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
-                </svg>
-                {task.recurring}
-              </span>
-            )}
+            <InlineAlertsBadge
+              alerts={task.alerts}
+              onSave={val => updateTask(task.id, { alerts: val })}
+            />
 
             {showProject && project && (
               <span
