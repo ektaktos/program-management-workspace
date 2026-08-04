@@ -12,6 +12,7 @@ import ProjectDetail from '@/components/views/ProjectDetail';
 import WeeklyPlanner from '@/components/views/WeeklyPlanner';
 import ArchiveView from '@/components/views/ArchiveView';
 import ToastContainer from '@/components/ui/Toast';
+import PWAInit from '@/components/PWAInit';
 
 export default function Home() {
   const currentView    = useAppStore(s => s.currentView);
@@ -69,6 +70,7 @@ export default function Home() {
         </main>
       </div>
       <ToastContainer />
+      <PWAInit />
     </div>
   );
 }

@@ -18,6 +18,14 @@ function saveNotified(ids: string[]) {
   localStorage.setItem(NOTIFIED_KEY, JSON.stringify(ids));
 }
 
+function showOSNotification(title: string, body: string) {
+  if (typeof window === 'undefined' || !('Notification' in window)) return;
+  if (Notification.permission !== 'granted') return;
+  try {
+    new Notification(title, { body, icon: '/icons/icon-192.png', badge: '/icons/icon-192.png' });
+  } catch (_) {}
+}
+
 function loadArchived(): { projectIds: string[]; taskIds: string[] } {
   if (typeof window === 'undefined') return { projectIds: [], taskIds: [] };
   try { return JSON.parse(localStorage.getItem(ARCHIVED_KEY) ?? '{"projectIds":[],"taskIds":[]}'); }
@@ -539,6 +547,7 @@ export const useAppStore = create<Store>((set, get) => ({
                                      alert.value * 86_400_000;
         if (now >= new Date(due.getTime() - ms)) {
           addToast({ title: 'Task reminder', message: `"${t.title}" is due soon`, type: 'alert' });
+          showOSNotification('Task reminder', `"${t.title}" is due soon`);
           newNotified.push(alertId);
           playAlertTone();
         }
@@ -558,6 +567,7 @@ export const useAppStore = create<Store>((set, get) => ({
             ? `${a.alertMinutes / 60} hr`
             : '1 day';
         addToast({ title: 'Meeting reminder', message: `"${a.title}" starts in ${label}`, type: 'alert' });
+        showOSNotification('Meeting reminder', `"${a.title}" starts in ${label}`);
         newNotified.push(alertId);
         playAlertTone();
       }
