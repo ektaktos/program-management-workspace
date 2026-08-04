@@ -35,7 +35,7 @@ export default function Sidebar() {
   const {
     currentView, activeProjectId, projects, tasks,
     sidebarOpen, setSidebarOpen, setView, setSearch, searchQuery,
-    archivedProjectIds, projectOrder, setProjectOrder,
+    archivedProjectIds, archivedTaskIds, projectOrder, setProjectOrder,
   } = useAppStore();
   const [showNewProject, setShowNewProject] = useState(false);
 
@@ -46,7 +46,7 @@ export default function Sidebar() {
   const open = sidebarOpen;
 
   function nonDoneCount(projectId: string) {
-    return tasks.filter(t => t.projectId === projectId && t.status !== 'done').length;
+    return tasks.filter(t => t.projectId === projectId && t.status !== 'done' && !archivedTaskIds.includes(t.id)).length;
   }
 
   const navActive = (id: string) => currentView === id && currentView !== 'project';

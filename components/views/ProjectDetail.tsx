@@ -15,7 +15,8 @@ const TABS = ['Tasks', 'Phases', 'Milestones', 'Notes'] as const;
 type Tab = typeof TABS[number];
 
 export default function ProjectDetail() {
-  const { projects, tasks, milestones, phases, notes, activeProjectId, highlightedTaskId, archiveProject, deleteProject, setView } = useAppStore();
+  const { projects, tasks: allTasks, milestones, phases, notes, activeProjectId, highlightedTaskId, archiveProject, deleteProject, setView, archivedTaskIds } = useAppStore();
+  const tasks = allTasks.filter(t => !archivedTaskIds.includes(t.id));
   const [activeTab, setActiveTab] = useState<Tab>('Tasks');
   const [editingProject, setEditingProject] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);

@@ -62,10 +62,10 @@ function MilestoneCard({ m }: { m: Milestone }) {
 }
 
 export default function Upcoming() {
-  const { tasks, milestones } = useAppStore();
+  const { tasks, milestones, archivedTaskIds } = useAppStore();
 
   const upcomingTasks = tasks
-    .filter(t => t.due && t.status !== 'done')
+    .filter(t => t.due && t.status !== 'done' && !archivedTaskIds.includes(t.id))
     .sort((a, b) => new Date(a.due! + 'T00:00:00').getTime() - new Date(b.due! + 'T00:00:00').getTime());
 
   const upcomingMs = milestones

@@ -11,7 +11,7 @@ import ConfirmModal from '../modals/ConfirmModal';
 import { Phase } from '@/lib/types';
 
 export default function PhasesTab({ projectId }: { projectId: string }) {
-  const { phases, tasks, deletePhase } = useAppStore();
+  const { phases, tasks, deletePhase, archivedTaskIds } = useAppStore();
   const [showAdd, setShowAdd] = useState(false);
   const [editing, setEditing] = useState<Phase | null>(null);
   const [confirming, setConfirming] = useState<string | null>(null);
@@ -34,7 +34,7 @@ export default function PhasesTab({ projectId }: { projectId: string }) {
         <div className="empty-state"><h3>No phases yet</h3><p>Break your project into structured phases here.</p></div>
       ) : (
         projectPhases.map(phase => {
-          const phaseTasks = tasks.filter(t => t.projectId === projectId && t.phaseId === phase.id);
+          const phaseTasks = tasks.filter(t => t.projectId === projectId && t.phaseId === phase.id && !archivedTaskIds.includes(t.id));
           return (
             <div key={phase.id} style={{
               background: 'var(--surface)', border: '1px solid var(--border)',

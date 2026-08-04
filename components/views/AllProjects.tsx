@@ -9,10 +9,11 @@ import ProjectModal from '../modals/ProjectModal';
 import { Project } from '@/lib/types';
 
 export default function AllProjects() {
-  const { projects, tasks, milestones, phases, setView, archivedProjectIds, archiveProject } = useAppStore();
+  const { projects, tasks: allTasks, milestones, phases, setView, archivedProjectIds, archiveProject, archivedTaskIds } = useAppStore();
   const [editing, setEditing] = useState<Project | null>(null);
 
   const visibleProjects = projects.filter(p => !archivedProjectIds.includes(p.id));
+  const tasks = allTasks.filter(t => !archivedTaskIds.includes(t.id));
 
   if (visibleProjects.length === 0) {
     return (

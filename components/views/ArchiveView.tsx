@@ -21,6 +21,20 @@ export default function ArchiveView() {
 
   const isEmpty = archivedProjects.length === 0 && archivedTasks.length === 0;
 
+  // Group archived tasks by their project
+  const taskGroups: { projectId: string | null; projectName: string; projectColor: string; tasks: typeof archivedTasks }[] = [];
+  for (const t of archivedTasks) {
+    const proj = projects.find(p => p.id === t.projectId);
+    const key  = proj ? proj.id : null;
+    let group = taskGroups.find(g => g.projectId === key);
+    if (!group) {
+      group = { projectId: key, projectName: proj?.name ?? 'No project', projectColor: proj?.color ?? 'var(--text-faint)', tasks: [] };
+      taskGroups.push(group);
+    }
+    group.tasks.push(t);
+  }
+  taskGroups.sort((a, b) => a.projectName.localeCompare(b.projectName));
+
   return (
     <div>
       <div style={{ marginBottom: 28 }}>
@@ -105,63 +119,72 @@ export default function ArchiveView() {
         </section>
       )}
 
-      {/* Archived Tasks */}
+      {/* Archived Tasks — grouped by project */}
       {archivedTasks.length > 0 && (
         <section>
           <h2 style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-faint)', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: 14 }}>
             Tasks · {archivedTasks.length}
           </h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {archivedTasks.map(t => {
-              const proj = projects.find(p => p.id === t.projectId);
-              return (
-                <div key={t.id} style={{
-                  background: 'var(--surface)', border: '1px solid var(--border)',
-                  borderRadius: 'var(--radius)', padding: '12px 18px',
-                  display: 'flex', alignItems: 'center', gap: 12, opacity: 0.82,
-                }}>
-                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: PRIORITY_DOT[t.priority] ?? 'var(--border-strong)', flexShrink: 0 }} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13.5, fontWeight: 500, color: 'var(--text)', marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.title}</div>
-                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-                      <StatusPill status={t.status} />
-                      {t.due && <span className="badge badge-gray">Due {fmtDate(t.due)}</span>}
-                      {proj && (
-                        <span
-                          className="badge badge-gray"
-                          style={{ cursor: 'pointer' }}
-                          onClick={() => setView('project', proj.id)}
-                        >{proj.name}</span>
-                      )}
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-                    <button
-                      className="btn btn-outline btn-sm"
-                      style={{ fontSize: 12 }}
-                      onClick={() => unarchiveTask(t.id)}
-                      title="Restore task"
-                    >
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 12, height: 12 }}>
-                        <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/>
-                      </svg>
-                      Restore
-                    </button>
-                    <button
-                      className="btn-icon"
-                      style={{ color: 'var(--danger)' }}
-                      title="Permanently delete task"
-                      onClick={() => { if (confirm(`Permanently delete "${t.title}"?`)) deleteTask(t.id); }}
-                    >
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 13, height: 13 }}>
-                        <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
-                        <path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
-                      </svg>
-                    </button>
-                  </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+            {taskGroups.map(group => (
+              <div key={group.projectId ?? '__none__'}>
+                <div
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10,
+                    cursor: group.projectId ? 'pointer' : 'default',
+                  }}
+                  onClick={() => { if (group.projectId) setView('project', group.projectId); }}
+                >
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: group.projectColor, flexShrink: 0 }} />
+                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{group.projectName}</span>
+                  <span className="badge badge-gray">{group.tasks.length}</span>
                 </div>
-              );
-            })}
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {group.tasks.map(t => (
+                    <div key={t.id} style={{
+                      background: 'var(--surface)', border: '1px solid var(--border)',
+                      borderRadius: 'var(--radius)', padding: '12px 18px',
+                      display: 'flex', alignItems: 'center', gap: 12, opacity: 0.82,
+                    }}>
+                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: PRIORITY_DOT[t.priority] ?? 'var(--border-strong)', flexShrink: 0 }} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 13.5, fontWeight: 500, color: 'var(--text)', marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.title}</div>
+                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                          <StatusPill status={t.status} />
+                          {t.due && <span className="badge badge-gray">Due {fmtDate(t.due)}</span>}
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+                        <button
+                          className="btn btn-outline btn-sm"
+                          style={{ fontSize: 12 }}
+                          onClick={() => unarchiveTask(t.id)}
+                          title="Restore task"
+                        >
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 12, height: 12 }}>
+                            <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/>
+                          </svg>
+                          Restore
+                        </button>
+                        <button
+                          className="btn-icon"
+                          style={{ color: 'var(--danger)' }}
+                          title="Permanently delete task"
+                          onClick={() => { if (confirm(`Permanently delete "${t.title}"?`)) deleteTask(t.id); }}
+                        >
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 13, height: 13 }}>
+                            <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+                            <path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         </section>
       )}

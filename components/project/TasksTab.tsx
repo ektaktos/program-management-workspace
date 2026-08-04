@@ -15,11 +15,11 @@ interface TasksTabProps {
 }
 
 export default function TasksTab({ projectId, highlightedTaskId }: TasksTabProps) {
-  const { tasks } = useAppStore();
+  const { tasks, archivedTaskIds } = useAppStore();
   const [filter, setFilter] = useState<TaskStatus | 'all'>('all');
   const [showAdd, setShowAdd] = useState(false);
 
-  const projectTasks = tasks.filter(t => t.projectId === projectId);
+  const projectTasks = tasks.filter(t => t.projectId === projectId && !archivedTaskIds.includes(t.id));
   const filtered     = filter === 'all' ? projectTasks : projectTasks.filter(t => t.status === filter);
   const sorted       = sortTasks(filtered);
 
