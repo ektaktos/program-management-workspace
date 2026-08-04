@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 :root {
+  color-scheme: light;
   --primary: #e4d2b4;
   --primary-dark: #c9b594;
   --primary-light: #d4b896;
@@ -168,6 +169,10 @@ input, select, textarea {
 input:focus, select:focus, textarea:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 3px var(--primary-light);
+}
+select option {
+  color: var(--text);
+  background: var(--surface);
 }
 textarea { resize: vertical; min-height: 84px; line-height: 1.5; }
 label {
