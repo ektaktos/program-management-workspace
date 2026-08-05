@@ -321,6 +321,11 @@ export const useAppStore = create<Store>((set, get) => ({
           const newDue = new Date(t.due + 'T00:00:00'); newDue.setHours(0, 0, 0, 0);
           if (newDue >= today) patch.status = 'todo';
         }
+        // Track when a task transitions to/from done, so done tasks can be sorted by most-recently-completed
+        if (t.status !== undefined && t.status !== x.status) {
+          if (t.status === 'done') patch.completedAt = Date.now();
+          else if (x.status === 'done') patch.completedAt = undefined;
+        }
         return patch;
       }),
     }));
@@ -340,7 +345,11 @@ export const useAppStore = create<Store>((set, get) => ({
     // Toggle the current task
     set(s => ({
       tasks: s.tasks.map(t =>
-        t.id !== id ? t : { ...t, status: t.status === 'done' ? 'todo' : 'done' }
+        t.id !== id ? t : {
+          ...t,
+          status: t.status === 'done' ? 'todo' : 'done',
+          completedAt: t.status === 'done' ? undefined : Date.now(),
+        }
       ),
     }));
     const updated = get().tasks.find(x => x.id === id);
@@ -355,6 +364,7 @@ export const useAppStore = create<Store>((set, get) => ({
           id: uid(),
           status: 'todo',
           due: nextDue,
+          completedAt: undefined,
         };
         set(s => ({ tasks: [...s.tasks, nextTask] }));
         await api('/api/tasks', 'POST', nextTask).catch(console.error);

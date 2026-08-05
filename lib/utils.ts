@@ -33,6 +33,12 @@ export function sortTasks(tasks: Task[]): Task[] {
     const ra = statusRank[a.status] ?? 3;
     const rb = statusRank[b.status] ?? 3;
     if (ra !== rb) return ra - rb;
+    // Within done tasks, most recently completed first
+    if (ra === 99) {
+      const ca = a.completedAt ?? 0;
+      const cb = b.completedAt ?? 0;
+      if (ca !== cb) return cb - ca;
+    }
     return (priorityRank[a.priority] ?? 1) - (priorityRank[b.priority] ?? 1);
   });
 }

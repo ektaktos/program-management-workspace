@@ -34,6 +34,7 @@ export interface Task {
   alerts?: Alert[];
   recurring?: string;
   subtasks?: Subtask[];
+  completedAt?: number; // ms epoch — set when status transitions to 'done', cleared otherwise
 }
 
 export interface Milestone {

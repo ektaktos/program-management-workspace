@@ -1,5 +1,12 @@
 import { Alert, Note, PlannerAppointment, PlannerEvent, PlannerWeekData, Subtask, Task, Todo } from './types';
 
+function toMsOrUndefined(v: unknown): number | undefined {
+  if (v == null) return undefined;
+  if (v instanceof Date) return v.getTime();
+  if (typeof v === 'string') return new Date(v).getTime();
+  return Number(v);
+}
+
 export function toTask(t: Record<string, unknown>): Task {
   return {
     id:          t.id as string,
@@ -15,6 +22,7 @@ export function toTask(t: Record<string, unknown>): Task {
     alerts:      (t.alerts as Alert[]) ?? [],
     recurring:   (t.recurring as string) ?? undefined,
     subtasks:    (t.subtasks as Subtask[]) ?? [],
+    completedAt: toMsOrUndefined(t.completedAt),
   };
 }
 

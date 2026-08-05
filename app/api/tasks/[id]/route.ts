@@ -19,6 +19,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       alerts:      body.alerts   ?? [],
       recurring:   body.recurring ?? null,
       subtasks:    body.subtasks  ?? [],
+      completedAt: body.completedAt ? new Date(body.completedAt) : null,
     },
   });
   return NextResponse.json(toTask(task as Record<string, unknown>));
