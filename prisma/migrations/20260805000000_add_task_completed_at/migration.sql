@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE `Task`
+    ADD COLUMN `completedAt` DATETIME(3) NULL;
