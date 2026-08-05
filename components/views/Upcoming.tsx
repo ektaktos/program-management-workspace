@@ -62,14 +62,14 @@ function MilestoneCard({ m }: { m: Milestone }) {
 }
 
 export default function Upcoming() {
-  const { tasks, milestones, archivedTaskIds } = useAppStore();
+  const { tasks, milestones, archivedTaskIds, archivedProjectIds } = useAppStore();
 
   const upcomingTasks = tasks
-    .filter(t => t.due && t.status !== 'done' && !archivedTaskIds.includes(t.id))
+    .filter(t => t.due && t.status !== 'done' && !archivedTaskIds.includes(t.id) && !archivedProjectIds.includes(t.projectId))
     .sort((a, b) => new Date(a.due! + 'T00:00:00').getTime() - new Date(b.due! + 'T00:00:00').getTime());
 
   const upcomingMs = milestones
-    .filter(m => m.date && m.status !== 'done')
+    .filter(m => m.date && m.status !== 'done' && !archivedProjectIds.includes(m.projectId))
     .sort((a, b) => new Date(a.date! + 'T00:00:00').getTime() - new Date(b.date! + 'T00:00:00').getTime());
 
   if (!upcomingTasks.length && !upcomingMs.length) {

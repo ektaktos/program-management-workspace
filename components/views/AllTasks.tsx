@@ -7,8 +7,8 @@ import { sortTasks } from '@/lib/utils';
 import TaskCard from '../project/TaskCard';
 
 export default function AllTasks() {
-  const { tasks: allTasks, searchQuery, setSearch, archivedTaskIds } = useAppStore();
-  const tasks = allTasks.filter(t => !archivedTaskIds.includes(t.id));
+  const { tasks: allTasks, searchQuery, setSearch, archivedTaskIds, archivedProjectIds } = useAppStore();
+  const tasks = allTasks.filter(t => !archivedTaskIds.includes(t.id) && !archivedProjectIds.includes(t.projectId));
   const [statusFilter, setStatusFilter]     = useState('');
   const [priorityFilter, setPriorityFilter] = useState('');
 
