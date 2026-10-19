@@ -4,20 +4,18 @@ import { useEffect, useRef, useState } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { calcProjectProgress, fmtDate } from '@/lib/utils';
 import { PROJECT_STATUS_META } from '@/lib/constants';
-import TasksTab from '../project/TasksTab';
-import PhasesTab from '../project/PhasesTab';
-import MilestonesTab from '../project/MilestonesTab';
+import SectionsTab from '../project/SectionsTab';
 import NotesTab from '../project/NotesTab';
 import ProjectModal from '../modals/ProjectModal';
 import ConfirmModal from '../modals/ConfirmModal';
 
-const TABS = ['Tasks', 'Phases', 'Milestones', 'Notes'] as const;
+const TABS = ['Sections', 'Notes'] as const;
 type Tab = typeof TABS[number];
 
 export default function ProjectDetail() {
-  const { projects, tasks: allTasks, milestones, phases, notes, activeProjectId, highlightedTaskId, archiveProject, deleteProject, setView, archivedTaskIds } = useAppStore();
+  const { projects, tasks: allTasks, phases, notes, activeProjectId, highlightedTaskId, archiveProject, deleteProject, setView, archivedTaskIds } = useAppStore();
   const tasks = allTasks.filter(t => !archivedTaskIds.includes(t.id));
-  const [activeTab, setActiveTab] = useState<Tab>('Tasks');
+  const [activeTab, setActiveTab] = useState<Tab>('Sections');
   const [editingProject, setEditingProject] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -47,10 +45,8 @@ export default function ProjectDetail() {
   const doneTasks    = projectTasks.filter(t => t.status === 'done').length;
 
   const tabCounts: Record<Tab, number> = {
-    Tasks:      projectTasks.length,
-    Phases:     phases.filter(p => p.projectId === project.id).length,
-    Milestones: milestones.filter(m => m.projectId === project.id).length,
-    Notes:      notes.filter(n => n.projectId === project.id).length,
+    Sections: phases.filter(p => p.projectId === project.id).length,
+    Notes:    notes.filter(n => n.projectId === project.id).length,
   };
 
   return (
@@ -185,10 +181,8 @@ export default function ProjectDetail() {
         ))}
       </div>
 
-      {activeTab === 'Tasks'      && <TasksTab      projectId={project.id} highlightedTaskId={highlightedTaskId} />}
-      {activeTab === 'Phases'     && <PhasesTab     projectId={project.id} />}
-      {activeTab === 'Milestones' && <MilestonesTab projectId={project.id} />}
-      {activeTab === 'Notes'      && <NotesTab      projectId={project.id} />}
+      {activeTab === 'Sections' && <SectionsTab projectId={project.id} highlightedTaskId={highlightedTaskId} />}
+      {activeTab === 'Notes'    && <NotesTab    projectId={project.id} />}
 
       {editingProject && <ProjectModal project={project} onClose={() => setEditingProject(false)} />}
       {confirmingDelete && (

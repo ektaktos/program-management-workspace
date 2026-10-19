@@ -144,7 +144,7 @@ export default function Topbar() {
       {editProject && project && <ProjectModal project={project} onClose={() => setEditProject(false)} />}
       {confirmDelete && (
         <ConfirmModal
-          message={`Delete "${project?.name}"? This will also remove all tasks, milestones, phases, and notes.`}
+          message={`Delete "${project?.name}"? This will also remove all tasks, sections, and notes.`}
           onConfirm={handleDeleteProject}
           onCancel={() => setConfirmDelete(false)}
         />

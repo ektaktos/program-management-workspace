@@ -9,7 +9,7 @@ import ProjectModal from '../modals/ProjectModal';
 import { Project } from '@/lib/types';
 
 export default function AllProjects() {
-  const { projects, tasks: allTasks, milestones, phases, setView, archivedProjectIds, archiveProject, archivedTaskIds } = useAppStore();
+  const { projects, tasks: allTasks, phases, setView, archivedProjectIds, archiveProject, archivedTaskIds } = useAppStore();
   const [editing, setEditing] = useState<Project | null>(null);
 
   const visibleProjects = projects.filter(p => !archivedProjectIds.includes(p.id));
@@ -32,7 +32,6 @@ export default function AllProjects() {
           const pt        = tasks.filter(t => t.projectId === p.id);
           const done      = pt.filter(t => t.status === 'done').length;
           const overdue   = getOverdueCount(p.id, tasks);
-          const msCount   = milestones.filter(m => m.projectId === p.id).length;
           const phCount   = phases.filter(ph => ph.projectId === p.id).length;
           const statusMeta = PROJECT_STATUS_META[p.status] ?? { badgeClass: 'badge-gray' };
 
@@ -139,8 +138,7 @@ export default function AllProjects() {
               <div style={{ display: 'flex', gap: 14, marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--border)', flexWrap: 'wrap' }}>
                 {p.end && <span style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>Deadline · {fmtDate(p.end)}</span>}
                 {overdue > 0 && <span style={{ fontSize: 11.5, color: 'var(--danger)' }}>{overdue} overdue</span>}
-                <span style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>{msCount} milestone{msCount !== 1 ? 's' : ''}</span>
-                <span style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>{phCount} phase{phCount !== 1 ? 's' : ''}</span>
+                <span style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>{phCount} section{phCount !== 1 ? 's' : ''}</span>
               </div>
             </div>
           );

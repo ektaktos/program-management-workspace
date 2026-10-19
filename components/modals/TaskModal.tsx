@@ -96,9 +96,9 @@ export default function TaskModal({ task, defaultProjectId, defaultPhaseId, onCl
             </select>
           </div>
           <div className="form-group">
-            <label>Phase (optional)</label>
+            <label>Section (optional)</label>
             <select value={form.phaseId} onChange={e => setF('phaseId', e.target.value)}>
-              <option value="">No phase</option>
+              <option value="">No section</option>
               {projectPhases.map(ph => <option key={ph.id} value={ph.id}>{ph.name}</option>)}
             </select>
           </div>

@@ -18,10 +18,9 @@ export default function PhaseModal({ phase, defaultProjectId, onClose }: PhaseMo
     projectId: phase?.projectId ?? defaultProjectId ?? (projects[0]?.id ?? ''),
     start: phase?.start ?? '',
     end: phase?.end ?? '',
-    progress: phase?.progress ?? 0,
   });
 
-  function setF(k: string, v: string | number) { setForm(f => ({ ...f, [k]: v })); }
+  function setF(k: string, v: string) { setForm(f => ({ ...f, [k]: v })); }
 
   function save() {
     if (!form.name.trim()) return;
@@ -31,7 +30,7 @@ export default function PhaseModal({ phase, defaultProjectId, onClose }: PhaseMo
       projectId: form.projectId,
       start: form.start || undefined,
       end: form.end || undefined,
-      progress: Number(form.progress),
+      progress: phase?.progress ?? 0, // section progress is now derived from its tasks
     };
     if (phase) updatePhase(phase.id, data);
     else addPhase(data);
@@ -41,11 +40,11 @@ export default function PhaseModal({ phase, defaultProjectId, onClose }: PhaseMo
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-panel" onClick={e => e.stopPropagation()}>
-        <div className="modal-title">{phase ? 'Edit Phase' : 'New Phase'}</div>
+        <div className="modal-title">{phase ? 'Edit Section' : 'New Section'}</div>
 
         <div className="form-group">
-          <label>Phase Name</label>
-          <input value={form.name} onChange={e => setF('name', e.target.value)} placeholder="Phase name" autoFocus />
+          <label>Section Name</label>
+          <input value={form.name} onChange={e => setF('name', e.target.value)} placeholder="e.g. Research, Design, Admin…" autoFocus />
         </div>
 
         <div className="form-group">
@@ -71,14 +70,9 @@ export default function PhaseModal({ phase, defaultProjectId, onClose }: PhaseMo
           </div>
         </div>
 
-        <div className="form-group">
-          <label>Progress ({form.progress}%)</label>
-          <input type="range" min={0} max={100} value={form.progress} onChange={e => setF('progress', Number(e.target.value))} style={{ padding: 0 }} />
-        </div>
-
         <div className="modal-footer">
           <button className="btn btn-outline" onClick={onClose}>Cancel</button>
-          <button className="btn btn-primary" onClick={save}>{phase ? 'Save Changes' : 'Create Phase'}</button>
+          <button className="btn btn-primary" onClick={save}>{phase ? 'Save Changes' : 'Create Section'}</button>
         </div>
       </div>
     </div>
