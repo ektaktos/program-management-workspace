@@ -91,7 +91,7 @@
   --accent-sky: #c2dcef;   --accent-sky-light: #e6f0f8;
   --success: #6fa885; --success-light: #e2f1e8; --success-text: #3f6f53;
   --warning: #d49a5d; --warning-light: #fde9da; --warning-text: #8e6526;
-  --danger: #d68a8a;  --danger-light: #fbe2e2;  --danger-text: #985050; --danger-hover: #c47a7a;
+  --danger: #c27474;  --danger-light: #fbe2e2;  --danger-text: #985050; --danger-hover: #b06666;
   --info-text: #476a88; --orange-text: #8d5a37;
   --meeting: #f5c5d3; --meeting-bg: rgba(245, 197, 211, 0.18); --meeting-bg-hover: rgba(245, 197, 211, 0.32); --meeting-text: #9e5656;
   --cat-personal: #b6a4e8; --cat-work: #8aaed1; --cat-health: #b9dfc8; --cat-social: #f5c5d3;
@@ -123,40 +123,94 @@
   --highlight-bg: #f3f5f8; --highlight-border: #cfd7e0;
 }
 
-/* Sumi — dark ink with warm tan accents */
-:root[data-theme="sumi"] {
-  color-scheme: dark;
-  --bg: #1e1c1a; --surface: #272421;
-  --sidebar-bg: #191715; --sidebar-text: #d8cfc4; --sidebar-active: #2f2b27; --sidebar-border: #2f2b27;
-  --border: #36312c; --border-strong: #4a443d;
-  --text: #ece6de; --text-muted: #aaa196; --text-faint: #7a7268;
-  --primary: #5a4f43; --primary-dark: #cdb18a; --primary-light: #3a332c;
-  --accent: #d9c3a3; --accent-soft: #2f2a25; --accent-softer: #23201d;
-  --chip: #332e29; --track: #36312c; --btn-primary-bg: #4a4036; --btn-primary-hover: #5a4e42;
-  --accent-blush: #a8776c; --accent-blush-light: #3a2c28;
-  --accent-peach: #a98466; --accent-peach-light: #3a2f26;
-  --accent-butter: #a8975e; --accent-butter-light: #353022;
-  --accent-mint: #7f9a77;  --accent-mint-light: #26302a;
-  --accent-sky: #7d8f9b;   --accent-sky-light: #252d33;
-  --success: #8fae86; --success-light: #26302a; --success-text: #b0cca6;
-  --warning: #c9a46a; --warning-light: #353022; --warning-text: #dcbf89;
-  --danger: #c98a7c;  --danger-light: #3a2a26;  --danger-text: #e0a798; --danger-hover: #b87a6c;
-  --info-text: #b0c2cf;
-  --purple: #a99bb5; --purple-light: #2f2a34;
-  --orange: #c9987a; --orange-light: #3a2e26; --orange-text: #dcac8d;
-  --meeting: #b98a7f; --meeting-bg: rgba(185, 138, 127, 0.16); --meeting-bg-hover: rgba(185, 138, 127, 0.28); --meeting-text: #e0a798;
-  --cat-personal: #9d8fa6; --cat-work: #8497a3; --cat-health: #91a588; --cat-social: #b98a7f;
-  --cat-learning: #b9a27a; --cat-errand: #a89a86; --cat-rest: #9c95a1;
-  --highlight-bg: #2c2723; --highlight-border: #4a3f33;
-  --on-accent: #1e1c1a;
-  --glass: rgba(255, 255, 255, 0.08);
-  --glass-strong: rgba(39, 36, 33, 0.95);
-  --shadow: 0 1px 2px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.2);
-  --shadow-md: 0 4px 14px rgba(0,0,0,0.35), 0 2px 4px rgba(0,0,0,0.2);
-  --shadow-lg: 0 12px 32px rgba(0,0,0,0.45);
+/* Scandinavian — crisp white, pale birch, fjord blue */
+:root[data-theme="scandinavian"] {
+  --bg: #f5f7f8; --surface: #ffffff;
+  --sidebar-bg: #ebeff1; --sidebar-text: #2f3236; --sidebar-active: #dde4e8; --sidebar-border: #dde4e8;
+  --border: #e3e8eb; --border-strong: #cdd5da;
+  --text: #222427; --text-muted: #5d6166; --text-faint: #a3a6a9;
+  --primary: #d3dce2; --primary-dark: #4a6175; --primary-light: #e2e9ed;
+  --accent: #2f3236; --accent-soft: #e9eef1; --accent-softer: #f1f4f6;
+  --chip: #e9eef0; --track: #e2e8eb; --btn-primary-bg: #dfe7ec; --btn-primary-hover: #cfdbe2;
+  --cat-work: #8fa5b8;
+  --highlight-bg: #f5f6f5; --highlight-border: #d6d9da;
 }
 
-/* Check marks are drawn with a white stroke attribute; route them through --on-accent so they stay visible on light-filled checkboxes (dark theme) */
+/* Contemporary — clean greige, black accents, deep teal */
+:root[data-theme="contemporary"] {
+  --bg: #f3f1ee; --surface: #fefefe;
+  --sidebar-bg: #e5e1db; --sidebar-text: #1c1c1c; --sidebar-active: #d7d2ca; --sidebar-border: #d7d2ca;
+  --border: #e2ded8; --border-strong: #cbc5bc;
+  --text: #1c1c1c; --text-muted: #5a5855; --text-faint: #a19e99;
+  --primary: #cfcac2; --primary-dark: #2c5a5f; --primary-light: #e0dbd3;
+  --accent: #1c1c1c; --accent-soft: #e9e5df; --accent-softer: #f2f1ef;
+  --chip: #e8e4de; --track: #e2ddd6; --btn-primary-bg: #d9d4cc; --btn-primary-hover: #cbc5bb;
+  --cat-work: #6f9599;
+  --highlight-bg: #f4f3f1; --highlight-border: #d3cec7;
+}
+
+/* Rustic — warm wood, cream and rust */
+:root[data-theme="rustic"] {
+  --bg: #f6f1e9; --surface: #fcf9f4;
+  --sidebar-bg: #ece3d5; --sidebar-text: #4a3526; --sidebar-active: #e0d4c1; --sidebar-border: #e0d4c1;
+  --border: #e5dccd; --border-strong: #d2c4ae;
+  --text: #3b2a1e; --text-muted: #6a5849; --text-faint: #a8977f;
+  --primary: #d3bf9f; --primary-dark: #87492a; --primary-light: #e6dac6;
+  --accent: #4a3526; --accent-soft: #eee4d4; --accent-softer: #f5efe5;
+  --chip: #ede4d6; --track: #e7dccb; --btn-primary-bg: #e3d3b9; --btn-primary-hover: #d6c3a4;
+  --success: #7a8f5a; --danger: #b3654c; --danger-hover: #a25843;
+  --cat-health: #9aa77a; --cat-learning: #c9a46a; --cat-social: #c98f78;
+  --highlight-bg: #f9f3ea; --highlight-border: #dcc9a9;
+}
+
+/* Mediterranean — whitewash, Aegean blue and terracotta */
+:root[data-theme="mediterranean"] {
+  --bg: #f7f5f0; --surface: #fefdfb;
+  --sidebar-bg: #eaeff3; --sidebar-text: #1f3d5a; --sidebar-active: #dbe5ee; --sidebar-border: #dbe5ee;
+  --border: #e5e3dd; --border-strong: #d0ccc3;
+  --text: #1f2f3d; --text-muted: #56636f; --text-faint: #9ea7ae;
+  --primary: #c9d8e4; --primary-dark: #2a5b85; --primary-light: #dde8f1;
+  --accent: #1f3d5a; --accent-soft: #e8eef3; --accent-softer: #f2f5f7;
+  --chip: #e9edf0; --track: #e2e7eb; --btn-primary-bg: #d7e4ee; --btn-primary-hover: #c6d7e5;
+  --success: #7f9466; --warning: #c9a043; --danger: #c0704f; --danger-hover: #ad6346;
+  --meeting: #d9a184; --meeting-bg: rgba(217, 161, 132, 0.18); --meeting-bg-hover: rgba(217, 161, 132, 0.30); --meeting-text: #94492e;
+  --cat-work: #6f95b8; --cat-health: #9aab84; --cat-social: #d9a184; --cat-learning: #d4b25e;
+  --highlight-bg: #f2f6fa; --highlight-border: #c9d9e6;
+}
+
+/* Bohemian — terracotta, mustard and plum */
+:root[data-theme="bohemian"] {
+  --bg: #f8f1ea; --surface: #fffaf5;
+  --sidebar-bg: #f1e0dd; --sidebar-text: #5a2e3a; --sidebar-active: #e6cdca; --sidebar-border: #e6cdca;
+  --border: #ecdccf; --border-strong: #dbc4b2;
+  --text: #3f2430; --text-muted: #6e5057; --text-faint: #ae9190;
+  --primary: #e3c4a8; --primary-dark: #94463a; --primary-light: #f0dcd6;
+  --accent: #5a2e3a; --accent-soft: #f3e3d6; --accent-softer: #f8ede4;
+  --chip: #f1e2d6; --track: #ecdccd; --btn-primary-bg: #efd9a0; --btn-primary-hover: #e6c97f;
+  --success: #6f8f55; --warning: #c9902e;
+  --meeting: #d98b6c; --meeting-bg: rgba(217, 139, 108, 0.16); --meeting-bg-hover: rgba(217, 139, 108, 0.28); --meeting-text: #8f4630;
+  --cat-personal: #a5739b; --cat-work: #6f8fa3; --cat-health: #8aa36b; --cat-social: #d98b6c;
+  --cat-learning: #d9a441; --cat-errand: #c08c6a; --cat-rest: #a796b0;
+  --highlight-bg: #fbf1e8; --highlight-border: #e6c9ad;
+}
+
+/* Southwestern — desert sand, terracotta and turquoise */
+:root[data-theme="southwestern"] {
+  --bg: #f8f2ea; --surface: #fffbf6;
+  --sidebar-bg: #f0e3d3; --sidebar-text: #5b3424; --sidebar-active: #e8d4bf; --sidebar-border: #e8d4bf;
+  --border: #ecdfcf; --border-strong: #dbc6ad;
+  --text: #3e2a20; --text-muted: #6d5446; --text-faint: #ad9580;
+  --primary: #e2c3a0; --primary-dark: #276d6b; --primary-light: #eedbc6;
+  --accent: #8c3f26; --accent-soft: #f3e4d3; --accent-softer: #f8eee3;
+  --chip: #f1e4d6; --track: #ecdecd; --btn-primary-bg: #d6eae6; --btn-primary-hover: #c2dfd9;
+  --success: #7d9a6a; --danger: #b75a3c; --danger-hover: #a44f34;
+  --meeting: #d8865f; --meeting-bg: rgba(216, 134, 95, 0.16); --meeting-bg-hover: rgba(216, 134, 95, 0.28); --meeting-text: #8e442a;
+  --cat-personal: #b07a8c; --cat-work: #4f9a98; --cat-health: #9aa77a; --cat-social: #d8865f;
+  --cat-learning: #d9a54b; --cat-errand: #c49a72; --cat-rest: #a99a8a;
+  --highlight-bg: #fbf2e7; --highlight-border: #e4c7a6;
+}
+
+/* Check marks are drawn with a white stroke attribute; route them through --on-accent so a theme can recolour them */
 svg polyline[stroke="#fff"], svg[stroke="white"] { stroke: var(--on-accent); }
 
 
@@ -868,7 +922,7 @@ label {
 .review-row .todo-del { white-space: nowrap; width: auto; padding: 2px 6px; flex-shrink: 0; }
 
 /* ── Theme picker ── */
-.theme-popover { position: absolute; top: calc(100% + 8px); right: 0; z-index: 120; width: 280px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-lg); padding: 8px; }
+.theme-popover { position: absolute; top: calc(100% + 8px); right: 0; z-index: 120; width: 290px; max-height: min(70vh, 560px); overflow-y: auto; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-lg); padding: 8px; }
 .theme-popover-head { font-size: 11px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-muted); padding: 6px 8px 8px; }
 .theme-popover-foot { font-size: 11px; color: var(--text-faint); padding: 8px 8px 4px; border-top: 1px solid var(--border); margin-top: 4px; }
 .theme-option { display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px; border: none; background: transparent; border-radius: 10px; cursor: pointer; color: var(--text); font-family: inherit; }
