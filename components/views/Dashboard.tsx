@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useAppStore } from '@/store/useAppStore';
-import { calcProjectProgress, fmtDate, projectInArea } from '@/lib/utils';
+import { calcProjectProgress, fmtDate, projectInArea, todayIso, calendarEventsOn, localTimeOf } from '@/lib/utils';
 import ProgressBar from '../ui/ProgressBar';
 import ThemeGrid from '../ui/ThemeGrid';
 
@@ -15,6 +15,11 @@ function daysLeft(iso: string): string {
   return `${diff}d left`;
 }
 
+function fmt12(time: string): string {
+  const [h, m] = time.split(':').map(Number);
+  return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`;
+}
+
 function CheckIcon() {
   return (
     <svg viewBox="0 0 12 12" fill="none" style={{ width: 9, height: 9 }}>
@@ -24,7 +29,28 @@ function CheckIcon() {
 }
 
 export default function Dashboard() {
-  const { projects: allProjects, tasks: allTasks, notes, todos, addTodo, updateTodo, toggleTodo, deleteTodo, setView, navigateToTask, archivedProjectIds, archivedTaskIds, areaFilter } = useAppStore();
+  const { projects: allProjects, tasks: allTasks, notes, todos, addTodo, updateTodo, toggleTodo, deleteTodo, setView, navigateToTask, archivedProjectIds, archivedTaskIds, areaFilter,
+    plannerAppointments, calendarSources, calendarEvents, ensureCalendarRange, setCalendarsOpen } = useAppStore();
+
+  // ── Today's meetings: planner meetings + events from subscribed calendars ──
+  const today = todayIso();
+  useEffect(() => { ensureCalendarRange(today, today); }, [today, calendarSources, ensureCalendarRange]);
+  const nowMs = Date.now();
+  const nowHm = `${String(new Date().getHours()).padStart(2, '0')}:${String(new Date().getMinutes()).padStart(2, '0')}`;
+  const sourceById = new Map(calendarSources.map(c => [c.id, c]));
+  const meetingsToday = [
+    ...plannerAppointments.filter(a => a.date === today).map(a => ({
+      id: `appt-${a.id}`, title: a.title, time: a.time, endTime: undefined as string | undefined, allDay: false,
+      source: 'Planner', color: 'var(--meeting)', past: a.done || a.time < nowHm,
+    })),
+    ...calendarEventsOn(calendarEvents.filter(e => sourceById.get(e.sourceId)?.enabled), today).map(e => ({
+      id: e.id, title: e.title, time: e.allDay ? '' : localTimeOf(e.start), endTime: e.allDay ? undefined : localTimeOf(e.end), allDay: e.allDay,
+      source: sourceById.get(e.sourceId)?.name ?? 'Calendar', color: sourceById.get(e.sourceId)?.color ?? 'var(--border-strong)',
+      past: !e.allDay && Date.parse(e.end) < nowMs,
+    })),
+  ].sort((a, b) => (a.allDay === b.allDay ? a.time.localeCompare(b.time) : a.allDay ? -1 : 1));
+  const meetingsLeft = meetingsToday.filter(m => !m.past).length;
+  const nextMeetingId = meetingsToday.find(m => !m.past && !m.allDay)?.id;
   const projects = allProjects.filter(p => !archivedProjectIds.includes(p.id) && projectInArea(p, areaFilter));
   const visibleProjectIds = new Set(projects.map(p => p.id));
   const tasks    = allTasks.filter(t => !archivedTaskIds.includes(t.id) && visibleProjectIds.has(t.projectId));
@@ -215,8 +241,42 @@ export default function Dashboard() {
 
         </div>
 
-        {/* Right column: Upcoming Deadlines + Recent Notes + Theme */}
+        {/* Right column: Today's meetings + Upcoming Deadlines + Recent Notes + Theme */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+          {/* Today's meetings */}
+          <div className="card">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+                <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>Today&rsquo;s meetings</div>
+                <span className="meet-count" aria-label={`${meetingsToday.length} meetings today`}>{meetingsToday.length}</span>
+              </div>
+              <button className="btn btn-ghost btn-sm" style={{ fontSize: 12 }} onClick={() => setView('planner')}>Planner</button>
+            </div>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2, marginBottom: meetingsToday.length ? 10 : 0 }}>
+              {meetingsToday.length === 0
+                ? 'No meetings today.'
+                : meetingsLeft === 0 ? 'All done for today.' : `${meetingsLeft} still to come${meetingsToday.length - meetingsLeft ? ` · ${meetingsToday.length - meetingsLeft} done` : ''}`}
+            </div>
+            {meetingsToday.map(m => (
+              <div key={m.id} className={`meet-row${m.past ? ' past' : ''}${m.id === nextMeetingId ? ' next' : ''}`} style={{ borderLeftColor: m.color }}>
+                <div className="meet-time">
+                  {m.allDay ? 'All day' : fmt12(m.time)}
+                  {m.endTime && <span>{fmt12(m.endTime)}</span>}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div className="meet-title">{m.title}</div>
+                  <div className="meet-src">{m.source}</div>
+                </div>
+                {m.id === nextMeetingId && <span className="badge badge-primary" style={{ fontSize: 10.5 }}>Next</span>}
+              </div>
+            ))}
+            {calendarSources.length === 0 && (
+              <button className="btn btn-ghost btn-sm" style={{ fontSize: 12, padding: '6px 0 0' }} onClick={() => setCalendarsOpen(true)}>
+                + Connect a calendar to include its meetings
+              </button>
+            )}
+          </div>
 
           {/* Upcoming deadlines */}
           <div className="card">
