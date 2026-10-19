@@ -11,8 +11,10 @@ import Upcoming from '@/components/views/Upcoming';
 import ProjectDetail from '@/components/views/ProjectDetail';
 import WeeklyPlanner from '@/components/views/WeeklyPlanner';
 import ArchiveView from '@/components/views/ArchiveView';
+import Today from '@/components/views/Today';
 import ToastContainer from '@/components/ui/Toast';
 import PWAInit from '@/components/PWAInit';
+import QuickAdd from '@/components/QuickAdd';
 
 export default function Home() {
   const currentView    = useAppStore(s => s.currentView);
@@ -61,6 +63,7 @@ export default function Home() {
         <Topbar />
         <main className="main-content" style={{ flex: 1, overflowY: 'auto', padding: '28px 32px' }}>
           {currentView === 'dashboard' && <Dashboard />}
+          {currentView === 'today'     && <Today />}
           {currentView === 'projects'  && <AllProjects />}
           {currentView === 'tasks'     && <AllTasks />}
           {currentView === 'upcoming'  && <Upcoming />}
@@ -71,6 +74,7 @@ export default function Home() {
       </div>
       <ToastContainer />
       <PWAInit />
+      <QuickAdd />
     </div>
   );
 }

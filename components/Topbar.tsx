@@ -7,14 +7,16 @@ import ConfirmModal from './modals/ConfirmModal';
 
 const VIEW_META: Record<string, { title: string; subtitle: string }> = {
   dashboard: { title: 'Dashboard',         subtitle: 'A gentle overview of everything' },
+  today:     { title: 'Today',              subtitle: 'Everything that needs you today' },
   projects:  { title: 'All Projects',       subtitle: 'Browse and manage all your projects' },
   tasks:     { title: 'All Tasks',          subtitle: 'Every task across every project' },
   upcoming:  { title: 'Upcoming Deadlines',  subtitle: 'What is on the horizon' },
   planner:   { title: 'Weekly Planner',     subtitle: 'Plan your week, day by day' },
+  archive:   { title: 'Archive',            subtitle: 'Projects and tasks set aside for later' },
 };
 
 export default function Topbar() {
-  const { currentView, activeProjectId, projects, toasts, sidebarOpen, setSidebarOpen, setView, deleteProject, setPlannerModalTrigger } = useAppStore();
+  const { currentView, activeProjectId, projects, toasts, sidebarOpen, setSidebarOpen, setView, deleteProject, setPlannerModalTrigger, setQuickAddOpen } = useAppStore();
   const [editProject, setEditProject] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -83,6 +85,11 @@ export default function Topbar() {
         </div>
 
         <div className="topbar-actions" style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+          <button className="btn btn-outline btn-sm quickadd-btn" onClick={() => setQuickAddOpen(true)} title="Quick add (⌘K / Ctrl+K)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ width: 13, height: 13 }}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span className="btn-label">Quick add</span>
+            <kbd className="quickadd-kbd">⌘K</kbd>
+          </button>
           {currentView === 'planner' && (
             <>
               <button className="btn btn-primary btn-sm" onClick={() => setPlannerModalTrigger('task')}>

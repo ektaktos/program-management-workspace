@@ -701,3 +701,22 @@ label {
 .ptray-title { font-size: 12.5px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
 .ptray-meta { font-size: 11px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ptray-plan { width: auto !important; font-size: 11.5px !important; padding: 3px 6px !important; flex-shrink: 0; }
+
+/* ── Today ── */
+.today-summary { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-bottom: 16px; }
+.today-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 900px) { .today-grid { grid-template-columns: 1fr; } }
+.today-item { border-left: 3px solid transparent; padding-left: 8px; }
+.today-item-title { font-size: 13.5px; color: var(--text); cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.today-item.done .today-item-title { text-decoration: line-through; opacity: 0.55; }
+.today-item-meta { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--text-muted); margin-top: 2px; flex-wrap: wrap; }
+.today-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+
+/* ── Quick add ── */
+.quickadd-overlay { align-items: flex-start; padding-top: 12vh; }
+.quickadd-panel { max-width: 560px; }
+.quickadd-input { width: 100%; font-size: 17px !important; padding: 12px 14px !important; border-radius: 10px; }
+.quickadd-check { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--text-muted); cursor: pointer; margin: 0; }
+.quickadd-check input { width: auto; margin: 0; }
+.quickadd-kbd { font-family: inherit; font-size: 10.5px; color: var(--text-faint); border: 1px solid var(--border); border-radius: 4px; padding: 0 4px; margin-left: 2px; }
+@media (max-width: 768px) { .quickadd-kbd { display: none; } }
