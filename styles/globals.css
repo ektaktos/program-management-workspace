@@ -596,6 +596,9 @@ label {
 .pevent:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
 .pevent.done .pevent-title { opacity: 0.6; }
 .pevent-title { font-size: 11.5px; font-weight: 500; color: var(--text); word-break: break-word; padding-right: 14px; }
+.pevent-proj { display: flex; align-items: center; gap: 5px; margin-top: 4px; min-width: 0; }
+.pevent-proj-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.pevent-proj-name { font-size: 10.5px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pevent-check { position: absolute; top: 6px; right: 6px; width: 11px; height: 11px; border: 1.5px solid var(--border-strong); border-radius: 50%; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; background: var(--surface); transition: all 0.15s; padding: 0; outline: none; overflow: visible; }
 .pevent-check::before { content: ''; position: absolute; inset: -7px; }
 .pevent-check:hover { border-color: #5f441c; }

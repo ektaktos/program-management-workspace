@@ -65,6 +65,7 @@ export function toPlannerEvent(e: Record<string, unknown>): PlannerEvent {
     notes:     (e.notes as string) ?? '',
     done:      Boolean(e.done),
     time:      (e.time as string) ?? undefined,
+    projectId: (e.projectId as string) ?? undefined,
     createdAt: toMs(e.createdAt),
   };
 }

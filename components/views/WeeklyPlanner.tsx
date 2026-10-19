@@ -47,18 +47,22 @@ interface EventModalProps {
 }
 
 function EventModal({ presetDate, event, onClose }: EventModalProps) {
-  const { addPlannerEvent, updatePlannerEvent, deletePlannerEvent } = useAppStore();
+  const { addPlannerEvent, updatePlannerEvent, deletePlannerEvent, projects, archivedProjectIds } = useAppStore();
+  const projectOptions = projects.filter(p => !archivedProjectIds.includes(p.id) || p.id === event?.projectId);
   const [title, setTitle] = useState(event?.title ?? '');
   const [date, setDate] = useState(event?.date ?? presetDate ?? '');
   const [category, setCategory] = useState(event?.category ?? 'personal');
   const [notes, setNotes] = useState(event?.notes ?? '');
+  const [projectId, setProjectId] = useState(event?.projectId ?? '');
+  const selectedProject = projects.find(p => p.id === projectId);
 
   function handleSave() {
     if (!title.trim() || !date) return;
+    const pid = projectId || undefined;
     if (event) {
-      updatePlannerEvent(event.id, { title: title.trim(), date, category, notes });
+      updatePlannerEvent(event.id, { title: title.trim(), date, category, notes, projectId: pid });
     } else {
-      addPlannerEvent({ title: title.trim(), date, category, notes, done: false });
+      addPlannerEvent({ title: title.trim(), date, category, notes, done: false, projectId: pid });
     }
     onClose();
   }
@@ -82,6 +86,16 @@ function EventModal({ presetDate, event, onClose }: EventModalProps) {
               {CATEGORIES.map(c => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
             </select>
           </div>
+        </div>
+        <div className="form-group">
+          <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            Project
+            {selectedProject && <span style={{ width: 8, height: 8, borderRadius: '50%', background: selectedProject.color, display: 'inline-block' }} />}
+          </label>
+          <select value={projectId} onChange={e => setProjectId(e.target.value)}>
+            <option value="">No project</option>
+            {projectOptions.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+          </select>
         </div>
         <div className="form-group">
           <label>Notes</label>
@@ -196,6 +210,7 @@ export default function WeeklyPlanner() {
     todos, addTodo, updateTodo, toggleTodo, deleteTodo,
     plannerEvents, updatePlannerEvent,
     plannerAppointments,
+    projects,
     plannerWeekly, updatePlannerWeekly,
     plannerWeekOffset, setPlannerWeekOffset,
     plannerModalTrigger, setPlannerModalTrigger,
@@ -299,6 +314,8 @@ export default function WeeklyPlanner() {
   });
 
   const openTodos = todos.filter(t => !t.done).length;
+
+  const projectOf = (id?: string) => (id ? projects.find(p => p.id === id) : undefined);
 
   return (
     <div>
@@ -544,6 +561,12 @@ export default function WeeklyPlanner() {
                               )}
                             </button>
                             <div className="pevent-title">{ev.title}</div>
+                            {projectOf(ev.projectId) && (
+                              <div className="pevent-proj" title={projectOf(ev.projectId)!.name}>
+                                <span className="pevent-proj-dot" style={{ background: projectOf(ev.projectId)!.color }} />
+                                <span className="pevent-proj-name">{projectOf(ev.projectId)!.name}</span>
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -614,6 +637,12 @@ export default function WeeklyPlanner() {
                             <div className="pagenda-time">{e.time ? fmt12(e.time) : '—'}</div>
                             <div className="pagenda-body">
                               <div className="pagenda-title" style={e.done ? { textDecoration: 'line-through', opacity: 0.5 } : {}}>{e.title}</div>
+                              {projectOf(e.projectId) && (
+                                <div className="pagenda-meta" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: projectOf(e.projectId)!.color, flexShrink: 0 }} />
+                                  {projectOf(e.projectId)!.name}
+                                </div>
+                              )}
                               {e.notes && <div className="pagenda-meta">{e.notes}</div>}
                             </div>
                             <span className="pagenda-cat">{e.category}</span>

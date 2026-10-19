@@ -81,6 +81,7 @@ export interface PlannerEvent {
   done: boolean;
   createdAt: number;
   time?: string;
+  projectId?: string; // optional link to a project — shown with the project's colour
 }
 
 export interface PlannerAppointment {

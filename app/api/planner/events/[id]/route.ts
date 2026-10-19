@@ -13,6 +13,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       notes:    body.notes ?? '',
       done:     body.done ?? false,
       time:     body.time ?? null,
+      projectId: body.projectId ?? null,
     },
   });
   return NextResponse.json(toPlannerEvent(event as Record<string, unknown>));
