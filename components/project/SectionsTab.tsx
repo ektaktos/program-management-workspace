@@ -43,13 +43,26 @@ interface SectionsTabProps {
 }
 
 export default function SectionsTab({ projectId, highlightedTaskId }: SectionsTabProps) {
-  const { phases, tasks, deletePhase, toggleTaskDone, archivedTaskIds } = useAppStore();
+  const { phases, tasks, deletePhase, toggleTaskDone, updateTask, archivedTaskIds } = useAppStore();
   const [showAddSection, setShowAddSection] = useState(false);
   const [editing, setEditing] = useState<Phase | null>(null);
   const [confirming, setConfirming] = useState<string | null>(null);
   const [addingTask, setAddingTask] = useState<{ phaseId?: string } | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [filter, setFilter] = useState<TaskStatus | 'all'>('all');
+  const [openSubtasks, setOpenSubtasks] = useState<Set<string>>(new Set());
+
+  function toggleSubtaskList(taskId: string) {
+    setOpenSubtasks(prev => {
+      const next = new Set(prev);
+      if (next.has(taskId)) next.delete(taskId); else next.add(taskId);
+      return next;
+    });
+  }
+
+  function toggleSubtask(task: Task, subId: string) {
+    updateTask(task.id, { subtasks: (task.subtasks ?? []).map(st => st.id === subId ? { ...st, done: !st.done } : st) });
+  }
 
   const projectPhases = phases.filter(p => p.projectId === projectId);
   const phaseIds = new Set(projectPhases.map(p => p.id));
@@ -212,8 +225,12 @@ export default function SectionsTab({ projectId, highlightedTaskId }: SectionsTa
           )}
           {preview.map(t => {
             const done = t.status === 'done';
+            const subs = t.subtasks ?? [];
+            const subsDone = subs.filter(st => st.done).length;
+            const subsOpen = openSubtasks.has(t.id);
             return (
-              <div key={t.id} className="section-task-row">
+              <div key={t.id}>
+              <div className="section-task-row">
                 <button
                   type="button"
                   className={`section-task-check${done ? ' checked' : ''}`}
@@ -228,11 +245,46 @@ export default function SectionsTab({ projectId, highlightedTaskId }: SectionsTa
                 </button>
                 <span style={{ width: 6, height: 6, borderRadius: '50%', background: PRIORITY_DOT[t.priority], flexShrink: 0 }} />
                 <span className="section-task-title" style={done ? { textDecoration: 'line-through', opacity: 0.55 } : undefined}>{t.title}</span>
+                {subs.length > 0 && (
+                  <button
+                    type="button"
+                    className={`section-subtask-chip${subsOpen ? ' open' : ''}`}
+                    title={subsOpen ? 'Hide subtasks' : 'Show subtasks'}
+                    onClick={e => { e.stopPropagation(); toggleSubtaskList(t.id); }}
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" style={{ width: 9, height: 9, transform: subsOpen ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s' }}>
+                      <polyline points="9 18 15 12 9 6"/>
+                    </svg>
+                    {subsDone}/{subs.length}
+                  </button>
+                )}
                 {t.due && !done && (
                   <span style={{ fontSize: 10.5, flexShrink: 0, color: t.status === 'overdue' ? 'var(--danger)' : 'var(--text-faint)' }}>
                     {fmtDate(t.due).replace(/ \d{4}$/, '')}
                   </span>
                 )}
+              </div>
+              {subsOpen && subs.length > 0 && (
+                <div className="section-subtask-list" onClick={e => e.stopPropagation()}>
+                  {subs.map(st => (
+                    <div key={st.id} className="section-subtask-row">
+                      <button
+                        type="button"
+                        className={`section-task-check small${st.done ? ' checked' : ''}`}
+                        title={st.done ? 'Mark subtask as not done' : 'Mark subtask as done'}
+                        onClick={e => { e.stopPropagation(); toggleSubtask(t, st.id); }}
+                      >
+                        {st.done && (
+                          <svg viewBox="0 0 12 12" fill="none" style={{ width: 7, height: 7 }}>
+                            <polyline points="2,6 5,9 10,3" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        )}
+                      </button>
+                      <span className="section-task-title" style={{ fontSize: 12, ...(st.done ? { textDecoration: 'line-through', opacity: 0.55 } : {}) }}>{st.title}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
               </div>
             );
           })}
