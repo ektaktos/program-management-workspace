@@ -42,7 +42,37 @@ export default function Sidebar() {
     sidebarOpen, setSidebarOpen, setView, setSearch, searchQuery,
     archivedProjectIds, archivedTaskIds, projectOrder, setProjectOrder,
     areaFilter, setAreaFilter,
+    navOrder, setNavOrder,
   } = useAppStore();
+
+  // Menu order: saved order first, then any entries not in it (e.g. newly added) in default order
+  const orderedNav = [...NAV].sort((a, b) => {
+    const ai = navOrder.indexOf(a.id), bi = navOrder.indexOf(b.id);
+    if (ai === -1 && bi === -1) return NAV.indexOf(a) - NAV.indexOf(b);
+    if (ai === -1) return 1;
+    if (bi === -1) return -1;
+    return ai - bi;
+  });
+  const navDragId = useRef<string | null>(null);
+  const [navOverId, setNavOverId] = useState<string | null>(null);
+
+  function dropNav(targetId: string) {
+    const from = navDragId.current;
+    navDragId.current = null;
+    setNavOverId(null);
+    if (!from || from === targetId) return;
+    const ids = orderedNav.map(n => n.id);
+    const fromIdx = ids.indexOf(from), toIdx = ids.indexOf(targetId);
+    // Dragging down lands below the target, dragging up lands above it
+    ids.splice(fromIdx, 1);
+    ids.splice(toIdx, 0, from);
+    setNavOrder(ids);
+  }
+  function navDropClass(targetId: string) {
+    if (navOverId !== targetId || !navDragId.current || navDragId.current === targetId) return '';
+    const ids = orderedNav.map(n => n.id);
+    return ids.indexOf(navDragId.current) < ids.indexOf(targetId) ? ' drop-after' : ' drop-before';
+  }
   const [showNewProject, setShowNewProject] = useState(false);
 
   // drag state
@@ -196,11 +226,21 @@ export default function Sidebar() {
               Menu
             </div>
           )}
-          {NAV.map(item => {
+          {orderedNav.map(item => {
             const active = navActive(item.id);
             return (
-              <button
+              <div
                 key={item.id}
+                className={`nav-item-wrap${navDropClass(item.id)}`}
+                draggable={open}
+                onDragStart={e => { navDragId.current = item.id; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', item.id); }}
+                onDragOver={e => { if (!navDragId.current) return; e.preventDefault(); if (navOverId !== item.id) setNavOverId(item.id); }}
+                onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setNavOverId(o => (o === item.id ? null : o)); }}
+                onDrop={e => { e.preventDefault(); dropNav(item.id); }}
+                onDragEnd={() => { navDragId.current = null; setNavOverId(null); }}
+              >
+              {open && <span className="nav-drag-handle" aria-hidden>⠿</span>}
+              <button
                 onClick={() => { setView(item.id); setSidebarOpen(window.innerWidth >= 768 ? open : false); }}
                 title={!open ? item.label : undefined}
                 style={{
@@ -229,6 +269,7 @@ export default function Sidebar() {
                 <span style={{ color: 'var(--accent)', flexShrink: 0 }}>{item.icon}</span>
                 {open && item.label}
               </button>
+              </div>
             );
           })}
         </div>

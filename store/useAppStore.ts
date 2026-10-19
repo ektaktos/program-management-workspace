@@ -201,6 +201,10 @@ interface Store extends AppState, UIState, PlannerState {
   theme:    string;
   setTheme: (id: string) => void;
 
+  // ── Sidebar menu order (synced via settings; [] = default order) ──
+  navOrder:    string[];
+  setNavOrder: (ids: string[]) => void;
+
   // ── Subscribed calendars (read-only) ──
   calendarSources: CalendarSource[];
   calendarEvents:  CalendarEvent[];
@@ -252,6 +256,7 @@ export const useAppStore = create<Store>((set, get) => ({
   quickAddOpen: false,
   dailyCapacity: DAILY_CAPACITY_MIN,
   theme: DEFAULT_THEME,
+  navOrder: [],
 
   calendarSources: [],
   calendarEvents:  [],
@@ -290,6 +295,10 @@ export const useAppStore = create<Store>((set, get) => ({
         let cached = '';
         try { cached = localStorage.getItem('pm_oyint_theme') ?? ''; } catch {}
         if (isThemeId(cached)) set({ theme: cached });
+      }
+
+      if (Array.isArray(settingsRes?.navOrder)) {
+        set({ navOrder: (settingsRes!.navOrder as unknown[]).filter((x): x is string => typeof x === 'string') });
       }
 
       const dbCap = Number(settingsRes?.dailyCapacity);
@@ -705,6 +714,11 @@ export const useAppStore = create<Store>((set, get) => ({
   },
 
   setQuickAddOpen: (open) => set({ quickAddOpen: open }),
+
+  setNavOrder: (ids) => {
+    set({ navOrder: ids });
+    api('/api/settings/navOrder', 'PUT', { value: ids }).catch(console.error);
+  },
 
   setTheme: (id) => {
     if (!isThemeId(id)) return;

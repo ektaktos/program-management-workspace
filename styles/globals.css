@@ -1013,3 +1013,11 @@ button.pday-appts-label:focus-visible { outline: 2px solid var(--primary-dark); 
 .stat-meetings-num { font-family: Georgia, 'Times New Roman', serif; font-size: 24px; line-height: 1; }
 .stat-meetings-lbl { font-size: 10px; color: var(--text-muted); letter-spacing: 0.3px; }
 @media (max-width: 768px) { .stat-meetings { width: 72px; height: 72px; padding: 0 0 16px 16px; } .stat-meetings-num { font-size: 18px; } .stat-meetings-lbl { font-size: 8.5px; } }
+
+/* ── Reorderable sidebar menu ── */
+.nav-item-wrap { position: relative; border-radius: 10px; }
+.nav-item-wrap[draggable="true"] { cursor: grab; }
+.nav-drag-handle { position: absolute; left: 1px; top: 50%; transform: translateY(-50%); font-size: 10px; line-height: 1; color: var(--text-faint); opacity: 0; transition: opacity 0.15s; pointer-events: none; z-index: 1; }
+.nav-item-wrap:hover .nav-drag-handle { opacity: 1; }
+.nav-item-wrap.drop-before::before { content: ''; position: absolute; left: 8px; right: 8px; top: -2px; height: 2px; border-radius: 2px; background: var(--primary-dark); }
+.nav-item-wrap.drop-after::after { content: ''; position: absolute; left: 8px; right: 8px; bottom: -1px; height: 2px; border-radius: 2px; background: var(--primary-dark); }

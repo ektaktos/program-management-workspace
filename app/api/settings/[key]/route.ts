@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { isThemeId } from '@/lib/themes';
+import { NAV_IDS } from '@/lib/constants';
 
 // Only known, validated settings can be written
 const VALIDATORS: Record<string, (v: unknown) => boolean> = {
   dailyCapacity: v => typeof v === 'number' && Number.isFinite(v) && v >= 30 && v <= 24 * 60,
   theme: v => isThemeId(v),
+  navOrder: v => Array.isArray(v) && v.length <= NAV_IDS.length && v.every(x => typeof x === 'string' && NAV_IDS.includes(x)),
 };
 
 // Body: { value: <JSON> }
