@@ -50,81 +50,115 @@ interface EventModalProps {
   onClose: () => void;
 }
 
+// Same layout, order and buttons as the project task form (TaskModal), limited to the fields planner tasks store
 function EventModal({ presetDate, event, onClose }: EventModalProps) {
   const { addPlannerEvent, updatePlannerEvent, deletePlannerEvent, projects, archivedProjectIds } = useAppStore();
   const projectOptions = projects.filter(p => !archivedProjectIds.includes(p.id) || p.id === event?.projectId);
-  const [title, setTitle] = useState(event?.title ?? '');
-  const [date, setDate] = useState(event?.date ?? presetDate ?? '');
-  const [category, setCategory] = useState(event?.category ?? 'personal');
-  const [notes, setNotes] = useState(event?.notes ?? '');
-  const [projectId, setProjectId] = useState(event?.projectId ?? '');
-  const [estimate, setEstimate] = useState(event?.estimate ? String(event.estimate) : '');
-  const selectedProject = projects.find(p => p.id === projectId);
+  const [form, setForm] = useState({
+    title:     event?.title ?? '',
+    notes:     event?.notes ?? '',
+    projectId: event?.projectId ?? '',
+    category:  event?.category ?? 'personal',
+    done:      event?.done ?? false,
+    date:      event?.date ?? presetDate ?? '',
+    time:      event?.time ?? '',
+    estimate:  event?.estimate ? String(event.estimate) : '',
+  });
+  const selectedProject = projects.find(p => p.id === form.projectId);
 
-  function handleSave() {
-    if (!title.trim() || !date) return;
-    const pid = projectId || undefined;
-    const est = estimate ? Number(estimate) : undefined;
-    if (event) {
-      updatePlannerEvent(event.id, { title: title.trim(), date, category, notes, projectId: pid, estimate: est });
-    } else {
-      addPlannerEvent({ title: title.trim(), date, category, notes, done: false, projectId: pid, estimate: est });
-    }
+  function setF<K extends keyof typeof form>(k: K, v: (typeof form)[K]) { setForm(f => ({ ...f, [k]: v })); }
+
+  function save() {
+    if (!form.title.trim() || !form.date) return;
+    const data = {
+      title:     form.title.trim(),
+      notes:     form.notes,
+      projectId: form.projectId || undefined,
+      category:  form.category,
+      done:      form.done,
+      date:      form.date,
+      time:      form.time || undefined,
+      estimate:  form.estimate ? Number(form.estimate) : undefined,
+    };
+    if (event) updatePlannerEvent(event.id, data);
+    else addPlannerEvent(data);
     onClose();
   }
 
   return (
-    <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="modal-panel">
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-panel" onClick={e => e.stopPropagation()}>
         <div className="modal-title">{event ? 'Edit Task' : 'New Task'}</div>
+
         <div className="form-group">
           <label>Title</label>
-          <input value={title} onChange={e => setTitle(e.target.value)} placeholder="What's happening?" autoFocus />
+          <input value={form.title} onChange={e => setF('title', e.target.value)} placeholder="Task title" autoFocus />
         </div>
-        <div className="form-row">
-          <div className="form-group">
-            <label>Date</label>
-            <input type="date" value={date} onChange={e => setDate(e.target.value)} />
-          </div>
-          <div className="form-group">
-            <label>Category</label>
-            <select value={category} onChange={e => setCategory(e.target.value)}>
-              {CATEGORIES.map(c => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
-            </select>
-          </div>
+
+        <div className="form-group">
+          <label>Description</label>
+          <textarea value={form.notes} onChange={e => setF('notes', e.target.value)} rows={2} placeholder="Optional details..." />
         </div>
+
         <div className="form-row">
           <div className="form-group">
             <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               Project
               {selectedProject && <span style={{ width: 8, height: 8, borderRadius: '50%', background: selectedProject.color, display: 'inline-block' }} />}
             </label>
-            <select value={projectId} onChange={e => setProjectId(e.target.value)}>
+            <select value={form.projectId} onChange={e => setF('projectId', e.target.value)}>
               <option value="">No project</option>
               {projectOptions.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
           </div>
           <div className="form-group">
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              Category
+              {!selectedProject && <span style={{ width: 8, height: 8, borderRadius: '50%', background: `var(--cat-${form.category})`, display: 'inline-block' }} />}
+            </label>
+            <select value={form.category} onChange={e => setF('category', e.target.value)} title={selectedProject ? 'Colour comes from the project while one is selected' : undefined}>
+              {CATEGORIES.map(c => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
+            </select>
+          </div>
+        </div>
+
+        <div className="form-row">
+          <div className="form-group">
+            <label>Status</label>
+            <select value={form.done ? 'done' : 'todo'} onChange={e => setF('done', e.target.value === 'done')}>
+              <option value="todo">To Do</option>
+              <option value="done">Done</option>
+            </select>
+          </div>
+          <div className="form-group">
             <label>Time estimate</label>
-            <select value={estimate} onChange={e => setEstimate(e.target.value)}>
+            <select value={form.estimate} onChange={e => setF('estimate', e.target.value)}>
               <option value="">None</option>
               {ESTIMATE_OPTIONS.map(m => <option key={m} value={m}>{fmtMins(m)}</option>)}
             </select>
           </div>
         </div>
-        <div className="form-group">
-          <label>Notes</label>
-          <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Anything to remember..." />
+
+        <div className="form-row">
+          <div className="form-group">
+            <label>Date</label>
+            <input type="date" value={form.date} onChange={e => setF('date', e.target.value)} />
+          </div>
+          <div className="form-group">
+            <label>Time</label>
+            <input type="time" value={form.time} onChange={e => setF('time', e.target.value)} />
+          </div>
         </div>
+
         <div className="modal-footer">
           {event && (
-            <button className="btn btn-danger btn-sm" onClick={() => { deletePlannerEvent(event.id); onClose(); }} style={{ marginRight: 'auto' }}>
+            <button className="btn btn-danger" onClick={() => { deletePlannerEvent(event.id); onClose(); }} style={{ marginRight: 'auto' }}>
               Delete
             </button>
           )}
-          <button className="btn btn-outline btn-sm" onClick={onClose}>Cancel</button>
-          <button className="btn btn-primary btn-sm" onClick={handleSave} disabled={!title.trim() || !date}>
-            Save Task
+          <button className="btn btn-outline" onClick={onClose}>Cancel</button>
+          <button className="btn btn-primary" onClick={save} disabled={!form.title.trim() || !form.date}>
+            {event ? 'Save Changes' : 'Create Task'}
           </button>
         </div>
       </div>
@@ -756,6 +790,7 @@ export default function WeeklyPlanner() {
                           <div
                             key={ev.id}
                             className={`pevent cat-${ev.category}${ev.done ? ' done' : ''}`}
+                            style={projectOf(ev.projectId) ? { borderLeftColor: projectOf(ev.projectId)!.color } : undefined}
                             draggable
                             onDragStart={e => startDrag(e, 'event', ev.id)}
                             onClick={() => setEditEventModal({ open: true, event: ev })}
@@ -866,6 +901,7 @@ export default function WeeklyPlanner() {
                           <div
                             key={e.id}
                             className={`pagenda-event cat-${e.category}`}
+                            style={projectOf(e.projectId) ? { borderLeftColor: projectOf(e.projectId)!.color } : undefined}
                             onClick={() => setEditEventModal({ open: true, event: e })}
                           >
                             <div className="pagenda-time">{e.time ? fmt12(e.time) : '—'}</div>

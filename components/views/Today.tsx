@@ -54,7 +54,8 @@ export default function Today() {
     })),
     ...plannerEvents.filter(e => e.date === today && inAreaEvent(e.projectId)).map(e => {
       const p = projectOf(e.projectId);
-      return { kind: 'planner' as const, id: e.id, title: e.title, time: e.time, done: e.done, color: p?.color, sub: p?.name ?? e.category, estimate: e.estimate };
+      // Same rule as the planner: project colour when linked, otherwise the category colour
+      return { kind: 'planner' as const, id: e.id, title: e.title, time: e.time, done: e.done, color: p?.color ?? `var(--cat-${e.category})`, sub: p?.name ?? e.category, estimate: e.estimate };
     }),
     ...liveTasks.filter(t => t.plannedDate === today).map(t => {
       const p = projectOf(t.projectId);
@@ -147,7 +148,7 @@ export default function Today() {
                   <div className="today-item-meta">
                     {i.time && <span>{fmt12(i.time)}</span>}
                     {i.color && <span className="today-dot" style={{ background: i.color }} />}
-                    {i.sub && <span style={{ textTransform: i.kind === 'planner' && !i.color ? 'capitalize' : undefined }}>{i.sub}</span>}
+                    {i.sub && <span style={{ textTransform: i.kind === 'planner' ? 'capitalize' : undefined }}>{i.sub}</span>}
                     {i.kind !== 'meeting' && i.estimate ? <span>· {fmtMins(i.estimate)}</span> : null}
                   </div>
                 </div>
