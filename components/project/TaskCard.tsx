@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Alert, Task } from '@/lib/types';
 import { useAppStore } from '@/store/useAppStore';
-import { fmtDate, fmt12hr } from '@/lib/utils';
+import { fmtDate, fmt12hr, fmtMins } from '@/lib/utils';
+import { ESTIMATE_OPTIONS } from '@/lib/constants';
 import StatusPill from '../ui/StatusPill';
 import TaskModal from '../modals/TaskModal';
 import ConfirmModal from '../modals/ConfirmModal';
@@ -254,6 +255,84 @@ function InlineRecurringBadge({ recurring, onSave }: { recurring?: string; onSav
   );
 }
 
+// ── Time estimate — only shown when set, click to change ─────────────────────
+function InlineEstimateBadge({ estimate, onSave }: { estimate?: number; onSave: (val: number | undefined) => void }) {
+  const [editing, setEditing] = useState(false);
+  if (!estimate && !editing) return null;
+
+  if (editing) {
+    return (
+      <select
+        autoFocus
+        value={estimate ?? ''}
+        onClick={e => e.stopPropagation()}
+        onChange={e => { onSave(e.target.value ? Number(e.target.value) : undefined); setEditing(false); }}
+        onBlur={() => setEditing(false)}
+        style={{ fontSize: 11.5, padding: '2px 6px', borderRadius: 6, border: '1px solid var(--primary-dark)', background: 'var(--surface)', color: 'var(--text)', width: 'auto' }}
+      >
+        <option value="">No estimate</option>
+        {ESTIMATE_OPTIONS.map(m => <option key={m} value={m}>{fmtMins(m)}</option>)}
+      </select>
+    );
+  }
+
+  return (
+    <span
+      className="badge badge-gray"
+      title="Time estimate — click to change"
+      style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4 }}
+      onClick={e => { e.stopPropagation(); setEditing(true); }}
+    >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 10, height: 10 }}>
+        <circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/>
+      </svg>
+      {fmtMins(estimate)}
+    </span>
+  );
+}
+
+// ── Planned day (Weekly Planner / Today) — only shown when set ───────────────
+function InlinePlannedBadge({ plannedDate, onSave }: { plannedDate?: string; onSave: (val: string | undefined) => void }) {
+  const [editing, setEditing] = useState(false);
+  const [val, setVal] = useState(plannedDate ?? '');
+  if (!plannedDate && !editing) return null;
+
+  if (editing) {
+    return (
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+        <input
+          type="date"
+          value={val}
+          autoFocus
+          onChange={e => setVal(e.target.value)}
+          onBlur={() => { setEditing(false); onSave(val || undefined); }}
+          onKeyDown={e => {
+            if (e.key === 'Enter')  { setEditing(false); onSave(val || undefined); }
+            if (e.key === 'Escape') { setEditing(false); setVal(plannedDate ?? ''); }
+          }}
+          onClick={e => e.stopPropagation()}
+          style={{ fontSize: 11.5, padding: '2px 6px', borderRadius: 6, border: '1px solid var(--primary-dark)', background: 'var(--surface)', color: 'var(--text)', outline: 'none' }}
+        />
+        <button
+          title="Remove from planner"
+          onMouseDown={e => e.preventDefault()}
+          onClick={e => { e.stopPropagation(); setEditing(false); onSave(undefined); }}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-faint)', fontSize: 14, lineHeight: 1, padding: '0 2px' }}
+        >×</button>
+      </span>
+    );
+  }
+
+  return (
+    <span
+      className="badge badge-primary"
+      title="Planned day — click to move"
+      style={{ cursor: 'pointer' }}
+      onClick={e => { e.stopPropagation(); setVal(plannedDate!); setEditing(true); }}
+    >Planned {fmtDate(plannedDate!).replace(/ \d{4}$/, '')}</span>
+  );
+}
+
 // ── Alerts — only shown when set, click to manage ────────────────────────────
 function InlineAlertsBadge({ alerts, onSave }: { alerts?: Alert[]; onSave: (val: Alert[]) => void }) {
   const [open, setOpen] = useState(false);
@@ -420,6 +499,16 @@ export default function TaskCard({ task, showProject, isHighlighted }: TaskCardP
             <InlineAlertsBadge
               alerts={task.alerts}
               onSave={val => updateTask(task.id, { alerts: val })}
+            />
+
+            <InlineEstimateBadge
+              estimate={task.estimate}
+              onSave={val => updateTask(task.id, { estimate: val })}
+            />
+
+            <InlinePlannedBadge
+              plannedDate={task.plannedDate}
+              onSave={val => updateTask(task.id, { plannedDate: val })}
             />
 
             {showProject && project && (

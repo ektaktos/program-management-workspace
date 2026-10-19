@@ -2,8 +2,10 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useAppStore } from '@/store/useAppStore';
-import { PlannerEvent, PlannerAppointment } from '@/lib/types';
-import { uid } from '@/lib/utils';
+import { PlannerEvent, PlannerAppointment, Task } from '@/lib/types';
+import TaskModal from '../modals/TaskModal';
+import { uid, fmtMins, fmtDate, projectInArea } from '@/lib/utils';
+import { ESTIMATE_OPTIONS, DAILY_CAPACITY_MIN } from '@/lib/constants';
 
 // ── Week helpers ──────────────────────────────────────────────────────────────
 
@@ -54,15 +56,17 @@ function EventModal({ presetDate, event, onClose }: EventModalProps) {
   const [category, setCategory] = useState(event?.category ?? 'personal');
   const [notes, setNotes] = useState(event?.notes ?? '');
   const [projectId, setProjectId] = useState(event?.projectId ?? '');
+  const [estimate, setEstimate] = useState(event?.estimate ? String(event.estimate) : '');
   const selectedProject = projects.find(p => p.id === projectId);
 
   function handleSave() {
     if (!title.trim() || !date) return;
     const pid = projectId || undefined;
+    const est = estimate ? Number(estimate) : undefined;
     if (event) {
-      updatePlannerEvent(event.id, { title: title.trim(), date, category, notes, projectId: pid });
+      updatePlannerEvent(event.id, { title: title.trim(), date, category, notes, projectId: pid, estimate: est });
     } else {
-      addPlannerEvent({ title: title.trim(), date, category, notes, done: false, projectId: pid });
+      addPlannerEvent({ title: title.trim(), date, category, notes, done: false, projectId: pid, estimate: est });
     }
     onClose();
   }
@@ -87,15 +91,24 @@ function EventModal({ presetDate, event, onClose }: EventModalProps) {
             </select>
           </div>
         </div>
-        <div className="form-group">
-          <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            Project
-            {selectedProject && <span style={{ width: 8, height: 8, borderRadius: '50%', background: selectedProject.color, display: 'inline-block' }} />}
-          </label>
-          <select value={projectId} onChange={e => setProjectId(e.target.value)}>
-            <option value="">No project</option>
-            {projectOptions.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-          </select>
+        <div className="form-row">
+          <div className="form-group">
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              Project
+              {selectedProject && <span style={{ width: 8, height: 8, borderRadius: '50%', background: selectedProject.color, display: 'inline-block' }} />}
+            </label>
+            <select value={projectId} onChange={e => setProjectId(e.target.value)}>
+              <option value="">No project</option>
+              {projectOptions.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+          </div>
+          <div className="form-group">
+            <label>Time estimate</label>
+            <select value={estimate} onChange={e => setEstimate(e.target.value)}>
+              <option value="">None</option>
+              {ESTIMATE_OPTIONS.map(m => <option key={m} value={m}>{fmtMins(m)}</option>)}
+            </select>
+          </div>
         </div>
         <div className="form-group">
           <label>Notes</label>
@@ -211,6 +224,7 @@ export default function WeeklyPlanner() {
     plannerEvents, updatePlannerEvent,
     plannerAppointments,
     projects,
+    tasks, updateTask, toggleTaskDone, archivedTaskIds, archivedProjectIds, areaFilter,
     plannerWeekly, updatePlannerWeekly,
     plannerWeekOffset, setPlannerWeekOffset,
     plannerModalTrigger, setPlannerModalTrigger,
@@ -316,6 +330,62 @@ export default function WeeklyPlanner() {
   const openTodos = todos.filter(t => !t.done).length;
 
   const projectOf = (id?: string) => (id ? projects.find(p => p.id === id) : undefined);
+
+  // ── Project tasks scheduled onto planner days ──
+  const [editTask, setEditTask] = useState<Task | null>(null);
+  const [trayOpen, setTrayOpen] = useState(true);
+  const [trayProject, setTrayProject] = useState('');
+  const [trayShowAll, setTrayShowAll] = useState(false);
+  const [dragOverDay, setDragOverDay] = useState<string | null>(null);
+
+  const weekIsos = days.map(isoOf);
+  const liveTasks = tasks.filter(t =>
+    !archivedTaskIds.includes(t.id) && !archivedProjectIds.includes(t.projectId));
+  const plannedTasksOn = (iso: string) => liveTasks.filter(t => t.plannedDate === iso);
+
+  const PRIORITY_RANK: Record<string, number> = { high: 0, medium: 1, low: 2 };
+  const trayTasks = liveTasks
+    .filter(t => t.status !== 'done' && !(t.plannedDate && weekIsos.includes(t.plannedDate)))
+    .filter(t => projectInArea(projectOf(t.projectId), areaFilter))
+    .filter(t => !trayProject || t.projectId === trayProject)
+    .sort((a, b) => {
+      if ((a.status === 'overdue') !== (b.status === 'overdue')) return a.status === 'overdue' ? -1 : 1;
+      if (a.due && b.due && a.due !== b.due) return a.due.localeCompare(b.due);
+      if (!!a.due !== !!b.due) return a.due ? -1 : 1;
+      return (PRIORITY_RANK[a.priority] ?? 1) - (PRIORITY_RANK[b.priority] ?? 1);
+    });
+  const trayVisible = trayShowAll ? trayTasks : trayTasks.slice(0, 8);
+  const trayProjects = projects.filter(p => !archivedProjectIds.includes(p.id) && projectInArea(p, areaFilter));
+
+  // Planned minutes still to do on a day (planner tasks + planned project tasks)
+  function dayLoad(iso: string) {
+    const ev = plannerEvents.filter(e => e.date === iso && !e.done).reduce((n, e) => n + (e.estimate ?? 0), 0);
+    const tk = plannedTasksOn(iso).filter(t => t.status !== 'done').reduce((n, t) => n + (t.estimate ?? 0), 0);
+    return ev + tk;
+  }
+
+  // Drag & drop: project tasks and planner tasks onto days, or back onto the tray
+  function startDrag(e: React.DragEvent, kind: 'task' | 'event', id: string) {
+    e.dataTransfer.setData('text/plain', JSON.stringify({ kind, id }));
+    e.dataTransfer.effectAllowed = 'move';
+  }
+  function readDrag(e: React.DragEvent): { kind: 'task' | 'event'; id: string } | null {
+    try { return JSON.parse(e.dataTransfer.getData('text/plain')); } catch { return null; }
+  }
+  function dropOnDay(e: React.DragEvent, iso: string) {
+    e.preventDefault();
+    setDragOverDay(null);
+    const d = readDrag(e);
+    if (!d) return;
+    if (d.kind === 'task') updateTask(d.id, { plannedDate: iso });
+    else updatePlannerEvent(d.id, { date: iso });
+  }
+  function dropOnTray(e: React.DragEvent) {
+    e.preventDefault();
+    setDragOverDay(null);
+    const d = readDrag(e);
+    if (d?.kind === 'task') updateTask(d.id, { plannedDate: undefined });
+  }
 
   return (
     <div>
@@ -495,6 +565,74 @@ export default function WeeklyPlanner() {
             )}
           </div>
 
+          {/* Project tasks tray */}
+          <div
+            className={`card ptray${dragOverDay === '__tray__' ? ' drop-over' : ''}`}
+            style={{ marginBottom: 16 }}
+            onDragOver={e => { e.preventDefault(); setDragOverDay('__tray__'); }}
+            onDragLeave={() => setDragOverDay(d => (d === '__tray__' ? null : d))}
+            onDrop={dropOnTray}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+              <button className="ptray-toggle" onClick={() => setTrayOpen(o => !o)}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ width: 12, height: 12, transform: trayOpen ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s' }}>
+                  <polyline points="9 18 15 12 9 6"/>
+                </svg>
+                <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>Project tasks to plan</span>
+                <span className="badge badge-gray">{trayTasks.length}</span>
+              </button>
+              {trayOpen && (
+                <select value={trayProject} onChange={e => setTrayProject(e.target.value)} style={{ width: 'auto', fontSize: 12, padding: '4px 8px' }}>
+                  <option value="">All projects</option>
+                  {trayProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+              )}
+            </div>
+            {trayOpen && (
+              <>
+                <div style={{ fontSize: 12, color: 'var(--text-muted)', margin: '4px 0 10px' }}>
+                  Drag a task onto a day, or pick a day. Drag a planned task back here to unplan it.
+                </div>
+                {trayTasks.length === 0 && (
+                  <div style={{ fontSize: 13, color: 'var(--text-faint)', fontStyle: 'italic', padding: '4px 2px' }}>Every open task is planned for this week.</div>
+                )}
+                <div className="ptray-list">
+                  {trayVisible.map(t => {
+                    const proj = projectOf(t.projectId);
+                    return (
+                      <div key={t.id} className="ptray-item" draggable onDragStart={e => startDrag(e, 'task', t.id)}>
+                        <span className="ptray-grip" aria-hidden>⠿</span>
+                        <span style={{ width: 8, height: 8, borderRadius: '50%', background: proj?.color ?? 'var(--border-strong)', flexShrink: 0 }} />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div className="ptray-title" onClick={() => setEditTask(t)}>{t.title}</div>
+                          <div className="ptray-meta">
+                            {proj?.name}
+                            {t.due && <span style={{ color: t.status === 'overdue' ? 'var(--danger)' : undefined }}> · due {fmtDate(t.due).replace(/ \d{4}$/, '')}</span>}
+                            {t.estimate ? ` · ${fmtMins(t.estimate)}` : ''}
+                          </div>
+                        </div>
+                        <select
+                          className="ptray-plan"
+                          value=""
+                          onChange={e => { if (e.target.value) updateTask(t.id, { plannedDate: e.target.value }); }}
+                          title="Plan for a day this week"
+                        >
+                          <option value="">Plan…</option>
+                          {days.map((d, i) => <option key={i} value={isoOf(d)}>{DAY_NAMES[i]} {d.getDate()}</option>)}
+                        </select>
+                      </div>
+                    );
+                  })}
+                </div>
+                {trayTasks.length > 8 && (
+                  <button className="btn btn-ghost btn-sm" style={{ fontSize: 12, marginTop: 6 }} onClick={() => setTrayShowAll(v => !v)}>
+                    {trayShowAll ? 'Show fewer' : `Show all ${trayTasks.length}`}
+                  </button>
+                )}
+              </>
+            )}
+          </div>
+
           {/* Week grid */}
           {layout === 'grid' && (
             <div className="card" style={{ padding: 16, overflowX: sidebarOpen ? 'auto' : 'visible' }}>
@@ -511,11 +649,28 @@ export default function WeeklyPlanner() {
                     .sort((a, b) => (a.time ?? '').localeCompare(b.time ?? ''));
 
                   return (
-                    <div key={iso} className={`pday${isToday ? ' today' : ''}${isWeekend ? ' weekend' : ''}`}>
+                    <div
+                      key={iso}
+                      className={`pday${isToday ? ' today' : ''}${isWeekend ? ' weekend' : ''}${dragOverDay === iso ? ' drop-over' : ''}`}
+                      onDragOver={e => { e.preventDefault(); if (dragOverDay !== iso) setDragOverDay(iso); }}
+                      onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragOverDay(d => (d === iso ? null : d)); }}
+                      onDrop={e => dropOnDay(e, iso)}
+                    >
                       <div className="pday-head">
                         <span className="pday-name">{DAY_NAMES[i]}</span>
                         <span className="pday-num">{day.getDate()}</span>
                       </div>
+                      {(() => {
+                        const load = dayLoad(iso);
+                        if (!load) return null;
+                        const over = load > DAILY_CAPACITY_MIN;
+                        return (
+                          <div className={`pday-load${over ? ' over' : ''}`} title={over ? `Overbooked — more than ${fmtMins(DAILY_CAPACITY_MIN)} planned` : `${fmtMins(load)} planned`}>
+                            <div className="pday-load-bar"><div style={{ width: `${Math.min(100, (load / DAILY_CAPACITY_MIN) * 100)}%` }} /></div>
+                            <span>{fmtMins(load)}</span>
+                          </div>
+                        );
+                      })()}
 
                       {/* Appointments */}
                       <div className="pday-appts">
@@ -539,13 +694,50 @@ export default function WeeklyPlanner() {
 
                       {/* Tasks */}
                       <div className="pday-events">
-                        {dayEvents.length === 0 && (
+                        {dayEvents.length === 0 && plannedTasksOn(iso).length === 0 && (
                           <div className="pday-empty">No tasks</div>
                         )}
+                        {plannedTasksOn(iso).map(t => {
+                          const proj = projectOf(t.projectId);
+                          const tDone = t.status === 'done';
+                          return (
+                            <div
+                              key={t.id}
+                              className={`pevent pevent-ptask${tDone ? ' done' : ''}`}
+                              style={{ borderLeftColor: proj?.color }}
+                              draggable
+                              onDragStart={e => startDrag(e, 'task', t.id)}
+                              onClick={() => setEditTask(t)}
+                              title="Project task — drag to another day"
+                            >
+                              <button
+                                type="button"
+                                className={`pevent-check${tDone ? ' checked' : ''}`}
+                                onMouseDown={e => e.stopPropagation()}
+                                onClick={e => { e.stopPropagation(); e.preventDefault(); toggleTaskDone(t.id); }}
+                              >
+                                {tDone && (
+                                  <svg viewBox="0 0 12 12" fill="none" style={{ width: 5, height: 5 }}>
+                                    <polyline points="2,6 5,9 10,3" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                  </svg>
+                                )}
+                              </button>
+                              <div className="pevent-title">{t.title}</div>
+                              {proj && (
+                                <div className="pevent-proj" title={proj.name}>
+                                  <span className="pevent-proj-dot" style={{ background: proj.color }} />
+                                  <span className="pevent-proj-name">{proj.name}{t.estimate ? ` · ${fmtMins(t.estimate)}` : ''}</span>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                         {dayEvents.map(ev => (
                           <div
                             key={ev.id}
                             className={`pevent cat-${ev.category}${ev.done ? ' done' : ''}`}
+                            draggable
+                            onDragStart={e => startDrag(e, 'event', ev.id)}
                             onClick={() => setEditEventModal({ open: true, event: ev })}
                           >
                             <button
@@ -564,8 +756,11 @@ export default function WeeklyPlanner() {
                             {projectOf(ev.projectId) && (
                               <div className="pevent-proj" title={projectOf(ev.projectId)!.name}>
                                 <span className="pevent-proj-dot" style={{ background: projectOf(ev.projectId)!.color }} />
-                                <span className="pevent-proj-name">{projectOf(ev.projectId)!.name}</span>
+                                <span className="pevent-proj-name">{projectOf(ev.projectId)!.name}{ev.estimate ? ` · ${fmtMins(ev.estimate)}` : ''}</span>
                               </div>
+                            )}
+                            {!projectOf(ev.projectId) && ev.estimate && (
+                              <div className="pevent-proj"><span className="pevent-proj-name">{fmtMins(ev.estimate)}</span></div>
                             )}
                           </div>
                         ))}
@@ -594,8 +789,9 @@ export default function WeeklyPlanner() {
                   .filter(e => e.date === iso)
                   .sort((a, b) => (a.time ?? '').localeCompare(b.time ?? ''));
                 const allItems = [
-                  ...dayAppts.map(a => ({ type: 'appt' as const, item: a, sortKey: a.time })),
-                  ...dayEvents.map(e => ({ type: 'event' as const, item: e, sortKey: e.time ?? '23:59' })),
+                  ...dayAppts.map(a => ({ type: 'appt' as const, item: a as PlannerAppointment | PlannerEvent | Task, sortKey: a.time })),
+                  ...dayEvents.map(e => ({ type: 'event' as const, item: e as PlannerAppointment | PlannerEvent | Task, sortKey: e.time ?? '23:59' })),
+                  ...plannedTasksOn(iso).map(t => ({ type: 'task' as const, item: t as PlannerAppointment | PlannerEvent | Task, sortKey: t.dueTime ?? '23:59' })),
                 ].sort((a, b) => a.sortKey.localeCompare(b.sortKey));
 
                 return (
@@ -624,6 +820,24 @@ export default function WeeklyPlanner() {
                               {a.notes && <div className="pagenda-meta">{a.notes}</div>}
                             </div>
                             <span className="pagenda-cat">Meeting</span>
+                          </div>
+                        );
+                      } else if (type === 'task') {
+                        const t = item as Task;
+                        const proj = projectOf(t.projectId);
+                        return (
+                          <div key={t.id} className="pagenda-event" style={{ borderLeftColor: proj?.color }} onClick={() => setEditTask(t)}>
+                            <div className="pagenda-time">{t.dueTime ? fmt12(t.dueTime) : '—'}</div>
+                            <div className="pagenda-body">
+                              <div className="pagenda-title" style={t.status === 'done' ? { textDecoration: 'line-through', opacity: 0.5 } : {}}>{t.title}</div>
+                              {proj && (
+                                <div className="pagenda-meta" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: proj.color, flexShrink: 0 }} />
+                                  {proj.name}{t.estimate ? ` · ${fmtMins(t.estimate)}` : ''}
+                                </div>
+                              )}
+                            </div>
+                            <span className="pagenda-cat">Project</span>
                           </div>
                         );
                       } else {
@@ -659,6 +873,7 @@ export default function WeeklyPlanner() {
       </div>
 
       {/* Modals */}
+      {editTask && <TaskModal task={editTask} onClose={() => setEditTask(null)} />}
       {newEventModal.open && (
         <EventModal presetDate={newEventModal.presetDate} onClose={() => setNewEventModal({ open: false })} />
       )}

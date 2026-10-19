@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { Task, Alert, Subtask } from '@/lib/types';
 import { useAppStore } from '@/store/useAppStore';
-import { STATUS_ORDER, STATUS_META } from '@/lib/constants';
+import { STATUS_ORDER, STATUS_META, ESTIMATE_OPTIONS } from '@/lib/constants';
+import { fmtMins } from '@/lib/utils';
 
 interface TaskModalProps {
   task?: Task;
@@ -28,6 +29,8 @@ export default function TaskModal({ task, defaultProjectId, defaultPhaseId, onCl
     recurring: task?.recurring ?? '',
     subtasks: task?.subtasks ?? [] as Subtask[],
     newSubtask: '',
+    estimate: task?.estimate ? String(task.estimate) : '',
+    plannedDate: task?.plannedDate ?? '',
   });
 
   const projectPhases = phases.filter(p => p.projectId === form.projectId);
@@ -67,6 +70,8 @@ export default function TaskModal({ task, defaultProjectId, defaultPhaseId, onCl
       alerts: form.alerts,
       recurring: form.recurring || undefined,
       subtasks: form.subtasks,
+      estimate: form.estimate ? Number(form.estimate) : undefined,
+      plannedDate: form.plannedDate || undefined,
     };
     if (task) updateTask(task.id, data);
     else addTask(data);
@@ -129,6 +134,20 @@ export default function TaskModal({ task, defaultProjectId, defaultPhaseId, onCl
           <div className="form-group">
             <label>Due Time</label>
             <input type="time" value={form.dueTime} onChange={e => setF('dueTime', e.target.value)} />
+          </div>
+        </div>
+
+        <div className="form-row">
+          <div className="form-group">
+            <label>Time estimate</label>
+            <select value={form.estimate} onChange={e => setF('estimate', e.target.value)}>
+              <option value="">None</option>
+              {ESTIMATE_OPTIONS.map(m => <option key={m} value={m}>{fmtMins(m)}</option>)}
+            </select>
+          </div>
+          <div className="form-group">
+            <label>Plan for day</label>
+            <input type="date" value={form.plannedDate} onChange={e => setF('plannedDate', e.target.value)} title="Puts this task on that day in the Weekly Planner and Today" />
           </div>
         </div>
 
