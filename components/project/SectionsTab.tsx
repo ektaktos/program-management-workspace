@@ -51,6 +51,7 @@ export default function SectionsTab({ projectId, highlightedTaskId }: SectionsTa
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [filter, setFilter] = useState<TaskStatus | 'all'>('all');
   const [openSubtasks, setOpenSubtasks] = useState<Set<string>>(new Set());
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   function toggleSubtaskList(taskId: string) {
     setOpenSubtasks(prev => {
@@ -230,7 +231,11 @@ export default function SectionsTab({ projectId, highlightedTaskId }: SectionsTa
             const subsOpen = openSubtasks.has(t.id);
             return (
               <div key={t.id}>
-              <div className="section-task-row">
+              <div
+                className="section-task-row clickable"
+                title="Edit task"
+                onClick={e => { e.stopPropagation(); setEditingTask(t); }}
+              >
                 <button
                   type="button"
                   className={`section-task-check${done ? ' checked' : ''}`}
@@ -352,6 +357,7 @@ export default function SectionsTab({ projectId, highlightedTaskId }: SectionsTa
 
       {showAddSection && <PhaseModal defaultProjectId={projectId} onClose={() => setShowAddSection(false)} />}
       {editing && <PhaseModal phase={editing} onClose={() => setEditing(null)} />}
+      {editingTask && <TaskModal task={editingTask} onClose={() => setEditingTask(null)} />}
       {addingTask && (
         <TaskModal
           defaultProjectId={projectId}
