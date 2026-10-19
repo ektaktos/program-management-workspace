@@ -111,18 +111,6 @@
   --highlight-bg: #f4f7f0; --highlight-border: #cfd9c4;
 }
 
-/* Mist — cool stone and slate */
-:root[data-theme="mist"] {
-  --bg: #f4f5f6; --surface: #fcfcfd;
-  --sidebar-bg: #eaedf0; --sidebar-text: #3c4650; --sidebar-active: #dee3e8; --sidebar-border: #dee3e8;
-  --border: #e2e6ea; --border-strong: #cdd3da;
-  --text: #2e3640; --text-muted: #5e6771; --text-faint: #9aa3ad;
-  --primary: #c8d1da; --primary-dark: #53667a; --primary-light: #dde3ea;
-  --accent: #3c4650; --accent-soft: #e6eaee; --accent-softer: #f0f2f4;
-  --chip: #e8ebef; --track: #e2e6ea; --btn-primary-bg: #d8dfe6; --btn-primary-hover: #c9d2db;
-  --highlight-bg: #f3f5f8; --highlight-border: #cfd7e0;
-}
-
 /* Scandinavian — crisp white, pale birch, fjord blue */
 :root[data-theme="scandinavian"] {
   --bg: #f5f7f8; --surface: #ffffff;
@@ -134,19 +122,6 @@
   --chip: #e9eef0; --track: #e2e8eb; --btn-primary-bg: #dfe7ec; --btn-primary-hover: #cfdbe2;
   --cat-work: #8fa5b8;
   --highlight-bg: #f5f6f5; --highlight-border: #d6d9da;
-}
-
-/* Contemporary — clean greige, black accents, deep teal */
-:root[data-theme="contemporary"] {
-  --bg: #f3f1ee; --surface: #fefefe;
-  --sidebar-bg: #e5e1db; --sidebar-text: #1c1c1c; --sidebar-active: #d7d2ca; --sidebar-border: #d7d2ca;
-  --border: #e2ded8; --border-strong: #cbc5bc;
-  --text: #1c1c1c; --text-muted: #5a5855; --text-faint: #a19e99;
-  --primary: #cfcac2; --primary-dark: #2c5a5f; --primary-light: #e0dbd3;
-  --accent: #1c1c1c; --accent-soft: #e9e5df; --accent-softer: #f2f1ef;
-  --chip: #e8e4de; --track: #e2ddd6; --btn-primary-bg: #d9d4cc; --btn-primary-hover: #cbc5bb;
-  --cat-work: #6f9599;
-  --highlight-bg: #f4f3f1; --highlight-border: #d3cec7;
 }
 
 /* Rustic — warm wood, cream and rust */
