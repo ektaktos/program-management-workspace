@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { isThemeId } from '@/lib/themes';
 
 // Only known, validated settings can be written
 const VALIDATORS: Record<string, (v: unknown) => boolean> = {
   dailyCapacity: v => typeof v === 'number' && Number.isFinite(v) && v >= 30 && v <= 24 * 60,
+  theme: v => isThemeId(v),
 };
 
 // Body: { value: <JSON> }

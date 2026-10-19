@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import ProjectModal from './modals/ProjectModal';
 import ConfirmModal from './modals/ConfirmModal';
+import ThemePicker from './ThemePicker';
 
 const VIEW_META: Record<string, { title: string; subtitle: string }> = {
   dashboard: { title: 'Dashboard',         subtitle: 'A gentle overview of everything' },
@@ -127,6 +128,8 @@ export default function Topbar() {
               </button>
             </>
           )}
+
+          <ThemePicker />
 
           {/* Bell */}
           <button className="bell-btn" title="Alert status">

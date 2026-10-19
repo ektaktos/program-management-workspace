@@ -61,6 +61,10 @@
   --highlight-bg: #f8f3ec;
   --highlight-border: #dfd2bf;
 
+  --on-accent: #ffffff;                  /* check marks on filled checkboxes */
+  --glass: rgba(255, 255, 255, 0.6);     /* translucent count badges */
+  --glass-strong: rgba(255, 255, 255, 0.95);
+
   --radius: 12px;
   --radius-sm: 8px;
   --radius-lg: 16px;
@@ -68,6 +72,93 @@
   --shadow-md: 0 4px 14px rgba(70,58,46,0.07), 0 2px 4px rgba(70,58,46,0.035);
   --shadow-lg: 0 12px 32px rgba(70,58,46,0.10);
 }
+
+/* ═════════════ Alternate themes (override the Japandi defaults above) ═════════════ */
+
+/* Honey — the original warm cream and honey-brown (contrast-tuned) */
+:root[data-theme="honey"] {
+  --bg: #faf7f3; --surface: #ffffff;
+  --sidebar-bg: #f5f0ea; --sidebar-text: #5f441c; --sidebar-active: #ebe2d6; --sidebar-border: #ebe2d6;
+  --border: #ece5db; --border-strong: #ddd2c2;
+  --text: #5f441c; --text-muted: #6f6357; --text-faint: #b9aea1;
+  --primary: #e4d2b4; --primary-dark: #8f6f45; --primary-light: #e9dcc6;
+  --accent: #5f441c; --accent-soft: #f4e8d2; --accent-softer: #faf6ee;
+  --chip: #f3ede4; --track: #f1ebe1; --btn-primary-bg: #ecdcb8; --btn-primary-hover: #e0cba4;
+  --accent-blush: #f5c5d3; --accent-blush-light: #fbe6ec;
+  --accent-peach: #f5cfb3; --accent-peach-light: #fde9da;
+  --accent-butter: #f3e3a6; --accent-butter-light: #fbf3d2;
+  --accent-mint: #b9dfc8;  --accent-mint-light: #e2f1e8;
+  --accent-sky: #c2dcef;   --accent-sky-light: #e6f0f8;
+  --success: #6fa885; --success-light: #e2f1e8; --success-text: #3f6f53;
+  --warning: #d49a5d; --warning-light: #fde9da; --warning-text: #8e6526;
+  --danger: #d68a8a;  --danger-light: #fbe2e2;  --danger-text: #985050; --danger-hover: #c47a7a;
+  --info-text: #476a88; --orange-text: #8d5a37;
+  --meeting: #f5c5d3; --meeting-bg: rgba(245, 197, 211, 0.18); --meeting-bg-hover: rgba(245, 197, 211, 0.32); --meeting-text: #9e5656;
+  --cat-personal: #b6a4e8; --cat-work: #8aaed1; --cat-health: #b9dfc8; --cat-social: #f5c5d3;
+  --cat-learning: #e6c89a; --cat-errand: #d8c5a8; --cat-rest: #c9c0d6;
+  --highlight-bg: #fdf8f2; --highlight-border: #e8d5b8;
+}
+
+/* Sage — soft moss and green-grey */
+:root[data-theme="sage"] {
+  --bg: #f3f5f0; --surface: #fbfcf9;
+  --sidebar-bg: #e9ede4; --sidebar-text: #3f4a3c; --sidebar-active: #dde3d6; --sidebar-border: #dde3d6;
+  --border: #e1e6da; --border-strong: #ccd4c3;
+  --text: #2f372d; --text-muted: #5f685b; --text-faint: #9da696;
+  --primary: #c9d3bf; --primary-dark: #586d51; --primary-light: #dfe6d6;
+  --accent: #3f4a3c; --accent-soft: #e6ebdf; --accent-softer: #f0f3ec;
+  --chip: #e8ece2; --track: #e2e7db; --btn-primary-bg: #d9e1cf; --btn-primary-hover: #cad5bd;
+  --highlight-bg: #f4f7f0; --highlight-border: #cfd9c4;
+}
+
+/* Mist — cool stone and slate */
+:root[data-theme="mist"] {
+  --bg: #f4f5f6; --surface: #fcfcfd;
+  --sidebar-bg: #eaedf0; --sidebar-text: #3c4650; --sidebar-active: #dee3e8; --sidebar-border: #dee3e8;
+  --border: #e2e6ea; --border-strong: #cdd3da;
+  --text: #2e3640; --text-muted: #5e6771; --text-faint: #9aa3ad;
+  --primary: #c8d1da; --primary-dark: #53667a; --primary-light: #dde3ea;
+  --accent: #3c4650; --accent-soft: #e6eaee; --accent-softer: #f0f2f4;
+  --chip: #e8ebef; --track: #e2e6ea; --btn-primary-bg: #d8dfe6; --btn-primary-hover: #c9d2db;
+  --highlight-bg: #f3f5f8; --highlight-border: #cfd7e0;
+}
+
+/* Sumi — dark ink with warm tan accents */
+:root[data-theme="sumi"] {
+  color-scheme: dark;
+  --bg: #1e1c1a; --surface: #272421;
+  --sidebar-bg: #191715; --sidebar-text: #d8cfc4; --sidebar-active: #2f2b27; --sidebar-border: #2f2b27;
+  --border: #36312c; --border-strong: #4a443d;
+  --text: #ece6de; --text-muted: #aaa196; --text-faint: #7a7268;
+  --primary: #5a4f43; --primary-dark: #cdb18a; --primary-light: #3a332c;
+  --accent: #d9c3a3; --accent-soft: #2f2a25; --accent-softer: #23201d;
+  --chip: #332e29; --track: #36312c; --btn-primary-bg: #4a4036; --btn-primary-hover: #5a4e42;
+  --accent-blush: #a8776c; --accent-blush-light: #3a2c28;
+  --accent-peach: #a98466; --accent-peach-light: #3a2f26;
+  --accent-butter: #a8975e; --accent-butter-light: #353022;
+  --accent-mint: #7f9a77;  --accent-mint-light: #26302a;
+  --accent-sky: #7d8f9b;   --accent-sky-light: #252d33;
+  --success: #8fae86; --success-light: #26302a; --success-text: #b0cca6;
+  --warning: #c9a46a; --warning-light: #353022; --warning-text: #dcbf89;
+  --danger: #c98a7c;  --danger-light: #3a2a26;  --danger-text: #e0a798; --danger-hover: #b87a6c;
+  --info-text: #b0c2cf;
+  --purple: #a99bb5; --purple-light: #2f2a34;
+  --orange: #c9987a; --orange-light: #3a2e26; --orange-text: #dcac8d;
+  --meeting: #b98a7f; --meeting-bg: rgba(185, 138, 127, 0.16); --meeting-bg-hover: rgba(185, 138, 127, 0.28); --meeting-text: #e0a798;
+  --cat-personal: #9d8fa6; --cat-work: #8497a3; --cat-health: #91a588; --cat-social: #b98a7f;
+  --cat-learning: #b9a27a; --cat-errand: #a89a86; --cat-rest: #9c95a1;
+  --highlight-bg: #2c2723; --highlight-border: #4a3f33;
+  --on-accent: #1e1c1a;
+  --glass: rgba(255, 255, 255, 0.08);
+  --glass-strong: rgba(39, 36, 33, 0.95);
+  --shadow: 0 1px 2px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.2);
+  --shadow-md: 0 4px 14px rgba(0,0,0,0.35), 0 2px 4px rgba(0,0,0,0.2);
+  --shadow-lg: 0 12px 32px rgba(0,0,0,0.45);
+}
+
+/* Check marks are drawn with a white stroke attribute; route them through --on-accent so they stay visible on light-filled checkboxes (dark theme) */
+svg polyline[stroke="#fff"], svg[stroke="white"] { stroke: var(--on-accent); }
+
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -310,7 +401,7 @@ label {
   font-size: 11px;
   font-weight: 600;
 }
-.filter-chip.active .chip-count { background: rgba(255,255,255,0.55); color: var(--accent); }
+.filter-chip.active .chip-count { background: var(--glass); color: var(--accent); }
 
 /* ---- Pill tabs (project detail) ---- */
 .tabs-pill-wrap {
@@ -775,3 +866,17 @@ label {
 /* Inline labels (Day limit, Quick add checkboxes) shouldn't inherit the uppercase form-label style */
 .capacity-select, .quickadd-check { text-transform: none; letter-spacing: normal; font-weight: 400; margin-bottom: 0; }
 .review-row .todo-del { white-space: nowrap; width: auto; padding: 2px 6px; flex-shrink: 0; }
+
+/* ── Theme picker ── */
+.theme-popover { position: absolute; top: calc(100% + 8px); right: 0; z-index: 120; width: 280px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-lg); padding: 8px; }
+.theme-popover-head { font-size: 11px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-muted); padding: 6px 8px 8px; }
+.theme-popover-foot { font-size: 11px; color: var(--text-faint); padding: 8px 8px 4px; border-top: 1px solid var(--border); margin-top: 4px; }
+.theme-option { display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px; border: none; background: transparent; border-radius: 10px; cursor: pointer; color: var(--text); font-family: inherit; }
+.theme-option:hover { background: var(--accent-soft); }
+.theme-option.active { background: var(--primary-light); }
+.theme-swatch { display: inline-flex; align-items: flex-end; gap: 3px; width: 44px; height: 30px; padding: 4px; border-radius: 8px; border: 1px solid; flex-shrink: 0; box-sizing: border-box; }
+.theme-swatch > span { flex: 1; height: 100%; border-radius: 3px; }
+.theme-swatch > span:nth-child(2) { height: 70%; }
+.theme-swatch > span:nth-child(3) { height: 45%; }
+.theme-name { display: block; font-size: 13px; font-weight: 500; }
+.theme-desc { display: block; font-size: 11px; color: var(--text-muted); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

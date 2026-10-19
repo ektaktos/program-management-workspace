@@ -72,7 +72,7 @@ export default function AllProjects() {
                   title="Edit project"
                   style={{
                     opacity: 0, transition: 'opacity 0.18s',
-                    background: 'rgba(255,255,255,0.95)',
+                    background: 'var(--glass-strong)',
                     border: '1px solid var(--border)',
                     width: 28, height: 28, borderRadius: '50%',
                     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -92,7 +92,7 @@ export default function AllProjects() {
                   title="Archive project"
                   style={{
                     opacity: 0, transition: 'opacity 0.18s',
-                    background: 'rgba(255,255,255,0.95)',
+                    background: 'var(--glass-strong)',
                     border: '1px solid var(--border)',
                     width: 28, height: 28, borderRadius: '50%',
                     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',

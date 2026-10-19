@@ -344,7 +344,7 @@ export default function Sidebar() {
                         {count > 0 && (
                           <span style={{
                             fontSize: 11, fontWeight: 600,
-                            background: active ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.6)',
+                            background: 'var(--glass)',
                             color: active ? 'var(--primary-dark)' : 'var(--sidebar-text)',
                             padding: '1px 7px', borderRadius: 10, flexShrink: 0,
                           }}>{count}</span>

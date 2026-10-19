@@ -4,6 +4,7 @@ import { create } from 'zustand';
 import { AppState, Project, Task, Milestone, Phase, Note, Todo, PlannerEvent, PlannerAppointment, PlannerWeekData } from '@/lib/types';
 import { uid, autoMarkOverdue } from '@/lib/utils';
 import { DAILY_CAPACITY_MIN } from '@/lib/constants';
+import { DEFAULT_THEME, applyTheme, isThemeId } from '@/lib/themes';
 
 const NOTIFIED_KEY  = 'pm_oyint_notified';
 const PLANNER_KEY   = 'pm_oyint_planner';
@@ -195,6 +196,10 @@ interface Store extends AppState, UIState, PlannerState {
   // ── Daily time limit (minutes) for overbooking warnings ──
   dailyCapacity:    number;
   setDailyCapacity: (mins: number) => void;
+
+  // ── Colour theme (synced via settings) ──
+  theme:    string;
+  setTheme: (id: string) => void;
 }
 
 export const useAppStore = create<Store>((set, get) => ({
@@ -233,6 +238,7 @@ export const useAppStore = create<Store>((set, get) => ({
   areaFilter:   '',
   quickAddOpen: false,
   dailyCapacity: DAILY_CAPACITY_MIN,
+  theme: DEFAULT_THEME,
 
   // ── Bootstrap ──
   loadAll: async () => {
@@ -254,6 +260,16 @@ export const useAppStore = create<Store>((set, get) => ({
       let areaFilter = '';
       try { areaFilter = localStorage.getItem(AREA_KEY) ?? ''; } catch {}
       set({ areaFilter });
+
+      // Theme: the DB is the source of truth; the layout's inline script already applied the cached one
+      if (isThemeId(settingsRes?.theme)) {
+        set({ theme: settingsRes!.theme as string });
+        applyTheme(settingsRes!.theme as string);
+      } else {
+        let cached = '';
+        try { cached = localStorage.getItem('pm_oyint_theme') ?? ''; } catch {}
+        if (isThemeId(cached)) set({ theme: cached });
+      }
 
       const dbCap = Number(settingsRes?.dailyCapacity);
       if (dbCap > 0) {
@@ -668,6 +684,13 @@ export const useAppStore = create<Store>((set, get) => ({
   },
 
   setQuickAddOpen: (open) => set({ quickAddOpen: open }),
+
+  setTheme: (id) => {
+    if (!isThemeId(id)) return;
+    set({ theme: id });
+    applyTheme(id);
+    api('/api/settings/theme', 'PUT', { value: id }).catch(console.error);
+  },
 
   setDailyCapacity: (mins) => {
     set({ dailyCapacity: mins });
