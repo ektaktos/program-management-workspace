@@ -118,7 +118,8 @@ export default function Today() {
       </div>
 
       <div className="today-grid">
-        {/* Left: today's plan */}
+        {/* Left column: today's plan, then today's meetings */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, minWidth: 0 }}>
         <div className="card">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
             <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>Today&rsquo;s plan</div>
@@ -168,9 +169,11 @@ export default function Today() {
           </div>
         </div>
 
+        <TodayMeetingsCard />
+        </div>
+
         {/* Right column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <TodayMeetingsCard />
 
           <div className="card">
             <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>
