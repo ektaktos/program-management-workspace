@@ -75,30 +75,6 @@
 
 /* ═════════════ Alternate themes (override the Japandi defaults above) ═════════════ */
 
-/* Honey — the original warm cream and honey-brown (contrast-tuned) */
-:root[data-theme="honey"] {
-  --bg: #faf7f3; --surface: #ffffff;
-  --sidebar-bg: #f5f0ea; --sidebar-text: #5f441c; --sidebar-active: #ebe2d6; --sidebar-border: #ebe2d6;
-  --border: #ece5db; --border-strong: #ddd2c2;
-  --text: #5f441c; --text-muted: #6f6357; --text-faint: #b9aea1;
-  --primary: #e4d2b4; --primary-dark: #8f6f45; --primary-light: #e9dcc6;
-  --accent: #5f441c; --accent-soft: #f4e8d2; --accent-softer: #faf6ee;
-  --chip: #f3ede4; --track: #f1ebe1; --btn-primary-bg: #ecdcb8; --btn-primary-hover: #e0cba4;
-  --accent-blush: #f5c5d3; --accent-blush-light: #fbe6ec;
-  --accent-peach: #f5cfb3; --accent-peach-light: #fde9da;
-  --accent-butter: #f3e3a6; --accent-butter-light: #fbf3d2;
-  --accent-mint: #b9dfc8;  --accent-mint-light: #e2f1e8;
-  --accent-sky: #c2dcef;   --accent-sky-light: #e6f0f8;
-  --success: #6fa885; --success-light: #e2f1e8; --success-text: #3f6f53;
-  --warning: #d49a5d; --warning-light: #fde9da; --warning-text: #8e6526;
-  --danger: #c27474;  --danger-light: #fbe2e2;  --danger-text: #985050; --danger-hover: #b06666;
-  --info-text: #476a88; --orange-text: #8d5a37;
-  --meeting: #f5c5d3; --meeting-bg: rgba(245, 197, 211, 0.18); --meeting-bg-hover: rgba(245, 197, 211, 0.32); --meeting-text: #9e5656;
-  --cat-personal: #b6a4e8; --cat-work: #8aaed1; --cat-health: #b9dfc8; --cat-social: #f5c5d3;
-  --cat-learning: #e6c89a; --cat-errand: #d8c5a8; --cat-rest: #c9c0d6;
-  --highlight-bg: #fdf8f2; --highlight-border: #e8d5b8;
-}
-
 /* Sage — soft moss and green-grey */
 :root[data-theme="sage"] {
   --bg: #f3f5f0; --surface: #fbfcf9;
@@ -109,19 +85,6 @@
   --accent: #3f4a3c; --accent-soft: #e6ebdf; --accent-softer: #f0f3ec;
   --chip: #e8ece2; --track: #e2e7db; --btn-primary-bg: #d9e1cf; --btn-primary-hover: #cad5bd;
   --highlight-bg: #f4f7f0; --highlight-border: #cfd9c4;
-}
-
-/* Scandinavian — crisp white, pale birch, fjord blue */
-:root[data-theme="scandinavian"] {
-  --bg: #f5f7f8; --surface: #ffffff;
-  --sidebar-bg: #ebeff1; --sidebar-text: #2f3236; --sidebar-active: #dde4e8; --sidebar-border: #dde4e8;
-  --border: #e3e8eb; --border-strong: #cdd5da;
-  --text: #222427; --text-muted: #5d6166; --text-faint: #a3a6a9;
-  --primary: #d3dce2; --primary-dark: #4a6175; --primary-light: #e2e9ed;
-  --accent: #2f3236; --accent-soft: #e9eef1; --accent-softer: #f1f4f6;
-  --chip: #e9eef0; --track: #e2e8eb; --btn-primary-bg: #dfe7ec; --btn-primary-hover: #cfdbe2;
-  --cat-work: #8fa5b8;
-  --highlight-bg: #f5f6f5; --highlight-border: #d6d9da;
 }
 
 /* Rustic — warm wood, cream and rust */
@@ -247,22 +210,6 @@
   --cat-personal: #a58fc4; --cat-work: #8fa0bf; --cat-health: #9fb59a; --cat-social: #d5a6b8;
   --cat-learning: #c9b07a; --cat-errand: #b5a3b8; --cat-rest: #b8b0c9;
   --highlight-bg: #f6f2fa; --highlight-border: #d8cce6;
-}
-
-/* Blush — rose-pink, dusty mauve and cream */
-:root[data-theme="blush"] {
-  --bg: #faf4f3; --surface: #fffbfa;
-  --sidebar-bg: #f4e4e3; --sidebar-text: #4f2d33; --sidebar-active: #ebd3d3; --sidebar-border: #ebd3d3;
-  --border: #efe0de; --border-strong: #e0c8c6;
-  --text: #3a2428; --text-muted: #6b5155; --text-faint: #ad9397;
-  --primary: #ebc9c7; --primary-dark: #964859; --primary-light: #f2dcdb;
-  --accent: #4f2d33; --accent-soft: #f4e5e3; --accent-softer: #f9efee;
-  --chip: #f3e4e2; --track: #eedcda; --btn-primary-bg: #f0d0cf; --btn-primary-hover: #e7bdbc;
-  --success: #7f9a80; --danger: #c0606d; --danger-hover: #ad5561;
-  --meeting: #d9a0aa; --meeting-bg: rgba(217, 160, 170, 0.18); --meeting-bg-hover: rgba(217, 160, 170, 0.30); --meeting-text: #8c3d4e;
-  --cat-personal: #b58aa8; --cat-work: #9aa6c0; --cat-health: #a9bba0; --cat-social: #e0a0aa;
-  --cat-learning: #d6b48a; --cat-errand: #c4a6a0; --cat-rest: #bdb0c2;
-  --highlight-bg: #fcf3f2; --highlight-border: #e8c8c6;
 }
 
 /* Art Deco — dark emerald with gold and ivory */
