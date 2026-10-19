@@ -117,3 +117,13 @@ model Setting {
   key   String @id
   value String @db.Text
 }
+
+// External calendars subscribed by their private iCal/ICS address (read-only)
+model CalendarSource {
+  id        String   @id
+  name      String
+  url       String   @db.Text
+  color     String
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+}

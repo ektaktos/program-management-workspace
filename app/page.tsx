@@ -15,6 +15,7 @@ import Today from '@/components/views/Today';
 import ToastContainer from '@/components/ui/Toast';
 import PWAInit from '@/components/PWAInit';
 import QuickAdd from '@/components/QuickAdd';
+import CalendarsModal from '@/components/modals/CalendarsModal';
 
 export default function Home() {
   const currentView    = useAppStore(s => s.currentView);
@@ -22,9 +23,11 @@ export default function Home() {
   const loadAll        = useAppStore(s => s.loadAll);
   const runAutoOverdue = useAppStore(s => s.runAutoOverdue);
   const runAlertCheck  = useAppStore(s => s.runAlertCheck);
+  const refreshCalendars = useAppStore(s => s.refreshCalendars);
 
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
+    let calInterval: ReturnType<typeof setInterval>;
     loadAll().then(() => {
       runAutoOverdue();
       runAlertCheck();
@@ -32,8 +35,10 @@ export default function Home() {
         runAutoOverdue();
         runAlertCheck();
       }, 60_000);
+      // Subscribed calendars: pick up new or moved events while the app stays open
+      calInterval = setInterval(() => { refreshCalendars(); }, 10 * 60_000);
     });
-    return () => clearInterval(interval);
+    return () => { clearInterval(interval); clearInterval(calInterval); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -75,6 +80,7 @@ export default function Home() {
       <ToastContainer />
       <PWAInit />
       <QuickAdd />
+      <CalendarsModal />
     </div>
   );
 }

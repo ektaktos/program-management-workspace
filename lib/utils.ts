@@ -115,3 +115,17 @@ export function getSeedData(): AppState {
     notifiedAlerts: [],
   };
 }
+
+// Calendar events that fall on a local calendar day (all-day events span startDate..endDate-1)
+export function calendarEventsOn<T extends { allDay: boolean; start: string; startDate?: string; endDate?: string }>(events: T[], iso: string): T[] {
+  return events.filter(e => {
+    if (e.allDay) return !!e.startDate && e.startDate <= iso && (e.endDate ? iso < e.endDate : iso === e.startDate);
+    return isoOf(new Date(e.start)) === iso;
+  }).sort((a, b) => (a.allDay === b.allDay ? a.start.localeCompare(b.start) : a.allDay ? -1 : 1));
+}
+
+// Local "HH:MM" (24h) for a calendar event's start
+export function localTimeOf(isoInstant: string): string {
+  const d = new Date(isoInstant);
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}

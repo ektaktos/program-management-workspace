@@ -2,10 +2,10 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useAppStore } from '@/store/useAppStore';
-import { PlannerEvent, PlannerAppointment, Task } from '@/lib/types';
+import { PlannerEvent, PlannerAppointment, Task, CalendarEvent } from '@/lib/types';
 import TaskModal from '../modals/TaskModal';
 import WeeklyReviewModal from '../modals/WeeklyReviewModal';
-import { uid, fmtMins, fmtDate, projectInArea } from '@/lib/utils';
+import { uid, fmtMins, fmtDate, projectInArea, calendarEventsOn, localTimeOf } from '@/lib/utils';
 import { ESTIMATE_OPTIONS } from '@/lib/constants';
 import CapacitySelect from '../ui/CapacitySelect';
 
@@ -262,6 +262,7 @@ export default function WeeklyPlanner() {
     projects,
     tasks, updateTask, toggleTaskDone, archivedTaskIds, archivedProjectIds, areaFilter,
     dailyCapacity,
+    calendarSources, calendarEvents, ensureCalendarRange, setCalendarsOpen,
     plannerWeekly, updatePlannerWeekly,
     plannerWeekOffset, setPlannerWeekOffset,
     plannerModalTrigger, setPlannerModalTrigger,
@@ -378,6 +379,19 @@ export default function WeeklyPlanner() {
   const [dragOverDay, setDragOverDay] = useState<string | null>(null);
 
   const weekIsos = days.map(isoOf);
+
+  // Subscribed calendars → shown in each day's Meetings and in the agenda
+  useEffect(() => { ensureCalendarRange(weekIsos[0], weekIsos[6]); },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [weekIsos[0], calendarSources, ensureCalendarRange]);
+  const sourceById = new Map(calendarSources.map(c => [c.id, c]));
+  const visibleCalEvents = calendarEvents.filter(e => sourceById.get(e.sourceId)?.enabled);
+  const calOn = (iso: string) => calendarEventsOn(visibleCalEvents, iso);
+  const calTitle = (e: CalendarEvent) => {
+    const src = sourceById.get(e.sourceId);
+    const when = e.allDay ? 'All day' : `${fmt12(localTimeOf(e.start))}–${fmt12(localTimeOf(e.end))}`;
+    return [e.title, when, e.location, src ? `${src.name} calendar · read-only` : ''].filter(Boolean).join('\n');
+  };
   const liveTasks = tasks.filter(t =>
     !archivedTaskIds.includes(t.id) && !archivedProjectIds.includes(t.projectId));
   // Index planned tasks by day once per render instead of rescanning all tasks per day
@@ -444,6 +458,12 @@ export default function WeeklyPlanner() {
               <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
             </svg>
             <span className="btn-label">Weekly review</span>
+          </button>
+          <button className="btn btn-outline btn-sm" style={{ marginLeft: 6 }} onClick={() => setCalendarsOpen(true)} title="Connect or manage calendars">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 13, height: 13 }}>
+              <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            <span className="btn-label">Calendars{calendarSources.length ? ` · ${calendarSources.filter(c => c.enabled).length}` : ''}</span>
           </button>
         </div>
 
@@ -732,9 +752,15 @@ export default function WeeklyPlanner() {
                           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ width: 10, height: 10 }}><rect x="1" y="2" width="14" height="13" rx="2"/><line x1="1" y1="6" x2="15" y2="6"/><line x1="5" y1="1" x2="5" y2="4"/><line x1="11" y1="1" x2="11" y2="4"/></svg>
                           Meetings
                         </div>
-                        {dayAppts.length === 0 && (
+                        {dayAppts.length === 0 && calOn(iso).length === 0 && (
                           <div className="pday-empty">No meetings</div>
                         )}
+                        {calOn(iso).map(e => (
+                          <div key={e.id} className="pappt pappt-cal" title={calTitle(e)} style={{ borderLeftColor: sourceById.get(e.sourceId)?.color }}>
+                            <span className="pappt-time">{e.allDay ? 'All day' : fmt12(localTimeOf(e.start))}</span>
+                            <span className="pappt-title">{e.title}</span>
+                          </div>
+                        ))}
                         {dayAppts.map(a => (
                           <div key={a.id} className="pappt" onClick={() => setEditApptModal({ open: true, appt: a })}>
                             <span className="pappt-time">{fmt12(a.time)}</span>
@@ -844,9 +870,10 @@ export default function WeeklyPlanner() {
                   .filter(e => e.date === iso)
                   .sort((a, b) => (a.time ?? '').localeCompare(b.time ?? ''));
                 const allItems = [
-                  ...dayAppts.map(a => ({ type: 'appt' as const, item: a as PlannerAppointment | PlannerEvent | Task, sortKey: a.time })),
-                  ...dayEvents.map(e => ({ type: 'event' as const, item: e as PlannerAppointment | PlannerEvent | Task, sortKey: e.time ?? '23:59' })),
-                  ...plannedTasksOn(iso).map(t => ({ type: 'task' as const, item: t as PlannerAppointment | PlannerEvent | Task, sortKey: t.dueTime ?? '23:59' })),
+                  ...dayAppts.map(a => ({ type: 'appt' as const, item: a as PlannerAppointment | PlannerEvent | Task | CalendarEvent, sortKey: a.time })),
+                  ...dayEvents.map(e => ({ type: 'event' as const, item: e as PlannerAppointment | PlannerEvent | Task | CalendarEvent, sortKey: e.time ?? '23:59' })),
+                  ...plannedTasksOn(iso).map(t => ({ type: 'task' as const, item: t as PlannerAppointment | PlannerEvent | Task | CalendarEvent, sortKey: t.dueTime ?? '23:59' })),
+                  ...calOn(iso).map(e => ({ type: 'cal' as const, item: e as PlannerAppointment | PlannerEvent | Task | CalendarEvent, sortKey: e.allDay ? '00:00' : localTimeOf(e.start) })),
                 ].sort((a, b) => a.sortKey.localeCompare(b.sortKey));
 
                 return (
@@ -875,6 +902,21 @@ export default function WeeklyPlanner() {
                               {a.notes && <div className="pagenda-meta">{a.notes}</div>}
                             </div>
                             <span className="pagenda-cat">Meeting</span>
+                          </div>
+                        );
+                      } else if (type === 'cal') {
+                        const ce = item as CalendarEvent;
+                        const src = sourceById.get(ce.sourceId);
+                        return (
+                          <div key={ce.id} className="pagenda-event pagenda-cal" style={{ borderLeftColor: src?.color }} title={calTitle(ce)}>
+                            <div className="pagenda-time">{ce.allDay ? 'All day' : fmt12(localTimeOf(ce.start))}</div>
+                            <div className="pagenda-body">
+                              <div className="pagenda-title">{ce.title}</div>
+                              <div className="pagenda-meta">
+                                {ce.allDay ? '' : `${fmt12(localTimeOf(ce.start))}–${fmt12(localTimeOf(ce.end))}`}{ce.location ? `${ce.allDay ? '' : ' · '}${ce.location}` : ''}
+                              </div>
+                            </div>
+                            <span className="pagenda-cat">{src?.name ?? 'Calendar'}</span>
                           </div>
                         );
                       } else if (type === 'task') {

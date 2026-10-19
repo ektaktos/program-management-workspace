@@ -1,8 +1,8 @@
 'use client';
 
 import { create } from 'zustand';
-import { AppState, Project, Task, Milestone, Phase, Note, Todo, PlannerEvent, PlannerAppointment, PlannerWeekData } from '@/lib/types';
-import { uid, autoMarkOverdue } from '@/lib/utils';
+import { AppState, Project, Task, Milestone, Phase, Note, Todo, PlannerEvent, PlannerAppointment, PlannerWeekData, CalendarSource, CalendarEvent } from '@/lib/types';
+import { uid, autoMarkOverdue, addDaysIso, todayIso } from '@/lib/utils';
 import { DAILY_CAPACITY_MIN } from '@/lib/constants';
 import { DEFAULT_THEME, applyTheme, isThemeId } from '@/lib/themes';
 
@@ -200,6 +200,19 @@ interface Store extends AppState, UIState, PlannerState {
   // ── Colour theme (synced via settings) ──
   theme:    string;
   setTheme: (id: string) => void;
+
+  // ── Subscribed calendars (read-only) ──
+  calendarSources: CalendarSource[];
+  calendarEvents:  CalendarEvent[];
+  calendarErrors:  Record<string, string>;      // sourceId → last load error
+  calendarWindow:  { from: string; to: string } | null;
+  calendarsOpen:   boolean;
+  setCalendarsOpen: (open: boolean) => void;
+  ensureCalendarRange: (from: string, to: string) => Promise<void>;
+  refreshCalendars:    () => Promise<void>;
+  addCalendarSource:    (c: { name: string; url: string; color: string }) => Promise<string | null>;
+  updateCalendarSource: (id: string, patch: Partial<Omit<CalendarSource, 'id'>>) => Promise<string | null>;
+  deleteCalendarSource: (id: string) => Promise<void>;
 }
 
 export const useAppStore = create<Store>((set, get) => ({
@@ -240,20 +253,28 @@ export const useAppStore = create<Store>((set, get) => ({
   dailyCapacity: DAILY_CAPACITY_MIN,
   theme: DEFAULT_THEME,
 
+  calendarSources: [],
+  calendarEvents:  [],
+  calendarErrors:  {},
+  calendarWindow:  null,
+  calendarsOpen:   false,
+
   // ── Bootstrap ──
   loadAll: async () => {
     try {
       // Synced settings load alongside the data; a settings failure (null) must not block loading.
-      const [data, plannerData, settingsRes]: [AppState, {
+      const [data, plannerData, settingsRes, calendarsRes]: [AppState, {
         todos: Todo[];
         plannerEvents: PlannerEvent[];
         plannerAppointments: PlannerAppointment[];
         plannerWeekly: Record<string, PlannerWeekData>;
-      }, Record<string, unknown> | null] = await Promise.all([
+      }, Record<string, unknown> | null, CalendarSource[] | null] = await Promise.all([
         api('/api/data'),
         api('/api/planner/data'),
         api('/api/settings').catch(() => null),
+        api('/api/calendars').catch(() => null),
       ]);
+      if (Array.isArray(calendarsRes)) set({ calendarSources: calendarsRes });
 
       const archived = loadArchived();
       const order    = loadProjectOrder();
@@ -690,6 +711,73 @@ export const useAppStore = create<Store>((set, get) => ({
     set({ theme: id });
     applyTheme(id);
     api('/api/settings/theme', 'PUT', { value: id }).catch(console.error);
+  },
+
+  // ── Subscribed calendars ──
+  setCalendarsOpen: (open) => set({ calendarsOpen: open }),
+
+  ensureCalendarRange: async (from, to) => {
+    const { calendarWindow, calendarSources } = get();
+    if (!calendarSources.some(c => c.enabled)) { set({ calendarEvents: [], calendarErrors: {} }); return; }
+    if (calendarWindow && calendarWindow.from <= from && calendarWindow.to >= to) return;
+    // Fetch a window that also covers today (±1 week) when it's close by, so Today and the planner share one load
+    const t = todayIso();
+    let wFrom = from, wTo = to;
+    if (addDaysIso(t, -7) < wFrom && wFrom <= addDaysIso(t, 35)) wFrom = addDaysIso(t, -7);
+    if (wTo < addDaysIso(t, 7) && wTo >= addDaysIso(t, -35)) wTo = addDaysIso(t, 7);
+    set({ calendarWindow: { from: wFrom, to: wTo } });
+    try {
+      const res = await api(`/api/calendars/events?from=${wFrom}&to=${wTo}`) as { events: CalendarEvent[]; errors: { sourceId: string; message: string }[] };
+      // Ignore a stale response if the window moved while loading
+      const w = get().calendarWindow;
+      if (!w || w.from !== wFrom || w.to !== wTo) return;
+      const calendarErrors: Record<string, string> = {};
+      for (const e of res.errors ?? []) calendarErrors[e.sourceId] = e.message;
+      set({ calendarEvents: res.events ?? [], calendarErrors });
+    } catch (err) {
+      console.error('calendar load failed', err);
+      set({ calendarWindow: null });
+    }
+  },
+
+  refreshCalendars: async () => {
+    const w = get().calendarWindow;
+    set({ calendarWindow: null });
+    const t = todayIso();
+    await get().ensureCalendarRange(w?.from ?? t, w?.to ?? t);
+  },
+
+  addCalendarSource: async ({ name, url, color }) => {
+    const res = await fetch('/api/calendars', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: uid(), name, url, color }),
+    }).catch(() => null);
+    if (!res) return "Couldn't reach the server. Check your connection and try again.";
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) return body.error ?? "Couldn't add that calendar.";
+    set(s => ({ calendarSources: [...s.calendarSources, body as CalendarSource] }));
+    await get().refreshCalendars();
+    return null;
+  },
+
+  updateCalendarSource: async (id, patch) => {
+    const res = await fetch(`/api/calendars/${id}`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(patch),
+    }).catch(() => null);
+    if (!res) return "Couldn't reach the server. Check your connection and try again.";
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) return body.error ?? "Couldn't update that calendar.";
+    set(s => ({ calendarSources: s.calendarSources.map(c => c.id === id ? body as CalendarSource : c) }));
+    await get().refreshCalendars();
+    return null;
+  },
+
+  deleteCalendarSource: async (id) => {
+    set(s => ({
+      calendarSources: s.calendarSources.filter(c => c.id !== id),
+      calendarEvents: s.calendarEvents.filter(e => e.sourceId !== id),
+    }));
+    await api(`/api/calendars/${id}`, 'DELETE').catch(console.error);
   },
 
   setDailyCapacity: (mins) => {

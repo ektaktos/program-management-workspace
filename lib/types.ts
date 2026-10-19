@@ -118,3 +118,25 @@ export interface AppState {
 export type TaskStatus = Task['status'];
 export type ProjectStatus = Project['status'];
 export type Priority = Task['priority'];
+
+// Subscribed external calendar (read-only, via its iCal/ICS address)
+export interface CalendarSource {
+  id: string;
+  name: string;
+  url: string;
+  color: string;
+  enabled: boolean;
+}
+
+// One occurrence of an event from a subscribed calendar
+export interface CalendarEvent {
+  id: string;
+  sourceId: string;
+  title: string;
+  location?: string;
+  allDay: boolean;
+  start: string;       // ISO UTC instant
+  end: string;
+  startDate?: string;  // all-day only: YYYY-MM-DD
+  endDate?: string;    // all-day only: exclusive
+}

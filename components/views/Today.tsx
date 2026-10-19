@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAppStore } from '@/store/useAppStore';
-import { addDaysIso, fmtDate, fmtMins, projectInArea, todayIso } from '@/lib/utils';
+import { addDaysIso, calendarEventsOn, fmtDate, fmtMins, localTimeOf, projectInArea, todayIso } from '@/lib/utils';
 import CapacitySelect from '../ui/CapacitySelect';
 import { Task } from '@/lib/types';
 import TaskModal from '../modals/TaskModal';
@@ -23,7 +23,8 @@ function CheckIcon() {
 type PlanItem =
   | { kind: 'meeting'; id: string; title: string; time: string; done: boolean; color?: string; sub?: string }
   | { kind: 'planner'; id: string; title: string; time?: string; done: boolean; color?: string; sub?: string; estimate?: number }
-  | { kind: 'task'; id: string; title: string; time?: string; done: boolean; color?: string; sub?: string; estimate?: number; task: Task };
+  | { kind: 'task'; id: string; title: string; time?: string; done: boolean; color?: string; sub?: string; estimate?: number; task: Task }
+  | { kind: 'calendar'; id: string; title: string; time?: string; done: boolean; color?: string; sub?: string; allDay: boolean; endTime?: string; location?: string };
 
 export default function Today() {
   const {
@@ -31,12 +32,17 @@ export default function Today() {
     archivedTaskIds, archivedProjectIds, areaFilter, dailyCapacity,
     toggleTaskDone, updateTask, updatePlannerEvent, updatePlannerAppointment,
     addPlannerEvent, addTodo, toggleTodo, navigateToTask, setView, setQuickAddOpen,
+    calendarSources, calendarEvents, ensureCalendarRange, setCalendarsOpen,
   } = useAppStore();
   const [planInput, setPlanInput] = useState('');
   const [todoInput, setTodoInput] = useState('');
   const [editTask, setEditTask] = useState<Task | null>(null);
 
   const today = todayIso();
+
+  useEffect(() => { ensureCalendarRange(today, today); }, [today, calendarSources, ensureCalendarRange]);
+  const sourceOf = (id: string) => calendarSources.find(c => c.id === id);
+  const nowMs = Date.now();
   const now = new Date();
   const dateLabel = now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
 
@@ -57,6 +63,14 @@ export default function Today() {
       // Same rule as the planner: project colour when linked, otherwise the category colour
       return { kind: 'planner' as const, id: e.id, title: e.title, time: e.time, done: e.done, color: p?.color ?? `var(--cat-${e.category})`, sub: p?.name ?? e.category, estimate: e.estimate };
     }),
+    ...calendarEventsOn(calendarEvents.filter(e => sourceOf(e.sourceId)?.enabled), today).map(e => {
+      const src = sourceOf(e.sourceId);
+      return {
+        kind: 'calendar' as const, id: e.id, title: e.title, allDay: e.allDay, location: e.location,
+        time: e.allDay ? undefined : localTimeOf(e.start), endTime: e.allDay ? undefined : localTimeOf(e.end),
+        done: !e.allDay && Date.parse(e.end) < nowMs, color: src?.color, sub: src?.name,
+      };
+    }),
     ...liveTasks.filter(t => t.plannedDate === today).map(t => {
       const p = projectOf(t.projectId);
       return { kind: 'task' as const, id: t.id, title: t.title, time: t.dueTime, done: t.status === 'done', color: p?.color, sub: p?.name, estimate: t.estimate, task: t };
@@ -66,12 +80,13 @@ export default function Today() {
     return (a.time ?? '99:99').localeCompare(b.time ?? '99:99');
   });
 
-  const plannedMins = items.filter(i => !i.done && i.kind !== 'meeting')
+  const plannedMins = items.filter(i => !i.done && i.kind !== 'meeting' && i.kind !== 'calendar')
     .reduce((n, i) => n + ((i as { estimate?: number }).estimate ?? 0), 0);
   const over = plannedMins > dailyCapacity;
-  const openCount = items.filter(i => !i.done).length;
+  const openCount = items.filter(i => !i.done && i.kind !== 'calendar').length;
 
   function toggleItem(i: PlanItem) {
+    if (i.kind === 'calendar') return;
     if (i.kind === 'meeting') updatePlannerAppointment(i.id, { done: !i.done });
     else if (i.kind === 'planner') updatePlannerEvent(i.id, { done: !i.done });
     else toggleTaskDone(i.id);
@@ -125,9 +140,14 @@ export default function Today() {
         <div className="card">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
             <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>Today&rsquo;s plan</div>
-            <button className="btn btn-ghost btn-sm" style={{ fontSize: 12 }} onClick={() => setView('planner')}>Open planner</button>
+            <div style={{ display: 'flex', gap: 2 }}>
+              <button className="btn btn-ghost btn-sm" style={{ fontSize: 12 }} onClick={() => setCalendarsOpen(true)}>
+                {calendarSources.length ? `Calendars · ${calendarSources.filter(c => c.enabled).length}` : 'Connect calendars'}
+              </button>
+              <button className="btn btn-ghost btn-sm" style={{ fontSize: 12 }} onClick={() => setView('planner')}>Open planner</button>
+            </div>
           </div>
-          <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 12 }}>Meetings, planner tasks and project tasks planned for today.</div>
+          <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 12 }}>Meetings, calendar events, planner tasks and project tasks for today.</div>
 
           {items.length === 0 && (
             <div style={{ fontSize: 13, color: 'var(--text-faint)', fontStyle: 'italic', padding: '8px 4px' }}>
@@ -137,19 +157,30 @@ export default function Today() {
           <div className="todo-list">
             {items.map(i => (
               <div key={`${i.kind}-${i.id}`} className={`todo-item today-item${i.done ? ' done' : ''}`} style={{ borderLeftColor: i.kind === 'meeting' ? 'var(--meeting)' : i.color ?? 'transparent' }}>
-                <span className={`todo-check${i.done ? ' checked' : ''}`} onClick={() => toggleItem(i)}>
-                  {i.done && <CheckIcon />}
-                </span>
+                {i.kind === 'calendar' ? (
+                  <span className="today-cal-icon" title={`From your ${i.sub ?? ''} calendar (read-only)`} style={{ color: i.color }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 13, height: 13 }}>
+                      <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                  </span>
+                ) : (
+                  <span className={`todo-check${i.done ? ' checked' : ''}`} onClick={() => toggleItem(i)}>
+                    {i.done && <CheckIcon />}
+                  </span>
+                )}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div
                     className="today-item-title"
-                    onClick={() => { if (i.kind === 'task') setEditTask(i.task); else setView('planner'); }}
+                    onClick={() => { if (i.kind === 'task') setEditTask(i.task); else if (i.kind !== 'calendar') setView('planner'); }}
+                    style={i.kind === 'calendar' ? { cursor: 'default' } : undefined}
                   >{i.title}</div>
                   <div className="today-item-meta">
-                    {i.time && <span>{fmt12(i.time)}</span>}
+                    {i.kind === 'calendar' && i.allDay && <span>All day</span>}
+                    {i.time && <span>{fmt12(i.time)}{i.kind === 'calendar' && i.endTime ? `–${fmt12(i.endTime)}` : ''}</span>}
                     {i.color && <span className="today-dot" style={{ background: i.color }} />}
                     {i.sub && <span style={{ textTransform: i.kind === 'planner' ? 'capitalize' : undefined }}>{i.sub}</span>}
-                    {i.kind !== 'meeting' && i.estimate ? <span>· {fmtMins(i.estimate)}</span> : null}
+                    {(i.kind === 'planner' || i.kind === 'task') && i.estimate ? <span>· {fmtMins(i.estimate)}</span> : null}
+                    {i.kind === 'calendar' && i.location && <span title={i.location} style={{ maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>· {i.location}</span>}
                   </div>
                 </div>
                 {i.kind === 'task' && !i.done && (
