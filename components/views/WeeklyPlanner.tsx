@@ -373,6 +373,18 @@ export default function WeeklyPlanner() {
   // ── Project tasks scheduled onto planner days ──
   const [editTask, setEditTask] = useState<Task | null>(null);
   const [reviewOpen, setReviewOpen] = useState(false);
+
+  // Meetings rows in the week grid: collapsed to a count by default, remembered per device
+  const [meetingsOpen, setMeetingsOpen] = useState(false);
+  useEffect(() => {
+    try { setMeetingsOpen(localStorage.getItem('pm_oyint_meetings_open') === '1'); } catch {}
+  }, []);
+  function toggleMeetings() {
+    setMeetingsOpen(o => {
+      try { localStorage.setItem('pm_oyint_meetings_open', o ? '0' : '1'); } catch {}
+      return !o;
+    });
+  }
   const [trayOpen, setTrayOpen] = useState(true);
   const [trayProject, setTrayProject] = useState('');
   const [trayShowAll, setTrayShowAll] = useState(false);
@@ -747,11 +759,22 @@ export default function WeeklyPlanner() {
                       })()}
 
                       {/* Appointments */}
-                      <div className="pday-appts">
-                        <div className="pday-appts-label">
+                      <div className={`pday-appts${meetingsOpen ? '' : ' collapsed'}`}>
+                        <button
+                          type="button"
+                          className="pday-appts-label"
+                          onClick={toggleMeetings}
+                          aria-expanded={meetingsOpen}
+                          title={meetingsOpen ? 'Collapse meetings for the week' : 'Show meetings for the week'}
+                        >
                           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ width: 10, height: 10 }}><rect x="1" y="2" width="14" height="13" rx="2"/><line x1="1" y1="6" x2="15" y2="6"/><line x1="5" y1="1" x2="5" y2="4"/><line x1="11" y1="1" x2="11" y2="4"/></svg>
                           Meetings
-                        </div>
+                          {(dayAppts.length + calOn(iso).length) > 0 && (
+                            <span className="pday-appts-count">{dayAppts.length + calOn(iso).length}</span>
+                          )}
+                          <svg className="pday-appts-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ width: 10, height: 10, marginLeft: 'auto' }}><polyline points="6 9 12 15 18 9"/></svg>
+                        </button>
+                        {meetingsOpen && <>
                         {dayAppts.length === 0 && calOn(iso).length === 0 && (
                           <div className="pday-empty">No meetings</div>
                         )}
@@ -770,6 +793,7 @@ export default function WeeklyPlanner() {
                         <div className="pday-add-appt" onClick={() => setNewApptModal({ open: true, presetDate: iso })}>
                           + meeting
                         </div>
+                        </>}
                       </div>
 
                       {/* Tasks */}

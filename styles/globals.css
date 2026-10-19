@@ -787,6 +787,13 @@ label {
 .pday.today .pday-num { color: var(--accent); }
 .pday-appts { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed var(--border-strong); }
 .pday-appts-label { font-size: 9.5px; font-weight: 600; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 2px; display: flex; align-items: center; gap: 5px; }
+button.pday-appts-label { width: 100%; background: none; border: none; padding: 2px 0; cursor: pointer; font-family: inherit; text-align: left; border-radius: 4px; }
+button.pday-appts-label:hover { color: var(--text-muted); }
+button.pday-appts-label:focus-visible { outline: 2px solid var(--primary-dark); outline-offset: 2px; }
+.pday-appts-chev { transition: transform 0.15s; }
+.pday-appts.collapsed .pday-appts-chev { transform: rotate(-90deg); }
+.pday-appts.collapsed { gap: 0; margin-bottom: 8px; padding-bottom: 8px; }
+.pday-appts-count { min-width: 15px; height: 15px; padding: 0 4px; border-radius: 999px; background: var(--meeting-bg-hover); color: var(--meeting-text); font-size: 9.5px; letter-spacing: 0; display: inline-flex; align-items: center; justify-content: center; }
 .pappt { background: var(--meeting-bg); border-radius: 7px; padding: 5px 8px; font-size: 11px; line-height: 1.3; cursor: pointer; border-left: 3px solid var(--meeting); transition: all 0.12s; color: var(--text); display: flex; flex-direction: column; gap: 2px; }
 .pappt-time { font-size: 10px; font-weight: 600; color: var(--meeting-text); letter-spacing: 0.2px; }
 .pappt-title { font-weight: 500; word-break: break-word; }
