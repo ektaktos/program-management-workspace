@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { PlannerEvent, PlannerAppointment, Task } from '@/lib/types';
 import TaskModal from '../modals/TaskModal';
+import WeeklyReviewModal from '../modals/WeeklyReviewModal';
 import { uid, fmtMins, fmtDate, projectInArea } from '@/lib/utils';
 import { ESTIMATE_OPTIONS, DAILY_CAPACITY_MIN } from '@/lib/constants';
 
@@ -333,6 +334,7 @@ export default function WeeklyPlanner() {
 
   // ── Project tasks scheduled onto planner days ──
   const [editTask, setEditTask] = useState<Task | null>(null);
+  const [reviewOpen, setReviewOpen] = useState(false);
   const [trayOpen, setTrayOpen] = useState(true);
   const [trayProject, setTrayProject] = useState('');
   const [trayShowAll, setTrayShowAll] = useState(false);
@@ -391,8 +393,15 @@ export default function WeeklyPlanner() {
     <div>
       {/* Toolbar — 3-column grid: empty | centered nav | seg control */}
       <div className="planner-toolbar" style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center' }}>
-        {/* Left: empty spacer */}
-        <div />
+        {/* Left: weekly review */}
+        <div style={{ justifySelf: 'start' }}>
+          <button className="btn btn-outline btn-sm" onClick={() => setReviewOpen(true)} title="Review what got done and carry unfinished work forward">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 13, height: 13 }}>
+              <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+            </svg>
+            <span className="btn-label">Weekly review</span>
+          </button>
+        </div>
 
         {/* Center: week navigation */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, justifySelf: 'center' }}>
@@ -874,6 +883,7 @@ export default function WeeklyPlanner() {
 
       {/* Modals */}
       {editTask && <TaskModal task={editTask} onClose={() => setEditTask(null)} />}
+      {reviewOpen && <WeeklyReviewModal weekKey={weekKey} weekLabel={weekLabel} onClose={() => setReviewOpen(false)} />}
       {newEventModal.open && (
         <EventModal presetDate={newEventModal.presetDate} onClose={() => setNewEventModal({ open: false })} />
       )}
