@@ -811,7 +811,7 @@ export default function WeeklyPlanner() {
                     <div className="pagenda-day-head">
                       <span>
                         {DAY_NAMES[i]}, {MONTH_NAMES[day.getMonth()]} {day.getDate()}
-                        {isToday && <span style={{ marginLeft: 8, fontSize: 10, fontWeight: 600, background: '#f4e8d2', color: '#5f441c', padding: '2px 8px', borderRadius: 999 }}>Today</span>}
+                        {isToday && <span style={{ marginLeft: 8, fontSize: 10, fontWeight: 600, background: 'var(--accent-soft)', color: 'var(--accent)', padding: '2px 8px', borderRadius: 999 }}>Today</span>}
                       </span>
                       <div style={{ display: 'flex', gap: 6 }}>
                         <button className="btn btn-ghost btn-sm" style={{ fontSize: 11 }} onClick={() => setNewEventModal({ open: true, presetDate: iso })}>+ Task</button>

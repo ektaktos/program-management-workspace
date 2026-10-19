@@ -155,7 +155,7 @@ export default function ProjectDetail() {
           </div>
         </div>
         {/* Progress bar */}
-        <div style={{ height: 8, background: '#f1ebe1', borderRadius: 999, overflow: 'hidden', marginTop: 14 }}>
+        <div style={{ height: 8, background: 'var(--track)', borderRadius: 999, overflow: 'hidden', marginTop: 14 }}>
           <div style={{ height: '100%', borderRadius: 999, background: project.color, width: `${pct}%`, transition: 'width 0.4s ease' }} />
         </div>
       </div>
@@ -172,8 +172,8 @@ export default function ProjectDetail() {
             {tabCounts[tab] > 0 && (
               <span style={{
                 marginLeft: 6, fontSize: 11,
-                background: activeTab === tab ? 'rgba(95,68,28,0.12)' : 'var(--border)',
-                color: activeTab === tab ? '#5f441c' : 'var(--text-muted)',
+                background: activeTab === tab ? 'var(--chip)' : 'var(--border)',
+                color: activeTab === tab ? 'var(--accent)' : 'var(--text-muted)',
                 padding: '1px 6px', borderRadius: 999,
               }}>{tabCounts[tab]}</span>
             )}

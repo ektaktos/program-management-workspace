@@ -133,7 +133,7 @@ export default function Today() {
           )}
           <div className="todo-list">
             {items.map(i => (
-              <div key={`${i.kind}-${i.id}`} className={`todo-item today-item${i.done ? ' done' : ''}`} style={{ borderLeftColor: i.kind === 'meeting' ? '#f5c5d3' : i.color ?? 'transparent' }}>
+              <div key={`${i.kind}-${i.id}`} className={`todo-item today-item${i.done ? ' done' : ''}`} style={{ borderLeftColor: i.kind === 'meeting' ? 'var(--meeting)' : i.color ?? 'transparent' }}>
                 <span className={`todo-check${i.done ? ' checked' : ''}`} onClick={() => toggleItem(i)}>
                   {i.done && <CheckIcon />}
                 </span>

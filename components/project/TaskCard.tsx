@@ -20,9 +20,9 @@ const PRIORITY_DOT: Record<string, string> = {
 };
 
 const PRIORITY_CFG: Record<string, { cls: string; color: string; bars: [number, number, number]; label: string }> = {
-  high:   { cls: 'badge-danger',  color: '#d68a8a', bars: [1, 1, 1],       label: 'High' },
-  medium: { cls: 'badge-warning', color: '#d49a5d', bars: [1, 1, 0.18],    label: 'Medium' },
-  low:    { cls: 'badge-success', color: '#6fa885', bars: [1, 0.18, 0.18], label: 'Low' },
+  high:   { cls: 'badge-danger',  color: '#b9786a', bars: [1, 1, 1],       label: 'High' },
+  medium: { cls: 'badge-warning', color: '#bf9659', bars: [1, 1, 0.18],    label: 'Medium' },
+  low:    { cls: 'badge-success', color: '#7d9677', bars: [1, 0.18, 0.18], label: 'Low' },
 };
 
 const PRIORITY_ORDER: Array<Task['priority']> = ['low', 'medium', 'high'];

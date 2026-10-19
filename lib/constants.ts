@@ -1,9 +1,9 @@
 export const STATUS_META = {
-  todo:       { label: 'To Do',       badgeClass: 'badge-gray',    dot: '#b9aea1' },
-  inprogress: { label: 'In Progress', badgeClass: 'badge-primary', dot: '#c2dcef' },
-  inreview:   { label: 'In Review',   badgeClass: 'badge-orange',  dot: '#f5cfb3' },
-  overdue:    { label: 'Overdue',     badgeClass: 'badge-danger',  dot: '#d68a8a' },
-  done:       { label: 'Done',        badgeClass: 'badge-success', dot: '#b9dfc8' },
+  todo:       { label: 'To Do',       badgeClass: 'badge-gray',    dot: '#aca194' },
+  inprogress: { label: 'In Progress', badgeClass: 'badge-primary', dot: '#a7b7c1' },
+  inreview:   { label: 'In Review',   badgeClass: 'badge-orange',  dot: '#d6bea4' },
+  overdue:    { label: 'Overdue',     badgeClass: 'badge-danger',  dot: '#b9786a' },
+  done:       { label: 'Done',        badgeClass: 'badge-success', dot: '#a9bca1' },
 } as const;
 
 export const STATUS_ORDER = ['todo', 'inprogress', 'inreview', 'overdue', 'done'] as const;
@@ -15,11 +15,12 @@ export const PROJECT_STATUS_META: Record<string, { badgeClass: string }> = {
   'Completed': { badgeClass: 'badge-gray' },
 };
 
+// Project colour presets — muted Japandi earth tones (existing projects keep their colour)
 export const COLORS = [
-  '#b6a4e8', '#f5c5d3', '#b9dfc8', '#c2dcef', '#f5cfb3',
-  '#f3e3a6', '#d68a8a', '#a995d9', '#e0a98a', '#8ac4d9',
-  '#c8e6c9', '#ffcc80', '#ef9a9a', '#ce93d8', '#80cbc4',
-];
+  '#a9b8a1', '#c9a990', '#b9a58b', '#93a3ad', '#cbbb9e',
+  '#a59a8e', '#b88b7a', '#9ba78f', '#d3c4ab', '#8c7b6b',
+  '#b5a9b7', '#c2ae80', '#9fb3ae', '#c49a8c', '#7f8a78',
+]
 
 export const PROJECT_TYPES = [
   'Research / Academic',
@@ -29,9 +30,9 @@ export const PROJECT_TYPES = [
 ];
 
 export const PRIORITY_META = {
-  high:   { label: 'High',   badgeClass: 'badge-danger',  color: '#d68a8a' },
-  medium: { label: 'Medium', badgeClass: 'badge-warning', color: '#d49a5d' },
-  low:    { label: 'Low',    badgeClass: 'badge-success', color: '#6fa885' },
+  high:   { label: 'High',   badgeClass: 'badge-danger',  color: '#b9786a' },
+  medium: { label: 'Medium', badgeClass: 'badge-warning', color: '#bf9659' },
+  low:    { label: 'Low',    badgeClass: 'badge-success', color: '#7d9677' },
 } as const;
 
 // Life areas offered when creating/editing a project (free text is also allowed)

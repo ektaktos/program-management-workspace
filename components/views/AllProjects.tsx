@@ -78,7 +78,7 @@ export default function AllProjects() {
                     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                     cursor: 'pointer', color: 'var(--text-muted)',
                   }}
-                  onMouseOver={e => { (e.currentTarget as HTMLButtonElement).style.color = '#5f441c'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#5f441c'; }}
+                  onMouseOver={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--accent)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--accent)'; }}
                   onMouseOut={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border)'; }}
                 >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 12, height: 12 }}>
@@ -98,7 +98,7 @@ export default function AllProjects() {
                     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                     cursor: 'pointer', color: 'var(--text-muted)',
                   }}
-                  onMouseOver={e => { (e.currentTarget as HTMLButtonElement).style.color = '#5f441c'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#5f441c'; }}
+                  onMouseOver={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--accent)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--accent)'; }}
                   onMouseOut={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border)'; }}
                 >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 12, height: 12 }}>
@@ -126,7 +126,7 @@ export default function AllProjects() {
               )}
 
               {/* Progress */}
-              <div style={{ height: 6, background: '#f1ebe1', borderRadius: 999, overflow: 'hidden', margin: '12px 0 8px' }}>
+              <div style={{ height: 6, background: 'var(--track)', borderRadius: 999, overflow: 'hidden', margin: '12px 0 8px' }}>
                 <div style={{ height: '100%', borderRadius: 999, background: p.color, width: `${pct}%`, transition: 'width 0.4s ease' }} />
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11.5, color: 'var(--text-muted)' }}>

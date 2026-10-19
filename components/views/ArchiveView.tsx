@@ -108,7 +108,7 @@ export default function ArchiveView() {
                       {p.description.slice(0, 80)}{p.description.length > 80 ? '…' : ''}
                     </div>
                   )}
-                  <div style={{ height: 5, background: '#f1ebe1', borderRadius: 999, overflow: 'hidden', marginBottom: 6 }}>
+                  <div style={{ height: 5, background: 'var(--track)', borderRadius: 999, overflow: 'hidden', marginBottom: 6 }}>
                     <div style={{ height: '100%', background: p.color, borderRadius: 999, width: `${pct}%` }} />
                   </div>
                   <div style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>{done}/{pt.length} tasks · {pct}%</div>

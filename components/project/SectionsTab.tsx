@@ -153,7 +153,7 @@ export default function SectionsTab({ projectId, highlightedTaskId }: SectionsTa
           <ProgressBar value={prog.pct} />
         </div>
 
-        {sec.phase?.notes && <p style={{ fontSize: 13, color: '#5a5048', lineHeight: 1.6, marginBottom: 14 }}>{sec.phase.notes}</p>}
+        {sec.phase?.notes && <p style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.6, marginBottom: 14 }}>{sec.phase.notes}</p>}
 
         <div style={{ borderTop: '1px solid var(--border)', paddingTop: 14 }}>
           {sec.tasks.length > 0 && (

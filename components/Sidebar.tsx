@@ -226,7 +226,7 @@ export default function Sidebar() {
                 onMouseOver={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'var(--sidebar-active)'; }}
                 onMouseOut={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
               >
-                <span style={{ color: '#5f441c', flexShrink: 0 }}>{item.icon}</span>
+                <span style={{ color: 'var(--accent)', flexShrink: 0 }}>{item.icon}</span>
                 {open && item.label}
               </button>
             );

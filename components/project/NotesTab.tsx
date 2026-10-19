@@ -62,7 +62,7 @@ export default function NotesTab({ projectId }: { projectId: string }) {
               </div>
             </div>
 
-            {n.body && <p style={{ fontSize: 13, color: '#5a5048', lineHeight: 1.7, marginBottom: n.tags.length ? 10 : 0 }}>{n.body}</p>}
+            {n.body && <p style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.7, marginBottom: n.tags.length ? 10 : 0 }}>{n.body}</p>}
 
             {n.tags.length > 0 && (
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>

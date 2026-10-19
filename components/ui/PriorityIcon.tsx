@@ -2,9 +2,9 @@ import React from 'react';
 import { Priority } from '@/lib/types';
 
 const cfg = {
-  high:   { badgeClass: 'badge-danger',  color: '#d68a8a', bars: [1, 1, 1]       as number[] },
-  medium: { badgeClass: 'badge-warning', color: '#d49a5d', bars: [1, 1, 0.18]    as number[] },
-  low:    { badgeClass: 'badge-success', color: '#6fa885', bars: [1, 0.18, 0.18] as number[] },
+  high:   { badgeClass: 'badge-danger',  color: '#b9786a', bars: [1, 1, 1]       as number[] },
+  medium: { badgeClass: 'badge-warning', color: '#bf9659', bars: [1, 1, 0.18]    as number[] },
+  low:    { badgeClass: 'badge-success', color: '#7d9677', bars: [1, 0.18, 0.18] as number[] },
 };
 
 export default function PriorityIcon({ priority }: { priority: Priority }) {
