@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { toTodo } from '@/lib/apiHelpers';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   const todos = await prisma.plannerTodo.findMany({ orderBy: { createdAt: 'desc' } });
   return NextResponse.json(todos.map(t => toTodo(t as Record<string, unknown>)));

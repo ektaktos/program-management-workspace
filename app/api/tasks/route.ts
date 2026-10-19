@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { toTask } from '@/lib/apiHelpers';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   const tasks = await prisma.task.findMany();
   return NextResponse.json(tasks.map(t => toTask(t as Record<string, unknown>)));

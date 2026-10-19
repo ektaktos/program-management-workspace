@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { toPlannerAppointment } from '@/lib/apiHelpers';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   const appts = await prisma.plannerAppointment.findMany({ orderBy: { createdAt: 'asc' } });
   return NextResponse.json(appts.map(a => toPlannerAppointment(a as Record<string, unknown>)));

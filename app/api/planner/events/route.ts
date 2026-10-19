@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { toPlannerEvent } from '@/lib/apiHelpers';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   const events = await prisma.plannerEvent.findMany({ orderBy: { createdAt: 'asc' } });
   return NextResponse.json(events.map(e => toPlannerEvent(e as Record<string, unknown>)));
