@@ -73,13 +73,8 @@ export default function Dashboard() {
 
   const statCards = [
     { label: 'Projects',   value: projects.length, sub: `${activeProjects.length} active`,   onClick: () => setView('projects') },
-    { label: 'Tasks',      value: totalTasks,        sub: `${doneTasks} completed`,           onClick: () => setView('tasks') },
+    { label: 'Tasks',      value: totalTasks,        sub: `${doneTasks} completed`,           onClick: () => setView('tasks'), meetings: true },
     { label: 'Completion', value: completionPct,     pct: true, sub: 'across all projects',   onClick: undefined },
-    {
-      label: 'Meetings', value: meetingsToday.total,
-      sub: meetingsToday.total === 0 ? 'none today' : meetingsToday.left === 0 ? 'all done today' : `${meetingsToday.left} still to come`,
-      onClick: () => setView('today'),
-    },
     {
       label: 'Overdue', value: overdueTasks,
       sub: overdueTasks > 0 ? 'needs attention' : 'all on track',
@@ -91,7 +86,7 @@ export default function Dashboard() {
   return (
     <div>
       {/* Stat cards */}
-      <div className="stat-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 16, marginBottom: 24 }}>
+      <div className="stat-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
         {statCards.map(c => (
           <div
             key={c.label}
@@ -121,6 +116,20 @@ export default function Dashboard() {
               {c.value}{c.pct && <span style={{ fontSize: 24, color: 'var(--text-muted)', fontWeight: 600 }}>%</span>}
             </div>
             <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 8 }}>{c.sub}</div>
+            {c.meetings && (
+              <button
+                type="button"
+                className="stat-meetings"
+                onClick={e => { e.stopPropagation(); setView('today'); }}
+                title={meetingsToday.total === 0
+                  ? 'No meetings today'
+                  : `${meetingsToday.total} meeting${meetingsToday.total !== 1 ? 's' : ''} today · ${meetingsToday.left} still to come — open Today`}
+                aria-label={`${meetingsToday.total} meetings today`}
+              >
+                <span className="stat-meetings-num">{meetingsToday.total}</span>
+                <span className="stat-meetings-lbl">meeting{meetingsToday.total !== 1 ? 's' : ''}</span>
+              </button>
+            )}
           </div>
         ))}
       </div>

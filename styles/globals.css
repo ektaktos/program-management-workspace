@@ -1016,3 +1016,11 @@ button.pday-appts-label:focus-visible { outline: 2px solid var(--primary-dark); 
 .meet-time span { font-size: 11px; font-weight: 400; color: var(--text-muted); }
 .meet-title { font-size: 13.5px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .meet-src { font-size: 11.5px; color: var(--text-muted); margin-top: 1px; }
+
+/* ── Dashboard: today's meeting count, circled inside the Tasks card ── */
+.stat-meetings { position: absolute; top: 16px; right: 16px; width: 58px; height: 58px; border-radius: 50%; border: 1.5px solid var(--border-strong); background: var(--accent-softer); color: var(--text); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; cursor: pointer; padding: 0; font-family: inherit; transition: border-color 0.15s, background 0.15s; }
+.stat-meetings:hover { border-color: var(--primary-dark); background: var(--accent-soft); }
+.stat-meetings:focus-visible { outline: 2px solid var(--primary-dark); outline-offset: 2px; }
+.stat-meetings-num { font-family: Georgia, 'Times New Roman', serif; font-size: 20px; line-height: 1; }
+.stat-meetings-lbl { font-size: 9.5px; color: var(--text-muted); letter-spacing: 0.3px; }
+@media (max-width: 768px) { .stat-meetings { width: 44px; height: 44px; top: 10px; right: 10px; } .stat-meetings-num { font-size: 16px; } .stat-meetings-lbl { font-size: 8px; } }
