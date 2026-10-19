@@ -967,3 +967,14 @@ label {
 .theme-swatch > span:nth-child(3) { height: 45%; }
 .theme-name { display: block; font-size: 13px; font-weight: 500; }
 .theme-desc { display: block; font-size: 11px; color: var(--text-muted); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ── Theme tiles (Dashboard) ── */
+.theme-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; }
+.theme-tile { display: flex; flex-direction: column; gap: 6px; padding: 6px; border-radius: 12px; border: 1.5px solid var(--border); background: var(--surface); cursor: pointer; font-family: inherit; color: var(--text); transition: border-color 0.15s, box-shadow 0.15s; text-align: left; }
+.theme-tile:hover { border-color: var(--border-strong); box-shadow: var(--shadow); }
+.theme-tile.active { border-color: var(--primary-dark); box-shadow: 0 0 0 2px var(--primary-light); }
+.theme-tile-preview { position: relative; display: block; height: 46px; border-radius: 8px; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.06); }
+.theme-tile-side { position: absolute; left: 0; top: 0; bottom: 0; width: 30%; }
+.theme-tile-bar { position: absolute; left: 38%; top: 12px; right: 12%; height: 6px; border-radius: 999px; }
+.theme-tile-dot { position: absolute; left: 38%; top: 26px; width: 26%; height: 8px; border-radius: 999px; }
+.theme-tile-name { display: flex; align-items: center; justify-content: space-between; gap: 4px; font-size: 12px; font-weight: 500; padding: 0 2px 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

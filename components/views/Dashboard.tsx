@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { calcProjectProgress, fmtDate, projectInArea } from '@/lib/utils';
 import ProgressBar from '../ui/ProgressBar';
+import ThemeGrid from '../ui/ThemeGrid';
 
 function daysLeft(iso: string): string {
   const today = new Date(); today.setHours(0, 0, 0, 0);
@@ -214,7 +215,7 @@ export default function Dashboard() {
 
         </div>
 
-        {/* Right column: Upcoming Deadlines + Recent Notes */}
+        {/* Right column: Upcoming Deadlines + Recent Notes + Theme */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
           {/* Upcoming deadlines */}
@@ -269,6 +270,15 @@ export default function Dashboard() {
                 );
               })
             )}
+          </div>
+
+          {/* Theme */}
+          <div className="card">
+            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 12 }}>
+              <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>Theme</div>
+              <div style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>Syncs across your devices</div>
+            </div>
+            <ThemeGrid />
           </div>
 
         </div>
