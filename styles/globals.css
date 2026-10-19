@@ -771,3 +771,7 @@ label {
 .section-subtask-row { display: flex; align-items: center; gap: 7px; padding: 3px 2px; min-width: 0; }
 .section-task-check.small { width: 12px; height: 12px; border-radius: 3px; }
 .section-task-row.clickable { cursor: pointer; }
+
+/* Inline labels (Day limit, Quick add checkboxes) shouldn't inherit the uppercase form-label style */
+.capacity-select, .quickadd-check { text-transform: none; letter-spacing: normal; font-weight: 400; margin-bottom: 0; }
+.review-row .todo-del { white-space: nowrap; width: auto; padding: 2px 6px; flex-shrink: 0; }

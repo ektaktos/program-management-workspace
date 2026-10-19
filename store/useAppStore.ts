@@ -237,14 +237,16 @@ export const useAppStore = create<Store>((set, get) => ({
   // ── Bootstrap ──
   loadAll: async () => {
     try {
-      const [data, plannerData]: [AppState, {
+      // Synced settings load alongside the data; a settings failure (null) must not block loading.
+      const [data, plannerData, settingsRes]: [AppState, {
         todos: Todo[];
         plannerEvents: PlannerEvent[];
         plannerAppointments: PlannerAppointment[];
         plannerWeekly: Record<string, PlannerWeekData>;
-      }] = await Promise.all([
+      }, Record<string, unknown> | null] = await Promise.all([
         api('/api/data'),
         api('/api/planner/data'),
+        api('/api/settings').catch(() => null),
       ]);
 
       const archived = loadArchived();
@@ -253,12 +255,11 @@ export const useAppStore = create<Store>((set, get) => ({
       try { areaFilter = localStorage.getItem(AREA_KEY) ?? ''; } catch {}
       set({ areaFilter });
 
-      // Synced settings live in the DB. Failure here (e.g. before the migration has run) must not block loading.
-      const settings: Record<string, unknown> = await api('/api/settings').catch(() => null) ?? {};
-      const dbCap = Number(settings.dailyCapacity);
+      const dbCap = Number(settingsRes?.dailyCapacity);
       if (dbCap > 0) {
         set({ dailyCapacity: dbCap });
-      } else {
+      } else if (settingsRes) {
+        // Only when settings actually loaded: never overwrite the DB after a failed fetch
         // One-time move of a limit chosen before syncing existed (it was stored per browser)
         let localCap = 0;
         try { localCap = Number(localStorage.getItem(CAPACITY_KEY)); } catch {}

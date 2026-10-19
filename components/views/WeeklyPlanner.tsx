@@ -332,7 +332,8 @@ export default function WeeklyPlanner() {
 
   const openTodos = todos.filter(t => !t.done).length;
 
-  const projectOf = (id?: string) => (id ? projects.find(p => p.id === id) : undefined);
+  const projectById = new Map(projects.map(p => [p.id, p]));
+  const projectOf = (id?: string) => (id ? projectById.get(id) : undefined);
 
   // ── Project tasks scheduled onto planner days ──
   const [editTask, setEditTask] = useState<Task | null>(null);
@@ -345,11 +346,18 @@ export default function WeeklyPlanner() {
   const weekIsos = days.map(isoOf);
   const liveTasks = tasks.filter(t =>
     !archivedTaskIds.includes(t.id) && !archivedProjectIds.includes(t.projectId));
-  const plannedTasksOn = (iso: string) => liveTasks.filter(t => t.plannedDate === iso);
+  // Index planned tasks by day once per render instead of rescanning all tasks per day
+  const plannedByDay = new Map<string, Task[]>();
+  for (const t of liveTasks) {
+    if (!t.plannedDate) continue;
+    const list = plannedByDay.get(t.plannedDate);
+    if (list) list.push(t); else plannedByDay.set(t.plannedDate, [t]);
+  }
+  const plannedTasksOn = (iso: string) => plannedByDay.get(iso) ?? [];
 
   const PRIORITY_RANK: Record<string, number> = { high: 0, medium: 1, low: 2 };
   const trayTasks = liveTasks
-    .filter(t => t.status !== 'done' && !(t.plannedDate && weekIsos.includes(t.plannedDate)))
+    .filter(t => t.status !== 'done' && !(t.plannedDate && t.plannedDate >= weekIsos[0]))
     .filter(t => projectInArea(projectOf(t.projectId), areaFilter))
     .filter(t => !trayProject || t.projectId === trayProject)
     .sort((a, b) => {
@@ -606,7 +614,7 @@ export default function WeeklyPlanner() {
                   Drag a task onto a day, or pick a day. Drag a planned task back here to unplan it.
                 </div>
                 {trayTasks.length === 0 && (
-                  <div style={{ fontSize: 13, color: 'var(--text-faint)', fontStyle: 'italic', padding: '4px 2px' }}>Every open task is planned for this week.</div>
+                  <div style={{ fontSize: 13, color: 'var(--text-faint)', fontStyle: 'italic', padding: '4px 2px' }}>Every open task is already planned for this week or later.</div>
                 )}
                 <div className="ptray-list">
                   {trayVisible.map(t => {
@@ -771,7 +779,7 @@ export default function WeeklyPlanner() {
                                 <span className="pevent-proj-name">{projectOf(ev.projectId)!.name}{ev.estimate ? ` · ${fmtMins(ev.estimate)}` : ''}</span>
                               </div>
                             )}
-                            {!projectOf(ev.projectId) && ev.estimate && (
+                            {!projectOf(ev.projectId) && !!ev.estimate && (
                               <div className="pevent-proj"><span className="pevent-proj-name">{fmtMins(ev.estimate)}</span></div>
                             )}
                           </div>

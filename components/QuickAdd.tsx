@@ -41,7 +41,13 @@ export default function QuickAdd() {
     let initial = 'todo';
     try { initial = localStorage.getItem(LAST_DEST_KEY) ?? 'todo'; } catch {}
     if (currentView === 'project' && activeProjectId) initial = `p:${activeProjectId}`;
-    if (initial.startsWith('p:') && !projects.some(p => p.id === initial.split(':')[1])) initial = 'todo';
+    if (initial.startsWith('p:')) {
+      const [, pid, sid] = initial.split(':');
+      const projectOk = projects.some(p => p.id === pid) && !archivedProjectIds.includes(pid);
+      const sectionOk = !sid || phases.some(ph => ph.id === sid && ph.projectId === pid);
+      if (!projectOk) initial = 'todo';
+      else if (!sectionOk) initial = `p:${pid}`;
+    }
     setDest(initial);
     setTitle(''); setDue(''); setEstimate(''); setPlanToday(false);
     setTimeout(() => inputRef.current?.focus(), 0);

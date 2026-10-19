@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useAppStore } from '@/store/useAppStore';
-import { addDaysIso, fmtDate, fmtMins, uid } from '@/lib/utils';
+import { addDaysIso, fmtDate, fmtMins, todayIso, uid } from '@/lib/utils';
 import { PlannerWeekData } from '@/lib/types';
 
 interface WeeklyReviewModalProps {
@@ -39,11 +39,16 @@ export default function WeeklyReviewModal({ weekKey, weekLabel, onClose }: Weekl
   const goalsDone = weekData.goals.filter(g => g.done).length;
   const doneMins = completedTasks.reduce((n, t) => n + (t.estimate ?? 0), 0) + donePlanner.reduce((n, e) => n + (e.estimate ?? 0), 0);
 
-  // ── What slipped ──
-  const unfinishedPlanner = plannerEvents.filter(e => inWeek(e.date) && !e.done);
-  const unfinishedPlanned = liveTasks.filter(t => inWeek(t.plannedDate) && t.status !== 'done');
-  const missedDeadlines = liveTasks.filter(t => inWeek(t.due) && t.status !== 'done');
+  // ── What slipped: only days already behind us count (today and later are still to come) ──
+  const today = todayIso();
+  const isPast = (iso?: string) => !!iso && iso < today;
+  const unfinishedPlanner = plannerEvents.filter(e => inWeek(e.date) && isPast(e.date) && !e.done);
+  const unfinishedPlanned = liveTasks.filter(t => inWeek(t.plannedDate) && isPast(t.plannedDate) && t.status !== 'done');
+  const missedDeadlines = liveTasks.filter(t => inWeek(t.due) && isPast(t.due) && t.status !== 'done');
   const carryCount = unfinishedPlanner.length + unfinishedPlanned.length;
+  const stillToCome =
+    plannerEvents.filter(e => inWeek(e.date) && !isPast(e.date) && !e.done).length +
+    liveTasks.filter(t => inWeek(t.plannedDate) && !isPast(t.plannedDate) && t.status !== 'done').length;
 
   function moveAllToNextWeek() {
     unfinishedPlanner.forEach(e => updatePlannerEvent(e.id, { date: addDaysIso(e.date, 7) }));
@@ -98,7 +103,11 @@ export default function WeeklyReviewModal({ weekKey, weekLabel, onClose }: Weekl
               </button>
             )}
           </div>
-          {carryCount === 0 && <div className="review-empty">Everything you planned got done.</div>}
+          {carryCount === 0 && (
+            <div className="review-empty">
+              {weekIsos[0] > today ? 'This week hasn’t started yet.' : 'Nothing slipped from the days so far.'}
+            </div>
+          )}
           {unfinishedPlanned.map(t => (
             <Row key={t.id} title={t.title} meta={`${projectOf(t.projectId)?.name ?? ''} · planned ${fmtDate(t.plannedDate!).replace(/ \d{4}$/, '')}`}
               color={projectOf(t.projectId)?.color}
@@ -109,9 +118,14 @@ export default function WeeklyReviewModal({ weekKey, weekLabel, onClose }: Weekl
               color={projectOf(e.projectId)?.color}
               onNext={() => updatePlannerEvent(e.id, { date: addDaysIso(e.date, 7) })} />
           ))}
+          {stillToCome > 0 && (
+            <div className="review-empty" style={{ fontStyle: 'normal' }}>
+              {stillToCome} more item{stillToCome !== 1 ? 's' : ''} planned for today and the rest of the week — not counted as slipped.
+            </div>
+          )}
           {missedDeadlines.length > 0 && (
             <>
-              <div className="review-subhead">Deadlines this week not yet done</div>
+              <div className="review-subhead">Deadlines this week that passed undone</div>
               {missedDeadlines.map(t => (
                 <Row key={t.id} title={t.title} meta={`due ${fmtDate(t.due!).replace(/ \d{4}$/, '')}`} color={projectOf(t.projectId)?.color} />
               ))}

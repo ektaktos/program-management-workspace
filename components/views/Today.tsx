@@ -41,6 +41,8 @@ export default function Today() {
   const dateLabel = now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
 
   const projectOf = (id?: string) => (id ? projects.find(p => p.id === id) : undefined);
+  // Planner tasks follow the area filter only when linked to a project; unlinked ones always show
+  const inAreaEvent = (projectId?: string) => !projectId || projectInArea(projectOf(projectId), areaFilter);
   const liveTasks = tasks.filter(t =>
     !archivedTaskIds.includes(t.id) && !archivedProjectIds.includes(t.projectId) &&
     projectInArea(projectOf(t.projectId), areaFilter));
@@ -50,7 +52,7 @@ export default function Today() {
     ...plannerAppointments.filter(a => a.date === today).map(a => ({
       kind: 'meeting' as const, id: a.id, title: a.title, time: a.time, done: a.done, sub: 'Meeting',
     })),
-    ...plannerEvents.filter(e => e.date === today).map(e => {
+    ...plannerEvents.filter(e => e.date === today && inAreaEvent(e.projectId)).map(e => {
       const p = projectOf(e.projectId);
       return { kind: 'planner' as const, id: e.id, title: e.title, time: e.time, done: e.done, color: p?.color, sub: p?.name ?? e.category, estimate: e.estimate };
     }),
@@ -89,7 +91,7 @@ export default function Today() {
   // ── Done today ──
   const startOfDay = new Date(); startOfDay.setHours(0, 0, 0, 0);
   const doneToday = liveTasks.filter(t => t.status === 'done' && (t.completedAt ?? 0) >= startOfDay.getTime()).length
-    + plannerEvents.filter(e => e.date === today && e.done).length;
+    + plannerEvents.filter(e => e.date === today && e.done && inAreaEvent(e.projectId)).length;
 
   const openTodos = [...todos].filter(t => !t.done).sort((a, b) => b.createdAt - a.createdAt);
 
@@ -105,8 +107,8 @@ export default function Today() {
             {areaFilter && <> · showing {areaFilter}</>}
           </div>
         </div>
-        <div style={{ minWidth: 200 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: over ? 'var(--danger)' : 'var(--text-muted)', marginBottom: 5, fontWeight: over ? 600 : 400 }}>
+        <div style={{ minWidth: 280 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, fontSize: 12, color: over ? 'var(--danger)' : 'var(--text-muted)', marginBottom: 6, fontWeight: over ? 600 : 400 }}>
             <span>{plannedMins ? `${fmtMins(plannedMins)} planned` : 'No time estimates yet'}</span>
             <CapacitySelect />
           </div>

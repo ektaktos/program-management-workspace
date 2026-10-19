@@ -8,14 +8,6 @@ export function todayIso(): string {
   return isoOf(new Date());
 }
 
-// Monday of the week containing `d`
-export function weekStartOf(d: Date): Date {
-  const x = new Date(d); x.setHours(0, 0, 0, 0);
-  const dow = x.getDay();
-  x.setDate(x.getDate() + (dow === 0 ? -6 : 1 - dow));
-  return x;
-}
-
 export function addDaysIso(iso: string, days: number): string {
   const d = new Date(iso + 'T00:00:00');
   d.setDate(d.getDate() + days);
