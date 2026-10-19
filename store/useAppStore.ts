@@ -9,7 +9,7 @@ const NOTIFIED_KEY  = 'pm_oyint_notified';
 const PLANNER_KEY   = 'pm_oyint_planner';
 const ARCHIVED_KEY  = 'pm_oyint_archived';
 const ORDER_KEY     = 'pm_oyint_proj_order';
-const AREA_KEY      = 'pm_oyint_area_filter';
+const AREA_KEY      = 'pm_oyint_area_filter';    // legacy per-browser value, migrated to the DB on load
 const CAPACITY_KEY  = 'pm_oyint_daily_capacity'; // legacy per-browser value, migrated to the DB on load
 
 function loadNotified(): string[] {
@@ -249,12 +249,22 @@ export const useAppStore = create<Store>((set, get) => ({
 
       const archived = loadArchived();
       const order    = loadProjectOrder();
-      let areaFilter = '';
-      try { areaFilter = localStorage.getItem(AREA_KEY) ?? ''; } catch {}
-      set({ areaFilter });
-
       // Synced settings live in the DB. Failure here (e.g. before the migration has run) must not block loading.
       const settings: Record<string, unknown> = await api('/api/settings').catch(() => null) ?? {};
+
+      if (typeof settings.areaFilter === 'string') {
+        set({ areaFilter: settings.areaFilter });
+      } else {
+        // One-time move of an area filter chosen before syncing existed
+        let localArea = '';
+        try { localArea = localStorage.getItem(AREA_KEY) ?? ''; } catch {}
+        if (localArea) {
+          set({ areaFilter: localArea });
+          api('/api/settings/areaFilter', 'PUT', { value: localArea })
+            .then(() => { try { localStorage.removeItem(AREA_KEY); } catch {} })
+            .catch(console.error);
+        }
+      }
       const dbCap = Number(settings.dailyCapacity);
       if (dbCap > 0) {
         set({ dailyCapacity: dbCap });
@@ -662,8 +672,8 @@ export const useAppStore = create<Store>((set, get) => ({
   },
 
   setAreaFilter: (area) => {
-    try { localStorage.setItem(AREA_KEY, area); } catch {}
     set({ areaFilter: area });
+    api('/api/settings/areaFilter', 'PUT', { value: area }).catch(console.error);
   },
 
   setQuickAddOpen: (open) => set({ quickAddOpen: open }),
