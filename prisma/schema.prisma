@@ -16,6 +16,7 @@ model Project {
   color       String
   start       String?
   end         String?
+  area        String?
   tasks       Task[]
   milestones  Milestone[]
   phases      Phase[]
@@ -37,6 +38,8 @@ model Task {
   recurring   String?
   subtasks    Json     @default("[]")
   completedAt DateTime?
+  estimate    Int?
+  plannedDate String?
   project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
@@ -87,6 +90,7 @@ model PlannerEvent {
   done      Boolean  @default(false)
   time      String?
   projectId String?
+  estimate  Int?
   createdAt DateTime @default(now())
 }
 

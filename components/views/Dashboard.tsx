@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { useAppStore } from '@/store/useAppStore';
-import { calcProjectProgress, fmtDate } from '@/lib/utils';
+import { calcProjectProgress, fmtDate, projectInArea } from '@/lib/utils';
 import ProgressBar from '../ui/ProgressBar';
 
 function daysLeft(iso: string): string {
@@ -23,9 +23,10 @@ function CheckIcon() {
 }
 
 export default function Dashboard() {
-  const { projects: allProjects, tasks: allTasks, notes, todos, addTodo, updateTodo, toggleTodo, deleteTodo, setView, navigateToTask, archivedProjectIds, archivedTaskIds } = useAppStore();
-  const projects = allProjects.filter(p => !archivedProjectIds.includes(p.id));
-  const tasks    = allTasks.filter(t => !archivedTaskIds.includes(t.id) && !archivedProjectIds.includes(t.projectId));
+  const { projects: allProjects, tasks: allTasks, notes, todos, addTodo, updateTodo, toggleTodo, deleteTodo, setView, navigateToTask, archivedProjectIds, archivedTaskIds, areaFilter } = useAppStore();
+  const projects = allProjects.filter(p => !archivedProjectIds.includes(p.id) && projectInArea(p, areaFilter));
+  const visibleProjectIds = new Set(projects.map(p => p.id));
+  const tasks    = allTasks.filter(t => !archivedTaskIds.includes(t.id) && visibleProjectIds.has(t.projectId));
   const [todoInput, setTodoInput] = useState('');
   const todoRef = useRef<HTMLInputElement>(null);
   const [editingTodoId, setEditingTodoId] = useState<string | null>(null);

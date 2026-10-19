@@ -13,6 +13,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       color:       body.color,
       start:       body.start ?? null,
       end:         body.end   ?? null,
+      area:        body.area  || null,
     },
   });
   return NextResponse.json(project);

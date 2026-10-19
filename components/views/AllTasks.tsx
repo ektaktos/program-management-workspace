@@ -3,12 +3,14 @@
 import { useState } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { TaskStatus, Priority } from '@/lib/types';
-import { sortTasks } from '@/lib/utils';
+import { sortTasks, projectInArea } from '@/lib/utils';
 import TaskCard from '../project/TaskCard';
 
 export default function AllTasks() {
-  const { tasks: allTasks, searchQuery, setSearch, archivedTaskIds, archivedProjectIds } = useAppStore();
-  const tasks = allTasks.filter(t => !archivedTaskIds.includes(t.id) && !archivedProjectIds.includes(t.projectId));
+  const { tasks: allTasks, projects, searchQuery, setSearch, archivedTaskIds, archivedProjectIds, areaFilter } = useAppStore();
+  const tasks = allTasks.filter(t =>
+    !archivedTaskIds.includes(t.id) && !archivedProjectIds.includes(t.projectId) &&
+    projectInArea(projects.find(p => p.id === t.projectId), areaFilter));
   const [statusFilter, setStatusFilter]     = useState('');
   const [priorityFilter, setPriorityFilter] = useState('');
 

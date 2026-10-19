@@ -12,6 +12,7 @@ export interface Project {
   color: string;
   start?: string;
   end?: string;
+  area?: string; // life area, e.g. Work, Business, Health, Family
 }
 
 export interface Subtask {
@@ -35,6 +36,8 @@ export interface Task {
   recurring?: string;
   subtasks?: Subtask[];
   completedAt?: number; // ms epoch — set when status transitions to 'done', cleared otherwise
+  estimate?: number;    // minutes
+  plannedDate?: string; // ISO date this task is scheduled onto in the weekly planner
 }
 
 export interface Milestone {
@@ -82,6 +85,7 @@ export interface PlannerEvent {
   createdAt: number;
   time?: string;
   projectId?: string; // optional link to a project — shown with the project's colour
+  estimate?: number;  // minutes
 }
 
 export interface PlannerAppointment {

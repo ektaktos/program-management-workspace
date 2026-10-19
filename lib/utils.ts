@@ -1,4 +1,39 @@
-import { Task, AppState } from './types';
+import { Task, AppState, Project } from './types';
+
+export function isoOf(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+export function todayIso(): string {
+  return isoOf(new Date());
+}
+
+// Monday of the week containing `d`
+export function weekStartOf(d: Date): Date {
+  const x = new Date(d); x.setHours(0, 0, 0, 0);
+  const dow = x.getDay();
+  x.setDate(x.getDate() + (dow === 0 ? -6 : 1 - dow));
+  return x;
+}
+
+export function addDaysIso(iso: string, days: number): string {
+  const d = new Date(iso + 'T00:00:00');
+  d.setDate(d.getDate() + days);
+  return isoOf(d);
+}
+
+export function fmtMins(m?: number): string {
+  if (!m) return '';
+  const h = Math.floor(m / 60), r = m % 60;
+  if (!h) return `${r}m`;
+  return r ? `${h}h ${r}m` : `${h}h`;
+}
+
+// Area filter: '' shows everything; otherwise only projects tagged with that area
+export function projectInArea(p: Project | undefined, area: string): boolean {
+  if (!area) return true;
+  return !!p && (p.area || '') === area;
+}
 
 export function uid(): string {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);

@@ -2,24 +2,24 @@
 
 import { useState } from 'react';
 import { useAppStore } from '@/store/useAppStore';
-import { calcProjectProgress, getOverdueCount, fmtDate } from '@/lib/utils';
+import { calcProjectProgress, getOverdueCount, fmtDate, projectInArea } from '@/lib/utils';
 import { PROJECT_STATUS_META } from '@/lib/constants';
 import ProgressBar from '../ui/ProgressBar';
 import ProjectModal from '../modals/ProjectModal';
 import { Project } from '@/lib/types';
 
 export default function AllProjects() {
-  const { projects, tasks: allTasks, phases, setView, archivedProjectIds, archiveProject, archivedTaskIds } = useAppStore();
+  const { projects, tasks: allTasks, phases, setView, archivedProjectIds, archiveProject, archivedTaskIds, areaFilter } = useAppStore();
   const [editing, setEditing] = useState<Project | null>(null);
 
-  const visibleProjects = projects.filter(p => !archivedProjectIds.includes(p.id));
+  const visibleProjects = projects.filter(p => !archivedProjectIds.includes(p.id) && projectInArea(p, areaFilter));
   const tasks = allTasks.filter(t => !archivedTaskIds.includes(t.id));
 
   if (visibleProjects.length === 0) {
     return (
       <div className="empty-state">
-        <h3>No projects yet</h3>
-        <p>Click the + button in the sidebar to create your first project.</p>
+        <h3>{areaFilter ? `No projects in ${areaFilter}` : 'No projects yet'}</h3>
+        <p>{areaFilter ? 'Switch to “All areas” in the sidebar to see everything.' : 'Click the + button in the sidebar to create your first project.'}</p>
       </div>
     );
   }
@@ -113,7 +113,7 @@ export default function AllProjects() {
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 10, gap: 12 }}>
                 <div>
                   <div style={{ fontFamily: 'Georgia, "Times New Roman", serif', fontSize: 18, fontWeight: 400, letterSpacing: '-0.01em', lineHeight: 1.2 }}>{p.name}</div>
-                  <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 4, textTransform: 'uppercase', letterSpacing: '0.6px', fontWeight: 500 }}>{p.type}</div>
+                  <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 4, textTransform: 'uppercase', letterSpacing: '0.6px', fontWeight: 500 }}>{p.area ? `${p.area} · ${p.type}` : p.type}</div>
                 </div>
                 <span className={`badge ${statusMeta.badgeClass}`}>{p.status}</span>
               </div>

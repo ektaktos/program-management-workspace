@@ -19,6 +19,7 @@ export async function POST(req: NextRequest) {
       done:     body.done ?? false,
       time:     body.time ?? null,
       projectId: body.projectId ?? null,
+      estimate:  body.estimate ?? null,
     },
   });
   return NextResponse.json(toPlannerEvent(event as Record<string, unknown>), { status: 201 });

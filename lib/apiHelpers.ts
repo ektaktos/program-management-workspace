@@ -23,6 +23,8 @@ export function toTask(t: Record<string, unknown>): Task {
     recurring:   (t.recurring as string) ?? undefined,
     subtasks:    (t.subtasks as Subtask[]) ?? [],
     completedAt: toMsOrUndefined(t.completedAt),
+    estimate:    (t.estimate as number) ?? undefined,
+    plannedDate: (t.plannedDate as string) ?? undefined,
   };
 }
 
@@ -66,6 +68,7 @@ export function toPlannerEvent(e: Record<string, unknown>): PlannerEvent {
     done:      Boolean(e.done),
     time:      (e.time as string) ?? undefined,
     projectId: (e.projectId as string) ?? undefined,
+    estimate:  (e.estimate as number) ?? undefined,
     createdAt: toMs(e.createdAt),
   };
 }

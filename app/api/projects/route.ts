@@ -18,6 +18,7 @@ export async function POST(req: NextRequest) {
       color:       body.color,
       start:       body.start ?? null,
       end:         body.end   ?? null,
+      area:        body.area  || null,
     },
   });
   return NextResponse.json(project, { status: 201 });

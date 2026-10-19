@@ -2,12 +2,17 @@
 
 import { useState, useRef } from 'react';
 import { useAppStore } from '@/store/useAppStore';
+import { projectInArea } from '@/lib/utils';
 import ProjectModal from './modals/ProjectModal';
 
 const NAV = [
   {
     id: 'dashboard', label: 'Dashboard',
     icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" style={{ width: 16, height: 16, flexShrink: 0 }}><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>,
+  },
+  {
+    id: 'today', label: 'Today',
+    icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16, flexShrink: 0 }}><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="6.34" y2="6.34"/><line x1="17.66" y1="17.66" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="6.34" y2="17.66"/><line x1="17.66" y1="6.34" x2="19.07" y2="4.93"/></svg>,
   },
   {
     id: 'projects', label: 'All Projects',
@@ -36,6 +41,7 @@ export default function Sidebar() {
     currentView, activeProjectId, projects, tasks,
     sidebarOpen, setSidebarOpen, setView, setSearch, searchQuery,
     archivedProjectIds, archivedTaskIds, projectOrder, setProjectOrder,
+    areaFilter, setAreaFilter,
   } = useAppStore();
   const [showNewProject, setShowNewProject] = useState(false);
 
@@ -62,6 +68,17 @@ export default function Sidebar() {
       if (bi === -1) return -1;
       return ai - bi;
     });
+
+  // Life areas: filter, then group under area headings when showing all areas
+  const areasInUse = Array.from(new Set(orderedProjects.map(p => p.area).filter((a): a is string => !!a))).sort();
+  const visibleProjects = orderedProjects.filter(p => projectInArea(p, areaFilter));
+  const projectGroups: { name: string | null; projects: typeof visibleProjects }[] =
+    areaFilter || areasInUse.length === 0
+      ? [{ name: null, projects: visibleProjects }]
+      : [
+          ...areasInUse.map(a => ({ name: a as string | null, projects: visibleProjects.filter(p => p.area === a) })),
+          { name: 'No area', projects: visibleProjects.filter(p => !p.area) },
+        ].filter(g => g.projects.length > 0);
 
   function handleDragStart(e: React.DragEvent, projectId: string) {
     dragIdRef.current = projectId;
@@ -242,8 +259,25 @@ export default function Sidebar() {
             >+</button>
           </div>
 
+          {open && areasInUse.length > 0 && (
+            <div style={{ padding: '0 18px 8px' }}>
+              <select
+                className="area-filter-select"
+                value={areaFilter}
+                onChange={e => setAreaFilter(e.target.value)}
+                title="Show one life area across the workspace"
+              >
+                <option value="">All areas</option>
+                {areasInUse.map(a => <option key={a} value={a}>{a}</option>)}
+              </select>
+            </div>
+          )}
+
           <div style={{ flex: 1, overflowY: 'auto', padding: open ? '0 10px' : '0 8px' }}>
-            {orderedProjects.map(p => {
+            {projectGroups.map(group => (
+            <div key={group.name ?? '__all__'}>
+            {open && group.name && <div className="sidebar-area-head">{group.name}</div>}
+            {group.projects.map(p => {
               const active = currentView === 'project' && activeProjectId === p.id;
               const count  = nonDoneCount(p.id);
               return (
@@ -320,6 +354,8 @@ export default function Sidebar() {
                 </div>
               );
             })}
+            </div>
+            ))}
           </div>
         </div>
 

@@ -1,13 +1,14 @@
 'use client';
 
 import { useAppStore } from '@/store/useAppStore';
+import { projectInArea } from '@/lib/utils';
 import TaskCard from '../project/TaskCard';
 
 export default function Upcoming() {
-  const { tasks, archivedTaskIds, archivedProjectIds } = useAppStore();
+  const { tasks, projects, archivedTaskIds, archivedProjectIds, areaFilter } = useAppStore();
 
   const upcomingTasks = tasks
-    .filter(t => t.due && t.status !== 'done' && !archivedTaskIds.includes(t.id) && !archivedProjectIds.includes(t.projectId))
+    .filter(t => t.due && t.status !== 'done' && !archivedTaskIds.includes(t.id) && !archivedProjectIds.includes(t.projectId) && projectInArea(projects.find(p => p.id === t.projectId), areaFilter))
     .sort((a, b) => new Date(a.due! + 'T00:00:00').getTime() - new Date(b.due! + 'T00:00:00').getTime());
 
   if (!upcomingTasks.length) {

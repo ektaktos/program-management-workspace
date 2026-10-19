@@ -8,6 +8,7 @@ const NOTIFIED_KEY  = 'pm_oyint_notified';
 const PLANNER_KEY   = 'pm_oyint_planner';
 const ARCHIVED_KEY  = 'pm_oyint_archived';
 const ORDER_KEY     = 'pm_oyint_proj_order';
+const AREA_KEY      = 'pm_oyint_area_filter';
 
 function loadNotified(): string[] {
   if (typeof window === 'undefined') return [];
@@ -180,6 +181,14 @@ interface Store extends AppState, UIState, PlannerState {
   // ── Project ordering ──
   projectOrder:    string[];
   setProjectOrder: (ids: string[]) => void;
+
+  // ── Life-area filter ('' = all areas) ──
+  areaFilter:    string;
+  setAreaFilter: (area: string) => void;
+
+  // ── Global quick add ──
+  quickAddOpen:    boolean;
+  setQuickAddOpen: (open: boolean) => void;
 }
 
 export const useAppStore = create<Store>((set, get) => ({
@@ -215,6 +224,9 @@ export const useAppStore = create<Store>((set, get) => ({
   // ── Project ordering ──
   projectOrder: [],
 
+  areaFilter:   '',
+  quickAddOpen: false,
+
   // ── Bootstrap ──
   loadAll: async () => {
     try {
@@ -230,6 +242,9 @@ export const useAppStore = create<Store>((set, get) => ({
 
       const archived = loadArchived();
       const order    = loadProjectOrder();
+      let areaFilter = '';
+      try { areaFilter = localStorage.getItem(AREA_KEY) ?? ''; } catch {}
+      set({ areaFilter });
 
       if (data.projects.length === 0) {
         await api('/api/seed', 'POST');
@@ -365,6 +380,7 @@ export const useAppStore = create<Store>((set, get) => ({
           status: 'todo',
           due: nextDue,
           completedAt: undefined,
+          plannedDate: undefined,
         };
         set(s => ({ tasks: [...s.tasks, nextTask] }));
         await api('/api/tasks', 'POST', nextTask).catch(console.error);
@@ -620,4 +636,11 @@ export const useAppStore = create<Store>((set, get) => ({
     saveProjectOrder(ids);
     set({ projectOrder: ids });
   },
+
+  setAreaFilter: (area) => {
+    try { localStorage.setItem(AREA_KEY, area); } catch {}
+    set({ areaFilter: area });
+  },
+
+  setQuickAddOpen: (open) => set({ quickAddOpen: open }),
 }));

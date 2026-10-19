@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Project } from '@/lib/types';
 import { useAppStore } from '@/store/useAppStore';
-import { COLORS, PROJECT_TYPES } from '@/lib/constants';
+import { COLORS, PROJECT_TYPES, DEFAULT_AREAS } from '@/lib/constants';
 import ColorPicker from '../ui/ColorPicker';
 
 interface ProjectModalProps {
@@ -14,7 +14,8 @@ interface ProjectModalProps {
 const STATUSES = ['Active', 'Planning', 'On Hold', 'Completed'] as const;
 
 export default function ProjectModal({ project, onClose }: ProjectModalProps) {
-  const { addProject, updateProject } = useAppStore();
+  const { addProject, updateProject, projects } = useAppStore();
+  const areaSuggestions = Array.from(new Set([...DEFAULT_AREAS, ...projects.map(p => p.area).filter((a): a is string => !!a)]));
   const [form, setForm] = useState({
     name: project?.name ?? '',
     type: project?.type ?? PROJECT_TYPES[0],
@@ -23,6 +24,7 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
     color: project?.color ?? COLORS[0],
     start: project?.start ?? '',
     end: project?.end ?? '',
+    area: project?.area ?? '',
   });
 
   function save() {
@@ -35,6 +37,7 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
       color: form.color,
       start: form.start || undefined,
       end: form.end || undefined,
+      area: form.area.trim() || undefined,
     };
     if (project) updateProject(project.id, data);
     else addProject(data);
@@ -66,6 +69,19 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
               {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
+        </div>
+
+        <div className="form-group">
+          <label>Life area</label>
+          <input
+            list="project-area-options"
+            value={form.area}
+            onChange={e => set('area', e.target.value)}
+            placeholder="e.g. Work, Business, Health, Family…"
+          />
+          <datalist id="project-area-options">
+            {areaSuggestions.map(a => <option key={a} value={a} />)}
+          </datalist>
         </div>
 
         <div className="form-group">

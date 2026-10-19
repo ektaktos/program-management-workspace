@@ -679,3 +679,7 @@ label {
 .section-task-check:hover { border-color: var(--success); }
 .section-task-check.checked { background: var(--success); border-color: var(--success); }
 @media (hover: none) { .section-card .section-card-actions { opacity: 1; } }
+
+/* ── Life areas ── */
+.area-filter-select { width: 100%; font-size: 12px; padding: 5px 8px; border-radius: 8px; border: 1px solid var(--sidebar-border); background: transparent; color: var(--sidebar-text); cursor: pointer; }
+.sidebar-area-head { font-size: 10.5px; font-weight: 600; color: var(--text-faint); padding: 10px 12px 4px 18px; letter-spacing: 0.3px; }

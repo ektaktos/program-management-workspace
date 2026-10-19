@@ -33,3 +33,12 @@ export const PRIORITY_META = {
   medium: { label: 'Medium', badgeClass: 'badge-warning', color: '#d49a5d' },
   low:    { label: 'Low',    badgeClass: 'badge-success', color: '#6fa885' },
 } as const;
+
+// Life areas offered when creating/editing a project (free text is also allowed)
+export const DEFAULT_AREAS = ['Work', 'Business', 'Personal', 'Health', 'Family', 'Learning', 'Faith', 'Community'];
+
+// Time-estimate presets, in minutes
+export const ESTIMATE_OPTIONS = [15, 30, 45, 60, 90, 120, 180, 240];
+
+// A day with more planned minutes than this is flagged as overbooked
+export const DAILY_CAPACITY_MIN = 6 * 60;
