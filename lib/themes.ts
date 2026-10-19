@@ -19,7 +19,11 @@ export const THEMES: ThemeMeta[] = [
   { id: 'mediterranean', name: 'Mediterranean', description: 'Whitewash, Aegean blue and terracotta', swatches: ['#f7f5f0', '#eaeff3', '#1f3d5a', '#c0704f'], metaColor: '#eaeff3' },
   { id: 'bohemian',      name: 'Bohemian',      description: 'Terracotta, mustard and plum', swatches: ['#f8f1ea', '#f1e0dd', '#5a2e3a', '#efd9a0'], metaColor: '#f1e0dd' },
   { id: 'southwestern',  name: 'Southwestern',  description: 'Desert sand, terracotta and turquoise', swatches: ['#f8f2ea', '#f0e3d3', '#8c3f26', '#4f9a98'], metaColor: '#f0e3d3' },
+  { id: 'midcentury',    name: 'Mid-Century',     description: 'Retro mustard, teal, burnt orange and walnut', swatches: ['#f7f1e3', '#efe3c8', '#e8c76a', '#1d6864'], metaColor: '#efe3c8' },
+  { id: 'lavender',      name: 'Lavender Fields', description: 'Pale lilac, sage-grey and aubergine', swatches: ['#f6f4f8', '#ece7f2', '#3e2f4f', '#674c89'], metaColor: '#ece7f2' },
+  { id: 'blush',         name: 'Blush',           description: 'Rose-pink, dusty mauve and cream', swatches: ['#faf4f3', '#f4e4e3', '#4f2d33', '#d9a0aa'], metaColor: '#f4e4e3' },
   { id: 'sumi',          name: 'Sumi',          description: 'Dark ink with warm tan accents', swatches: ['#1e1c1a', '#191715', '#d9c3a3', '#c9ad86'], metaColor: '#191715', dark: true },
+  { id: 'artdeco',       name: 'Art Deco',        description: 'Dark emerald with gold and ivory', swatches: ['#12241f', '#0e1d19', '#d4b25f', '#f2ead6'], metaColor: '#0e1d19', dark: true },
 ];
 
 export const DEFAULT_THEME = 'japandi';
