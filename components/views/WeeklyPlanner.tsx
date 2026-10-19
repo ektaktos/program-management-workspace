@@ -6,7 +6,8 @@ import { PlannerEvent, PlannerAppointment, Task } from '@/lib/types';
 import TaskModal from '../modals/TaskModal';
 import WeeklyReviewModal from '../modals/WeeklyReviewModal';
 import { uid, fmtMins, fmtDate, projectInArea } from '@/lib/utils';
-import { ESTIMATE_OPTIONS, DAILY_CAPACITY_MIN } from '@/lib/constants';
+import { ESTIMATE_OPTIONS } from '@/lib/constants';
+import CapacitySelect from '../ui/CapacitySelect';
 
 // ── Week helpers ──────────────────────────────────────────────────────────────
 
@@ -226,6 +227,7 @@ export default function WeeklyPlanner() {
     plannerAppointments,
     projects,
     tasks, updateTask, toggleTaskDone, archivedTaskIds, archivedProjectIds, areaFilter,
+    dailyCapacity,
     plannerWeekly, updatePlannerWeekly,
     plannerWeekOffset, setPlannerWeekOffset,
     plannerModalTrigger, setPlannerModalTrigger,
@@ -419,7 +421,8 @@ export default function WeeklyPlanner() {
         </div>
 
         {/* Right: segmented view control */}
-        <div style={{ display: 'flex', alignItems: 'center', justifySelf: 'end' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifySelf: 'end', gap: 10 }}>
+          <CapacitySelect />
           <div className="seg">
             <button className={`seg-btn${layout === 'grid' ? ' active' : ''}`} onClick={() => setLayout('grid')}>Week grid</button>
             <button className={`seg-btn${layout === 'agenda' ? ' active' : ''}`} onClick={() => setLayout('agenda')}>Agenda</button>
@@ -672,10 +675,10 @@ export default function WeeklyPlanner() {
                       {(() => {
                         const load = dayLoad(iso);
                         if (!load) return null;
-                        const over = load > DAILY_CAPACITY_MIN;
+                        const over = load > dailyCapacity;
                         return (
-                          <div className={`pday-load${over ? ' over' : ''}`} title={over ? `Overbooked — more than ${fmtMins(DAILY_CAPACITY_MIN)} planned` : `${fmtMins(load)} planned`}>
-                            <div className="pday-load-bar"><div style={{ width: `${Math.min(100, (load / DAILY_CAPACITY_MIN) * 100)}%` }} /></div>
+                          <div className={`pday-load${over ? ' over' : ''}`} title={over ? `Overbooked — more than ${fmtMins(dailyCapacity)} planned` : `${fmtMins(load)} planned`}>
+                            <div className="pday-load-bar"><div style={{ width: `${Math.min(100, (load / dailyCapacity) * 100)}%` }} /></div>
                             <span>{fmtMins(load)}</span>
                           </div>
                         );

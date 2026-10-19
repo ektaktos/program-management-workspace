@@ -40,5 +40,8 @@ export const DEFAULT_AREAS = ['Work', 'Business', 'Personal', 'Health', 'Family'
 // Time-estimate presets, in minutes
 export const ESTIMATE_OPTIONS = [15, 30, 45, 60, 90, 120, 180, 240];
 
-// A day with more planned minutes than this is flagged as overbooked
+// Default daily limit; a day with more planned minutes than the limit is flagged as overbooked
 export const DAILY_CAPACITY_MIN = 6 * 60;
+
+// Choices for the adjustable daily limit: 1h–12h in 30-minute steps
+export const CAPACITY_OPTIONS = Array.from({ length: 23 }, (_, i) => 60 + i * 30);

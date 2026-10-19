@@ -3,12 +3,14 @@
 import { create } from 'zustand';
 import { AppState, Project, Task, Milestone, Phase, Note, Todo, PlannerEvent, PlannerAppointment, PlannerWeekData } from '@/lib/types';
 import { uid, autoMarkOverdue } from '@/lib/utils';
+import { DAILY_CAPACITY_MIN } from '@/lib/constants';
 
 const NOTIFIED_KEY  = 'pm_oyint_notified';
 const PLANNER_KEY   = 'pm_oyint_planner';
 const ARCHIVED_KEY  = 'pm_oyint_archived';
 const ORDER_KEY     = 'pm_oyint_proj_order';
 const AREA_KEY      = 'pm_oyint_area_filter';
+const CAPACITY_KEY  = 'pm_oyint_daily_capacity';
 
 function loadNotified(): string[] {
   if (typeof window === 'undefined') return [];
@@ -189,6 +191,10 @@ interface Store extends AppState, UIState, PlannerState {
   // ── Global quick add ──
   quickAddOpen:    boolean;
   setQuickAddOpen: (open: boolean) => void;
+
+  // ── Daily time limit (minutes) for overbooking warnings ──
+  dailyCapacity:    number;
+  setDailyCapacity: (mins: number) => void;
 }
 
 export const useAppStore = create<Store>((set, get) => ({
@@ -226,6 +232,7 @@ export const useAppStore = create<Store>((set, get) => ({
 
   areaFilter:   '',
   quickAddOpen: false,
+  dailyCapacity: DAILY_CAPACITY_MIN,
 
   // ── Bootstrap ──
   loadAll: async () => {
@@ -243,8 +250,13 @@ export const useAppStore = create<Store>((set, get) => ({
       const archived = loadArchived();
       const order    = loadProjectOrder();
       let areaFilter = '';
-      try { areaFilter = localStorage.getItem(AREA_KEY) ?? ''; } catch {}
-      set({ areaFilter });
+      let dailyCapacity = DAILY_CAPACITY_MIN;
+      try {
+        areaFilter = localStorage.getItem(AREA_KEY) ?? '';
+        const cap = Number(localStorage.getItem(CAPACITY_KEY));
+        if (cap > 0) dailyCapacity = cap;
+      } catch {}
+      set({ areaFilter, dailyCapacity });
 
       if (data.projects.length === 0) {
         await api('/api/seed', 'POST');
@@ -643,4 +655,9 @@ export const useAppStore = create<Store>((set, get) => ({
   },
 
   setQuickAddOpen: (open) => set({ quickAddOpen: open }),
+
+  setDailyCapacity: (mins) => {
+    try { localStorage.setItem(CAPACITY_KEY, String(mins)); } catch {}
+    set({ dailyCapacity: mins });
+  },
 }));

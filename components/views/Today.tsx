@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { addDaysIso, fmtDate, fmtMins, projectInArea, todayIso } from '@/lib/utils';
-import { DAILY_CAPACITY_MIN } from '@/lib/constants';
+import CapacitySelect from '../ui/CapacitySelect';
 import { Task } from '@/lib/types';
 import TaskModal from '../modals/TaskModal';
 
@@ -28,7 +28,7 @@ type PlanItem =
 export default function Today() {
   const {
     projects, tasks, todos, plannerEvents, plannerAppointments,
-    archivedTaskIds, archivedProjectIds, areaFilter,
+    archivedTaskIds, archivedProjectIds, areaFilter, dailyCapacity,
     toggleTaskDone, updateTask, updatePlannerEvent, updatePlannerAppointment,
     addPlannerEvent, addTodo, toggleTodo, navigateToTask, setView, setQuickAddOpen,
   } = useAppStore();
@@ -65,7 +65,7 @@ export default function Today() {
 
   const plannedMins = items.filter(i => !i.done && i.kind !== 'meeting')
     .reduce((n, i) => n + ((i as { estimate?: number }).estimate ?? 0), 0);
-  const over = plannedMins > DAILY_CAPACITY_MIN;
+  const over = plannedMins > dailyCapacity;
   const openCount = items.filter(i => !i.done).length;
 
   function toggleItem(i: PlanItem) {
@@ -108,10 +108,10 @@ export default function Today() {
         <div style={{ minWidth: 200 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: over ? 'var(--danger)' : 'var(--text-muted)', marginBottom: 5, fontWeight: over ? 600 : 400 }}>
             <span>{plannedMins ? `${fmtMins(plannedMins)} planned` : 'No time estimates yet'}</span>
-            <span>{fmtMins(DAILY_CAPACITY_MIN)} day</span>
+            <CapacitySelect />
           </div>
           <div className="pday-load-bar" style={{ height: 6 }}>
-            <div style={{ width: `${Math.min(100, (plannedMins / DAILY_CAPACITY_MIN) * 100)}%`, background: over ? 'var(--danger)' : undefined }} />
+            <div style={{ width: `${Math.min(100, (plannedMins / dailyCapacity) * 100)}%`, background: over ? 'var(--danger)' : undefined }} />
           </div>
           {over && <div style={{ fontSize: 11.5, color: 'var(--danger)', marginTop: 5 }}>Overbooked — consider moving something to tomorrow.</div>}
         </div>
