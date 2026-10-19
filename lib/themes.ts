@@ -21,6 +21,7 @@ export const THEMES: ThemeMeta[] = [
   { id: 'mediterranean', name: 'Mediterranean', description: 'Whitewash, Aegean blue and terracotta', swatches: ['#f7f5f0', '#eaeff3', '#1f3d5a', '#c0704f'], metaColor: '#eaeff3' },
   { id: 'bohemian',      name: 'Bohemian',      description: 'Terracotta, mustard and plum', swatches: ['#f8f1ea', '#f1e0dd', '#5a2e3a', '#efd9a0'], metaColor: '#f1e0dd' },
   { id: 'southwestern',  name: 'Southwestern',  description: 'Desert sand, terracotta and turquoise', swatches: ['#f8f2ea', '#f0e3d3', '#8c3f26', '#4f9a98'], metaColor: '#f0e3d3' },
+  { id: 'sumi',          name: 'Sumi',          description: 'Dark ink with warm tan accents', swatches: ['#1e1c1a', '#191715', '#d9c3a3', '#c9ad86'], metaColor: '#191715', dark: true },
 ];
 
 export const DEFAULT_THEME = 'japandi';

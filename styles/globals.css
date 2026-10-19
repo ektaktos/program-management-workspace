@@ -210,6 +210,39 @@
   --highlight-bg: #fbf2e7; --highlight-border: #e4c7a6;
 }
 
+/* Sumi — dark ink with warm tan accents */
+:root[data-theme="sumi"] {
+  color-scheme: dark;
+  --bg: #1e1c1a; --surface: #272421;
+  --sidebar-bg: #191715; --sidebar-text: #d8cfc4; --sidebar-active: #2f2b27; --sidebar-border: #2f2b27;
+  --border: #36312c; --border-strong: #4a443d;
+  --text: #ece6de; --text-muted: #aaa196; --text-faint: #7a7268;
+  --primary: #5a4f43; --primary-dark: #cdb18a; --primary-light: #3a332c;
+  --accent: #d9c3a3; --accent-soft: #2f2a25; --accent-softer: #23201d;
+  --chip: #332e29; --track: #36312c; --btn-primary-bg: #4a4036; --btn-primary-hover: #5a4e42;
+  --accent-blush: #a8776c; --accent-blush-light: #3a2c28;
+  --accent-peach: #a98466; --accent-peach-light: #3a2f26;
+  --accent-butter: #a8975e; --accent-butter-light: #353022;
+  --accent-mint: #7f9a77;  --accent-mint-light: #26302a;
+  --accent-sky: #7d8f9b;   --accent-sky-light: #252d33;
+  --success: #8fae86; --success-light: #26302a; --success-text: #b0cca6;
+  --warning: #c9a46a; --warning-light: #353022; --warning-text: #dcbf89;
+  --danger: #c98a7c;  --danger-light: #3a2a26;  --danger-text: #e0a798; --danger-hover: #b87a6c;
+  --info-text: #b0c2cf;
+  --purple: #a99bb5; --purple-light: #2f2a34;
+  --orange: #c9987a; --orange-light: #3a2e26; --orange-text: #dcac8d;
+  --meeting: #b98a7f; --meeting-bg: rgba(185, 138, 127, 0.16); --meeting-bg-hover: rgba(185, 138, 127, 0.28); --meeting-text: #e0a798;
+  --cat-personal: #9d8fa6; --cat-work: #8497a3; --cat-health: #91a588; --cat-social: #b98a7f;
+  --cat-learning: #b9a27a; --cat-errand: #a89a86; --cat-rest: #9c95a1;
+  --highlight-bg: #2c2723; --highlight-border: #4a3f33;
+  --on-accent: #1e1c1a;
+  --glass: rgba(255, 255, 255, 0.08);
+  --glass-strong: rgba(39, 36, 33, 0.95);
+  --shadow: 0 1px 2px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.2);
+  --shadow-md: 0 4px 14px rgba(0,0,0,0.35), 0 2px 4px rgba(0,0,0,0.2);
+  --shadow-lg: 0 12px 32px rgba(0,0,0,0.45);
+}
+
 /* Check marks are drawn with a white stroke attribute; route them through --on-accent so a theme can recolour them */
 svg polyline[stroke="#fff"], svg[stroke="white"] { stroke: var(--on-accent); }
 
