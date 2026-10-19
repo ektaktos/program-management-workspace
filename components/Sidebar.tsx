@@ -259,7 +259,7 @@ export default function Sidebar() {
             >+</button>
           </div>
 
-          {open && areasInUse.length > 0 && (
+          {open && (areasInUse.length > 0 || areaFilter) && (
             <div style={{ padding: '0 18px 8px' }}>
               <select
                 className="area-filter-select"
@@ -269,6 +269,7 @@ export default function Sidebar() {
               >
                 <option value="">All areas</option>
                 {areasInUse.map(a => <option key={a} value={a}>{a}</option>)}
+                {areaFilter && !areasInUse.includes(areaFilter) && <option value={areaFilter}>{areaFilter} (no projects)</option>}
               </select>
             </div>
           )}
