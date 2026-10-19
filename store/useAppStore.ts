@@ -10,7 +10,7 @@ const PLANNER_KEY   = 'pm_oyint_planner';
 const ARCHIVED_KEY  = 'pm_oyint_archived';
 const ORDER_KEY     = 'pm_oyint_proj_order';
 const AREA_KEY      = 'pm_oyint_area_filter';
-const CAPACITY_KEY  = 'pm_oyint_daily_capacity';
+const CAPACITY_KEY  = 'pm_oyint_daily_capacity'; // legacy per-browser value, migrated to the DB on load
 
 function loadNotified(): string[] {
   if (typeof window === 'undefined') return [];
@@ -250,13 +250,25 @@ export const useAppStore = create<Store>((set, get) => ({
       const archived = loadArchived();
       const order    = loadProjectOrder();
       let areaFilter = '';
-      let dailyCapacity = DAILY_CAPACITY_MIN;
-      try {
-        areaFilter = localStorage.getItem(AREA_KEY) ?? '';
-        const cap = Number(localStorage.getItem(CAPACITY_KEY));
-        if (cap > 0) dailyCapacity = cap;
-      } catch {}
-      set({ areaFilter, dailyCapacity });
+      try { areaFilter = localStorage.getItem(AREA_KEY) ?? ''; } catch {}
+      set({ areaFilter });
+
+      // Synced settings live in the DB. Failure here (e.g. before the migration has run) must not block loading.
+      const settings: Record<string, unknown> = await api('/api/settings').catch(() => null) ?? {};
+      const dbCap = Number(settings.dailyCapacity);
+      if (dbCap > 0) {
+        set({ dailyCapacity: dbCap });
+      } else {
+        // One-time move of a limit chosen before syncing existed (it was stored per browser)
+        let localCap = 0;
+        try { localCap = Number(localStorage.getItem(CAPACITY_KEY)); } catch {}
+        if (localCap > 0) {
+          set({ dailyCapacity: localCap });
+          api('/api/settings/dailyCapacity', 'PUT', { value: localCap })
+            .then(() => { try { localStorage.removeItem(CAPACITY_KEY); } catch {} })
+            .catch(console.error);
+        }
+      }
 
       if (data.projects.length === 0) {
         await api('/api/seed', 'POST');
@@ -657,7 +669,7 @@ export const useAppStore = create<Store>((set, get) => ({
   setQuickAddOpen: (open) => set({ quickAddOpen: open }),
 
   setDailyCapacity: (mins) => {
-    try { localStorage.setItem(CAPACITY_KEY, String(mins)); } catch {}
     set({ dailyCapacity: mins });
+    api('/api/settings/dailyCapacity', 'PUT', { value: mins }).catch(console.error);
   },
 }));

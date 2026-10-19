@@ -111,3 +111,9 @@ model PlannerWeekly {
   focus      String @default("")
   focusItems Json   @default("[]")
 }
+
+// Workspace-wide preferences that should sync across devices (key → JSON-encoded value)
+model Setting {
+  key   String @id
+  value String @db.Text
+}
