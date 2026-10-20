@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { addDaysIso, fmtDate, fmtMins, todayIso, uid } from '@/lib/utils';
 import { PlannerWeekData } from '@/lib/types';
+import { useEscape } from '../ui/useEscape';
 
 interface WeeklyReviewModalProps {
   weekKey: string;   // ISO date of the week's Monday
@@ -14,6 +15,7 @@ interface WeeklyReviewModalProps {
 const EMPTY_WEEK: PlannerWeekData = { goals: [], notes: '', focus: '', focusItems: [] };
 
 export default function WeeklyReviewModal({ weekKey, weekLabel, onClose }: WeeklyReviewModalProps) {
+  useEscape(onClose);
   const {
     tasks, projects, plannerEvents, plannerWeekly,
     archivedTaskIds, archivedProjectIds,

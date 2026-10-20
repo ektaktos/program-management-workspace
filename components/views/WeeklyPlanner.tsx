@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useId } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { PlannerEvent, PlannerAppointment, Task, CalendarEvent } from '@/lib/types';
 import TaskModal from '../modals/TaskModal';
@@ -8,6 +8,7 @@ import WeeklyReviewModal from '../modals/WeeklyReviewModal';
 import { uid, fmtMins, fmtDate, projectInArea, calendarEventsOn, localTimeOf, parseLocation } from '@/lib/utils';
 import { ESTIMATE_OPTIONS } from '@/lib/constants';
 import CapacitySelect from '../ui/CapacitySelect';
+import { useEscape } from '../ui/useEscape';
 
 // ── Week helpers ──────────────────────────────────────────────────────────────
 
@@ -53,6 +54,8 @@ interface EventModalProps {
 
 // Same layout, order and buttons as the project task form (TaskModal), limited to the fields planner tasks store
 function EventModal({ presetDate, event, onClose }: EventModalProps) {
+  useEscape(onClose);
+  const fid = useId(); // links each label to its field
   const { addPlannerEvent, updatePlannerEvent, deletePlannerEvent, projects, archivedProjectIds } = useAppStore();
   const projectOptions = projects.filter(p => !archivedProjectIds.includes(p.id) || p.id === event?.projectId);
   const [form, setForm] = useState({
@@ -92,13 +95,13 @@ function EventModal({ presetDate, event, onClose }: EventModalProps) {
         <div className="modal-title">{event ? 'Edit Task' : 'New Task'}</div>
 
         <div className="form-group">
-          <label>Title</label>
-          <input value={form.title} onChange={e => setF('title', e.target.value)} placeholder="Task title" autoFocus />
+          <label htmlFor={`${fid}-1`}>Title</label>
+          <input id={`${fid}-1`} value={form.title} onChange={e => setF('title', e.target.value)} placeholder="Task title" autoFocus />
         </div>
 
         <div className="form-group">
-          <label>Description</label>
-          <textarea value={form.notes} onChange={e => setF('notes', e.target.value)} rows={2} placeholder="Optional details..." />
+          <label htmlFor={`${fid}-2`}>Description</label>
+          <textarea id={`${fid}-2`} value={form.notes} onChange={e => setF('notes', e.target.value)} rows={2} placeholder="Optional details..." />
         </div>
 
         <div className="form-row">
@@ -125,15 +128,15 @@ function EventModal({ presetDate, event, onClose }: EventModalProps) {
 
         <div className="form-row">
           <div className="form-group">
-            <label>Status</label>
-            <select value={form.done ? 'done' : 'todo'} onChange={e => setF('done', e.target.value === 'done')}>
+            <label htmlFor={`${fid}-3`}>Status</label>
+            <select id={`${fid}-3`} value={form.done ? 'done' : 'todo'} onChange={e => setF('done', e.target.value === 'done')}>
               <option value="todo">To Do</option>
               <option value="done">Done</option>
             </select>
           </div>
           <div className="form-group">
-            <label>Time estimate</label>
-            <select value={form.estimate} onChange={e => setF('estimate', e.target.value)}>
+            <label htmlFor={`${fid}-4`}>Time estimate</label>
+            <select id={`${fid}-4`} value={form.estimate} onChange={e => setF('estimate', e.target.value)}>
               <option value="">None</option>
               {ESTIMATE_OPTIONS.map(m => <option key={m} value={m}>{fmtMins(m)}</option>)}
             </select>
@@ -142,12 +145,12 @@ function EventModal({ presetDate, event, onClose }: EventModalProps) {
 
         <div className="form-row">
           <div className="form-group">
-            <label>Date</label>
-            <input type="date" value={form.date} onChange={e => setF('date', e.target.value)} />
+            <label htmlFor={`${fid}-5`}>Date</label>
+            <input id={`${fid}-5`} type="date" value={form.date} onChange={e => setF('date', e.target.value)} />
           </div>
           <div className="form-group">
-            <label>Time</label>
-            <input type="time" value={form.time} onChange={e => setF('time', e.target.value)} />
+            <label htmlFor={`${fid}-6`}>Time</label>
+            <input id={`${fid}-6`} type="time" value={form.time} onChange={e => setF('time', e.target.value)} />
           </div>
         </div>
 
@@ -188,6 +191,8 @@ const ALERT_OPTIONS = [
 ];
 
 function ApptModal({ presetDate, appt, onClose }: ApptModalProps) {
+  useEscape(onClose);
+  const fid = useId(); // links each label to its field
   const { addPlannerAppointment, updatePlannerAppointment, deletePlannerAppointment } = useAppStore();
   const [title, setTitle] = useState(appt?.title ?? '');
   const [date, setDate] = useState(appt?.date ?? presetDate ?? '');
@@ -211,23 +216,23 @@ function ApptModal({ presetDate, appt, onClose }: ApptModalProps) {
       <div className="modal-panel">
         <div className="modal-title">{appt ? 'Edit Meeting' : 'New Meeting'}</div>
         <div className="form-group">
-          <label>Title</label>
-          <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Meeting title..." autoFocus />
+          <label htmlFor={`${fid}-7`}>Title</label>
+          <input id={`${fid}-7`} value={title} onChange={e => setTitle(e.target.value)} placeholder="Meeting title..." autoFocus />
         </div>
         <div className="form-row">
           <div className="form-group">
-            <label>Date</label>
-            <input type="date" value={date} onChange={e => setDate(e.target.value)} />
+            <label htmlFor={`${fid}-8`}>Date</label>
+            <input id={`${fid}-8`} type="date" value={date} onChange={e => setDate(e.target.value)} />
           </div>
           <div className="form-group">
-            <label>Time</label>
-            <input type="time" value={time} onChange={e => setTime(e.target.value)} />
+            <label htmlFor={`${fid}-9`}>Time</label>
+            <input id={`${fid}-9`} type="time" value={time} onChange={e => setTime(e.target.value)} />
           </div>
         </div>
         <div className="form-row">
           <div className="form-group">
-            <label>Alert</label>
-            <select value={alertMinutes} onChange={e => setAlertMinutes(Number(e.target.value))}>
+            <label htmlFor={`${fid}-10`}>Alert</label>
+            <select id={`${fid}-10`} value={alertMinutes} onChange={e => setAlertMinutes(Number(e.target.value))}>
               {ALERT_OPTIONS.map(o => (
                 <option key={o.value} value={o.value}>{o.label}</option>
               ))}
@@ -235,8 +240,8 @@ function ApptModal({ presetDate, appt, onClose }: ApptModalProps) {
           </div>
         </div>
         <div className="form-group">
-          <label>Notes</label>
-          <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Optional notes..." />
+          <label htmlFor={`${fid}-11`}>Notes</label>
+          <textarea id={`${fid}-11`} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Optional notes..." />
         </div>
         <div className="modal-footer">
           {appt && (

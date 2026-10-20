@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useId } from 'react';
 import { Note } from '@/lib/types';
 import { useAppStore } from '@/store/useAppStore';
+import { useEscape } from '../ui/useEscape';
 
 interface NoteModalProps {
   note?: Note;
@@ -11,6 +12,8 @@ interface NoteModalProps {
 }
 
 export default function NoteModal({ note, defaultProjectId, onClose }: NoteModalProps) {
+  useEscape(onClose);
+  const fid = useId(); // links each label to its field
   const { projects, addNote, updateNote } = useAppStore();
   const [form, setForm] = useState({
     title: note?.title ?? '',
@@ -36,25 +39,25 @@ export default function NoteModal({ note, defaultProjectId, onClose }: NoteModal
         <div className="modal-title">{note ? 'Edit Note' : 'New Note'}</div>
 
         <div className="form-group">
-          <label>Title</label>
-          <input value={form.title} onChange={e => setF('title', e.target.value)} placeholder="Note title" autoFocus />
+          <label htmlFor={`${fid}-1`}>Title</label>
+          <input id={`${fid}-1`} value={form.title} onChange={e => setF('title', e.target.value)} placeholder="Note title" autoFocus />
         </div>
 
         <div className="form-group">
-          <label>Body</label>
-          <textarea value={form.body} onChange={e => setF('body', e.target.value)} rows={5} placeholder="Write your note here..." />
+          <label htmlFor={`${fid}-2`}>Body</label>
+          <textarea id={`${fid}-2`} value={form.body} onChange={e => setF('body', e.target.value)} rows={5} placeholder="Write your note here..." />
         </div>
 
         <div className="form-group">
-          <label>Project</label>
-          <select value={form.projectId} onChange={e => setF('projectId', e.target.value)}>
+          <label htmlFor={`${fid}-3`}>Project</label>
+          <select id={`${fid}-3`} value={form.projectId} onChange={e => setF('projectId', e.target.value)}>
             {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
         </div>
 
         <div className="form-group">
-          <label>Tags (comma-separated)</label>
-          <input value={form.tags} onChange={e => setF('tags', e.target.value)} placeholder="research, design, notes" />
+          <label htmlFor={`${fid}-4`}>Tags (comma-separated)</label>
+          <input id={`${fid}-4`} value={form.tags} onChange={e => setF('tags', e.target.value)} placeholder="research, design, notes" />
         </div>
 
         <div className="modal-footer">

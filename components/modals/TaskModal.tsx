@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useId } from 'react';
 import { Task, Alert, Subtask } from '@/lib/types';
 import { useAppStore } from '@/store/useAppStore';
 import { STATUS_ORDER, STATUS_META, ESTIMATE_OPTIONS } from '@/lib/constants';
 import { fmtMins } from '@/lib/utils';
+import { useEscape } from '../ui/useEscape';
 
 interface TaskModalProps {
   task?: Task;
@@ -14,6 +15,8 @@ interface TaskModalProps {
 }
 
 export default function TaskModal({ task, defaultProjectId, defaultPhaseId, onClose }: TaskModalProps) {
+  useEscape(onClose);
+  const fid = useId(); // links each label to its field
   const { projects, phases, addTask, updateTask } = useAppStore();
   const [form, setForm] = useState({
     title: task?.title ?? '',
@@ -84,25 +87,25 @@ export default function TaskModal({ task, defaultProjectId, defaultPhaseId, onCl
         <div className="modal-title">{task ? 'Edit Task' : 'New Task'}</div>
 
         <div className="form-group">
-          <label>Title</label>
-          <input value={form.title} onChange={e => setF('title', e.target.value)} placeholder="Task title" autoFocus />
+          <label htmlFor={`${fid}-1`}>Title</label>
+          <input id={`${fid}-1`} value={form.title} onChange={e => setF('title', e.target.value)} placeholder="Task title" autoFocus />
         </div>
 
         <div className="form-group">
-          <label>Description</label>
-          <textarea value={form.description} onChange={e => setF('description', e.target.value)} rows={2} placeholder="Optional details..." />
+          <label htmlFor={`${fid}-2`}>Description</label>
+          <textarea id={`${fid}-2`} value={form.description} onChange={e => setF('description', e.target.value)} rows={2} placeholder="Optional details..." />
         </div>
 
         <div className="form-row">
           <div className="form-group">
-            <label>Project</label>
-            <select value={form.projectId} onChange={e => setF('projectId', e.target.value)}>
+            <label htmlFor={`${fid}-3`}>Project</label>
+            <select id={`${fid}-3`} value={form.projectId} onChange={e => setF('projectId', e.target.value)}>
               {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
           </div>
           <div className="form-group">
-            <label>Section (optional)</label>
-            <select value={form.phaseId} onChange={e => setF('phaseId', e.target.value)}>
+            <label htmlFor={`${fid}-4`}>Section (optional)</label>
+            <select id={`${fid}-4`} value={form.phaseId} onChange={e => setF('phaseId', e.target.value)}>
               <option value="">No section</option>
               {projectPhases.map(ph => <option key={ph.id} value={ph.id}>{ph.name}</option>)}
             </select>
@@ -111,14 +114,14 @@ export default function TaskModal({ task, defaultProjectId, defaultPhaseId, onCl
 
         <div className="form-row">
           <div className="form-group">
-            <label>Status</label>
-            <select value={form.status} onChange={e => setF('status', e.target.value)}>
+            <label htmlFor={`${fid}-5`}>Status</label>
+            <select id={`${fid}-5`} value={form.status} onChange={e => setF('status', e.target.value)}>
               {STATUS_ORDER.map(s => <option key={s} value={s}>{STATUS_META[s].label}</option>)}
             </select>
           </div>
           <div className="form-group">
-            <label>Priority</label>
-            <select value={form.priority} onChange={e => setF('priority', e.target.value)}>
+            <label htmlFor={`${fid}-6`}>Priority</label>
+            <select id={`${fid}-6`} value={form.priority} onChange={e => setF('priority', e.target.value)}>
               <option value="high">High</option>
               <option value="medium">Medium</option>
               <option value="low">Low</option>
@@ -128,32 +131,32 @@ export default function TaskModal({ task, defaultProjectId, defaultPhaseId, onCl
 
         <div className="form-row">
           <div className="form-group">
-            <label>Due Date</label>
-            <input type="date" value={form.due} onChange={e => setF('due', e.target.value)} />
+            <label htmlFor={`${fid}-7`}>Due Date</label>
+            <input id={`${fid}-7`} type="date" value={form.due} onChange={e => setF('due', e.target.value)} />
           </div>
           <div className="form-group">
-            <label>Due Time</label>
-            <input type="time" value={form.dueTime} onChange={e => setF('dueTime', e.target.value)} />
+            <label htmlFor={`${fid}-8`}>Due Time</label>
+            <input id={`${fid}-8`} type="time" value={form.dueTime} onChange={e => setF('dueTime', e.target.value)} />
           </div>
         </div>
 
         <div className="form-row">
           <div className="form-group">
-            <label>Time estimate</label>
-            <select value={form.estimate} onChange={e => setF('estimate', e.target.value)}>
+            <label htmlFor={`${fid}-9`}>Time estimate</label>
+            <select id={`${fid}-9`} value={form.estimate} onChange={e => setF('estimate', e.target.value)}>
               <option value="">None</option>
               {ESTIMATE_OPTIONS.map(m => <option key={m} value={m}>{fmtMins(m)}</option>)}
             </select>
           </div>
           <div className="form-group">
-            <label>Plan for day</label>
-            <input type="date" value={form.plannedDate} onChange={e => setF('plannedDate', e.target.value)} title="Puts this task on that day in the Weekly Planner and Today" />
+            <label htmlFor={`${fid}-10`}>Plan for day</label>
+            <input id={`${fid}-10`} type="date" value={form.plannedDate} onChange={e => setF('plannedDate', e.target.value)} title="Puts this task on that day in the Weekly Planner and Today" />
           </div>
         </div>
 
         <div className="form-group">
-          <label>Recurring</label>
-          <select value={form.recurring} onChange={e => setF('recurring', e.target.value)}>
+          <label htmlFor={`${fid}-11`}>Recurring</label>
+          <select id={`${fid}-11`} value={form.recurring} onChange={e => setF('recurring', e.target.value)}>
             <option value="">None</option>
             <option value="daily">Daily</option>
             <option value="weekly">Weekly</option>
@@ -163,8 +166,8 @@ export default function TaskModal({ task, defaultProjectId, defaultPhaseId, onCl
         </div>
 
         <div className="form-group">
-          <label>Assignee</label>
-          <input value={form.assignee} onChange={e => setF('assignee', e.target.value)} placeholder="Name" />
+          <label htmlFor={`${fid}-12`}>Assignee</label>
+          <input id={`${fid}-12`} value={form.assignee} onChange={e => setF('assignee', e.target.value)} placeholder="Name" />
         </div>
 
         <div className="form-group">

@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useId } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { CalendarSource } from '@/lib/types';
+import { useEscape } from '../ui/useEscape';
 
 const CAL_COLORS = ['#7f9cb5', '#c9886f', '#8fae86', '#b18fb5', '#d4ad5f', '#6fa3a0', '#c97f8f', '#8c7b6b'];
 
@@ -62,7 +63,7 @@ function SourceRow({ src }: { src: CalendarSource }) {
               onChange={e => setName(e.target.value)}
               onKeyDown={async e => {
                 if (e.key === 'Enter' && name.trim()) { if (await patch({ name: name.trim() })) setEditing(false); }
-                if (e.key === 'Escape') { setName(src.name); setEditing(false); }
+                if (e.key === 'Escape') { e.preventDefault(); setName(src.name); setEditing(false); }
               }}
               style={{ padding: '4px 8px', fontSize: 13 }}
             />
@@ -100,6 +101,7 @@ function SourceRow({ src }: { src: CalendarSource }) {
 }
 
 export default function CalendarsModal() {
+  const fid = useId(); // links each label to its field
   const { calendarsOpen, setCalendarsOpen, calendarSources, addCalendarSource, refreshCalendars } = useAppStore();
   const [name, setName] = useState('');
   const [url, setUrl] = useState('');
@@ -107,6 +109,8 @@ export default function CalendarsModal() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showHelp, setShowHelp] = useState(calendarSources.length === 0);
+
+  useEscape(() => setCalendarsOpen(false), calendarsOpen);
 
   if (!calendarsOpen) return null;
   const close = () => setCalendarsOpen(false);
@@ -144,12 +148,12 @@ export default function CalendarsModal() {
         <div style={{ borderTop: calendarSources.length ? '1px solid var(--border)' : 'none', paddingTop: calendarSources.length ? 16 : 0 }}>
           <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--text)', marginBottom: 10 }}>Add a calendar</div>
           <div className="form-group">
-            <label>Name</label>
-            <input value={name} onChange={e => setName(e.target.value)} placeholder="Work, Family, Church…" />
+            <label htmlFor={`${fid}-1`}>Name</label>
+            <input id={`${fid}-1`} value={name} onChange={e => setName(e.target.value)} placeholder="Work, Family, Church…" />
           </div>
           <div className="form-group">
-            <label>iCal / ICS link</label>
-            <input value={url} onChange={e => setUrl(e.target.value)} placeholder="https://calendar.google.com/calendar/ical/…/basic.ics" />
+            <label htmlFor={`${fid}-2`}>iCal / ICS link</label>
+            <input id={`${fid}-2`} value={url} onChange={e => setUrl(e.target.value)} placeholder="https://calendar.google.com/calendar/ical/…/basic.ics" />
           </div>
           <div className="form-group">
             <label>Colour</label>

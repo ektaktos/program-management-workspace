@@ -1,3 +1,7 @@
+'use client';
+
+import { useEscape } from '../ui/useEscape';
+
 interface ConfirmModalProps {
   message: string;
   onConfirm: () => void;
@@ -5,6 +9,7 @@ interface ConfirmModalProps {
 }
 
 export default function ConfirmModal({ message, onConfirm, onCancel }: ConfirmModalProps) {
+  useEscape(onCancel);
   return (
     <div className="modal-overlay" onClick={onCancel}>
       <div className="modal-panel" style={{ width: 420 }} onClick={e => e.stopPropagation()}>

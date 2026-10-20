@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useId } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { fmtMins, todayIso } from '@/lib/utils';
 import { ESTIMATE_OPTIONS } from '@/lib/constants';
@@ -9,6 +9,7 @@ const LAST_DEST_KEY = 'pm_oyint_quickadd_dest';
 
 // Destination values: 'todo' | 'planner' | 'p:<projectId>' | 'p:<projectId>:<sectionId>'
 export default function QuickAdd() {
+  const fid = useId(); // links each label to its field
   const {
     quickAddOpen, setQuickAddOpen,
     projects, phases, archivedProjectIds, currentView, activeProjectId,
@@ -110,8 +111,8 @@ export default function QuickAdd() {
 
         <div className="form-row" style={{ marginTop: 12 }}>
           <div className="form-group">
-            <label>Add to</label>
-            <select value={dest} onChange={e => setDest(e.target.value)}>
+            <label htmlFor={`${fid}-1`}>Add to</label>
+            <select id={`${fid}-1`} value={dest} onChange={e => setDest(e.target.value)}>
               <option value="todo">To-do list</option>
               <option value="planner">Weekly planner task</option>
               {liveProjects.map(p => {
@@ -127,8 +128,8 @@ export default function QuickAdd() {
           </div>
           {dest !== 'todo' && (
             <div className="form-group">
-              <label>{dest === 'planner' ? 'Day' : 'Due date'}</label>
-              <input type="date" value={due} onChange={e => setDue(e.target.value)} />
+              <label htmlFor={`${fid}-2`}>{dest === 'planner' ? 'Day' : 'Due date'}</label>
+              <input id={`${fid}-2`} type="date" value={due} onChange={e => setDue(e.target.value)} />
             </div>
           )}
         </div>
@@ -137,8 +138,8 @@ export default function QuickAdd() {
           <div className="form-row">
             {showEstimate && (
               <div className="form-group">
-                <label>Time estimate</label>
-                <select value={estimate} onChange={e => setEstimate(e.target.value)}>
+                <label htmlFor={`${fid}-3`}>Time estimate</label>
+                <select id={`${fid}-3`} value={estimate} onChange={e => setEstimate(e.target.value)}>
                   <option value="">None</option>
                   {ESTIMATE_OPTIONS.map(m => <option key={m} value={m}>{fmtMins(m)}</option>)}
                 </select>

@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useId } from 'react';
 import { Project } from '@/lib/types';
 import { useAppStore } from '@/store/useAppStore';
 import { COLORS, PROJECT_TYPES, DEFAULT_AREAS } from '@/lib/constants';
 import ColorPicker from '../ui/ColorPicker';
+import { useEscape } from '../ui/useEscape';
 
 interface ProjectModalProps {
   project?: Project;
@@ -14,6 +15,8 @@ interface ProjectModalProps {
 const STATUSES = ['Active', 'Planning', 'On Hold', 'Completed'] as const;
 
 export default function ProjectModal({ project, onClose }: ProjectModalProps) {
+  useEscape(onClose);
+  const fid = useId(); // links each label to its field
   const { addProject, updateProject, projects } = useAppStore();
   const areaSuggestions = Array.from(new Set([...DEFAULT_AREAS, ...projects.map(p => p.area).filter((a): a is string => !!a)]));
   const [form, setForm] = useState({
@@ -52,28 +55,28 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
         <div className="modal-title">{project ? 'Edit Project' : 'New Project'}</div>
 
         <div className="form-group">
-          <label>Project Name</label>
-          <input value={form.name} onChange={e => set('name', e.target.value)} placeholder="Enter project name" autoFocus />
+          <label htmlFor={`${fid}-1`}>Project Name</label>
+          <input id={`${fid}-1`} value={form.name} onChange={e => set('name', e.target.value)} placeholder="Enter project name" autoFocus />
         </div>
 
         <div className="form-row">
           <div className="form-group">
-            <label>Type</label>
-            <select value={form.type} onChange={e => set('type', e.target.value)}>
+            <label htmlFor={`${fid}-2`}>Type</label>
+            <select id={`${fid}-2`} value={form.type} onChange={e => set('type', e.target.value)}>
               {PROJECT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
             </select>
           </div>
           <div className="form-group">
-            <label>Status</label>
-            <select value={form.status} onChange={e => set('status', e.target.value)}>
+            <label htmlFor={`${fid}-3`}>Status</label>
+            <select id={`${fid}-3`} value={form.status} onChange={e => set('status', e.target.value)}>
               {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
         </div>
 
         <div className="form-group">
-          <label>Life area</label>
-          <input
+          <label htmlFor={`${fid}-4`}>Life area</label>
+          <input id={`${fid}-4`}
             list="project-area-options"
             value={form.area}
             onChange={e => set('area', e.target.value)}
@@ -85,8 +88,8 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
         </div>
 
         <div className="form-group">
-          <label>Description</label>
-          <textarea value={form.description} onChange={e => set('description', e.target.value)} rows={3} placeholder="What is this project about?" />
+          <label htmlFor={`${fid}-5`}>Description</label>
+          <textarea id={`${fid}-5`} value={form.description} onChange={e => set('description', e.target.value)} rows={3} placeholder="What is this project about?" />
         </div>
 
         <div className="form-group">
@@ -96,12 +99,12 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
 
         <div className="form-row">
           <div className="form-group">
-            <label>Start Date</label>
-            <input type="date" value={form.start} onChange={e => set('start', e.target.value)} />
+            <label htmlFor={`${fid}-6`}>Start Date</label>
+            <input id={`${fid}-6`} type="date" value={form.start} onChange={e => set('start', e.target.value)} />
           </div>
           <div className="form-group">
-            <label>Deadline</label>
-            <input type="date" value={form.end} onChange={e => set('end', e.target.value)} />
+            <label htmlFor={`${fid}-7`}>Deadline</label>
+            <input id={`${fid}-7`} type="date" value={form.end} onChange={e => set('end', e.target.value)} />
           </div>
         </div>
 
