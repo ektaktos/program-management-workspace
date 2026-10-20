@@ -6,6 +6,7 @@ import { fmtDate, sortTasks } from '@/lib/utils';
 import { STATUS_ORDER } from '@/lib/constants';
 import { Phase, Task, TaskStatus } from '@/lib/types';
 import ProgressBar from '../ui/ProgressBar';
+import { TaskChips, taskHasChips } from './TaskCard';
 import { DueEdit, PrioritySelect, StatusSelect } from '../ui/InlineQualifiers';
 import FilterChips from '../ui/FilterChips';
 import PhaseModal from '../modals/PhaseModal';
@@ -208,6 +209,7 @@ export default function SectionsTab({ projectId, highlightedTaskId }: SectionsTa
                       </button>
                     </span>
                     <span role="cell" className="oc-title">
+                      <span className="oc-title-line">
                       <span className="oc-title-text">{t.title}</span>
                       {subs.length > 0 && (
                         <button
@@ -223,6 +225,8 @@ export default function SectionsTab({ projectId, highlightedTaskId }: SectionsTa
                         </button>
                       )}
                       <StatusSelect task={t} className="oc-status-inline" />
+                      </span>
+                      {taskHasChips(t) && <TaskChips task={t} />}
                     </span>
                     <span role="cell" className="oc-col-status"><StatusSelect task={t} /></span>
                     <span role="cell" className="oc-due"><DueEdit task={t} /></span>

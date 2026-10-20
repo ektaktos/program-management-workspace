@@ -165,9 +165,10 @@ export default function Today() {
         )}
       </div>
 
-      {/* Four aligned panels, as sketched: plan | meetings on top, due | to-dos below */}
+      {/* Two columns as sketched (plan over due | meetings over to-dos); each card is only as tall as its content */}
       <div className="today-quad">
-          <div className="card">
+        <div className="today-col">
+          <div className="card tq-plan">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
               <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>{isToday ? 'Today’s plan' : `${focusName}’s plan`}</div>
               <button className="btn btn-ghost btn-sm" style={{ fontSize: 12 }} onClick={() => setView('planner')}>Open planner</button>
@@ -215,10 +216,7 @@ export default function Today() {
               <button onClick={addPlanItem}>Add</button>
             </div>
           </div>
-        <TodayMeetingsCard date={focus} />
-
-
-          <div className="card">
+          <div className="card tq-due">
             <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>
               Due today &amp; overdue
               {dueNow.length > 0 && <span className="badge badge-gray" style={{ marginLeft: 8 }}>{dueNow.length}</span>}
@@ -256,8 +254,10 @@ export default function Today() {
               })}
             </div>
           </div>
-
-          <div className="card">
+        </div>
+        <div className="today-col">
+          <div className="tq-meet"><TodayMeetingsCard date={focus} /></div>
+          <div className="card tq-todos">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
               <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>Open to-dos</div>
               <button className="btn btn-ghost btn-sm" style={{ fontSize: 12 }} onClick={() => setQuickAddOpen(true)}>Quick add ⌘K</button>
@@ -284,6 +284,7 @@ export default function Today() {
               <button onClick={() => { if (todoInput.trim()) { addTodo(todoInput.trim()); setTodoInput(''); } }}>Add</button>
             </div>
           </div>
+        </div>
       </div>
 
       {editTask && <TaskModal task={editTask} onClose={() => setEditTask(null)} />}

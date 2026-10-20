@@ -3,9 +3,10 @@
 import { useEffect, useState } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { Task } from '@/lib/types';
-import { fmtDate, sortTasks, projectInArea, todayIso } from '@/lib/utils';
+import { sortTasks, projectInArea } from '@/lib/utils';
 import { STATUS_ORDER } from '@/lib/constants';
 import TaskModal from '../modals/TaskModal';
+import { TaskChips, taskHasChips } from '../project/TaskCard';
 import ConfirmModal from '../modals/ConfirmModal';
 import { DueEdit, PrioritySelect, StatusSelect } from '../ui/InlineQualifiers';
 
@@ -14,7 +15,6 @@ const SORT_KEY = 'pm_oyint_tasks_sort';
 const SORT_KEYS: SortKey[] = ['task', 'project', 'status', 'due', 'priority'];
 const PRI_RANK: Record<string, number> = { high: 0, medium: 1, low: 2 };
 
-const shortDate = (iso: string) => fmtDate(iso).replace(/ \d{4}$/, '');
 
 // All Tasks as a ledger: one row per task, sortable columns, tick to complete, click to edit.
 // Done tasks always sink to the bottom so open work stays in view whatever the sort.
@@ -25,7 +25,6 @@ export default function AllTasks() {
   const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 }>({ key: 'due', dir: 1 });
   const [editing, setEditing] = useState<Task | null>(null);
   const [deleting, setDeleting] = useState<Task | null>(null);
-  const today = todayIso();
 
   useEffect(() => {
     try {
@@ -149,7 +148,6 @@ export default function AllTasks() {
                   const p = projectOf(t.projectId);
                   const done = t.status === 'done';
                   const subs = t.subtasks ?? [];
-                  const planned = t.plannedDate && t.plannedDate >= today && t.plannedDate !== t.due ? t.plannedDate : '';
                   return (
                     <tr key={t.id} className={done ? 'done' : ''} onClick={() => setEditing(t)} title="Edit task">
                       <td className="lg-c-check">
@@ -169,12 +167,14 @@ export default function AllTasks() {
                       </td>
                       <td className="lg-c-task">
                         <div className="lg-task">
+                        <div className="lg-task-line">
                         <span className="lg-title" title={t.title}>{t.title}</span>
                         <span className="lg-tags">
                           {subs.length > 0 && <span className="lg-tag" title="Subtasks done">{subs.filter(s => s.done).length}/{subs.length}</span>}
-                          {planned && <span className="lg-tag lg-tag-plan">Planned {shortDate(planned)}</span>}
                           {p && <span className="lg-proj-inline"><span className="today-dot" style={{ background: p.color }} />{p.name}</span>}
                         </span>
+                        </div>
+                        {taskHasChips(t) && <TaskChips task={t} />}
                         </div>
                       </td>
                       <td className="lg-c-project">

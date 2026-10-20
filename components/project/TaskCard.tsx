@@ -605,3 +605,23 @@ export default function TaskCard({ task, showProject, isHighlighted }: TaskCardP
     </>
   );
 }
+
+// ── Inline-editable extras for ledger rows (section view, All Tasks) ─────────
+// Same badges as the task card; each only appears when that detail is set.
+export function taskHasChips(t: Task, withPlanned = true) {
+  return !!(t.dueTime || t.assignee || t.recurring || t.alerts?.length || t.estimate || (withPlanned && t.plannedDate));
+}
+
+export function TaskChips({ task, withPlanned = true }: { task: Task; withPlanned?: boolean }) {
+  const updateTask = useAppStore(s => s.updateTask);
+  return (
+    <span className="row-chips" onClick={e => e.stopPropagation()}>
+      <InlineDueTimeBadge dueTime={task.dueTime} onSave={val => updateTask(task.id, { dueTime: val })} />
+      <InlineAssigneeBadge assignee={task.assignee} onSave={val => updateTask(task.id, { assignee: val })} />
+      <InlineRecurringBadge recurring={task.recurring} onSave={val => updateTask(task.id, { recurring: val })} />
+      <InlineAlertsBadge alerts={task.alerts} onSave={val => updateTask(task.id, { alerts: val })} />
+      <InlineEstimateBadge estimate={task.estimate} onSave={val => updateTask(task.id, { estimate: val })} />
+      {withPlanned && <InlinePlannedBadge plannedDate={task.plannedDate} onSave={val => updateTask(task.id, { plannedDate: val })} />}
+    </span>
+  );
+}
