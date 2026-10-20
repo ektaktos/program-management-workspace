@@ -6,7 +6,7 @@ import { THEMES, THEME_CACHE_KEY, DEFAULT_THEME } from '@/lib/themes';
 const themeBootScript = `(function(){try{var t=localStorage.getItem('${THEME_CACHE_KEY}');var ids=${JSON.stringify(THEMES.map(t => t.id))};if(t&&t!=='${DEFAULT_THEME}'&&ids.indexOf(t)>-1){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();`;
 
 export const metadata: Metadata = {
-  title: 'Program Management Workspace',
+  title: "OyinT's Workspace",
   description: "OyinT's personal program management workspace",
   manifest: '/manifest.json',
   appleWebApp: {
