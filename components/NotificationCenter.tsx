@@ -85,6 +85,26 @@ function Inbox({ onDone }: { onDone: () => void }) {
   );
 }
 
+const BG_TEST_SECONDS = 10;
+let bgTestTimer: ReturnType<typeof setTimeout> | null = null;
+
+// Lives outside the component so closing the panel or switching tabs doesn't cancel it
+function scheduleBackgroundTest() {
+  if (bgTestTimer) clearTimeout(bgTestTimer);
+  bgTestTimer = setTimeout(() => {
+    bgTestTimer = null;
+    const away = document.visibilityState !== 'visible' || !document.hasFocus();
+    const popups = 'Notification' in window && Notification.permission === 'granted';
+    useAppStore.getState().notify({
+      kind: 'info',
+      title: 'Background test',
+      message: away
+        ? (popups ? 'This arrived while you were in another tab.' : 'Sound played, but system pop-ups are blocked for this site in your browser settings.')
+        : 'You were still on this tab. Start the test, then switch tabs to see the pop-up.',
+    });
+  }, BG_TEST_SECONDS * 1000);
+}
+
 function Settings() {
   const { notifPrefs: p, setNotifPrefs } = useAppStore();
   const [perm, setPerm] = useState<NotificationPermission | 'unsupported'>('default');
@@ -93,6 +113,23 @@ function Settings() {
   function test() {
     unlockAudio();
     useAppStore.getState().notify({ kind: 'info', title: 'Test notification', message: inQuietHours(p) ? 'Quiet hours are on, so this one is silent.' : 'This is how reminders will look and sound.' });
+  }
+
+  // Delayed test: start it, switch to another tab, and the reminder arrives while you're away
+  const [countdown, setCountdown] = useState(0);
+  useEffect(() => {
+    if (!countdown) return;
+    const t = setTimeout(() => setCountdown(c => Math.max(0, c - 1)), 1000);
+    return () => clearTimeout(t);
+  }, [countdown]);
+
+  function testLater() {
+    unlockAudio();
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission().then(setPerm);
+    }
+    scheduleBackgroundTest();
+    setCountdown(BG_TEST_SECONDS);
   }
 
   return (
@@ -173,7 +210,13 @@ function Settings() {
 
       <div className="notif-foot" style={{ justifyContent: 'space-between' }}>
         <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>Settings sync across devices.</span>
-        <button className="btn btn-outline btn-sm" onClick={test}>Send a test</button>
+        <span style={{ display: 'inline-flex', gap: 6 }}>
+          <button className="btn btn-ghost btn-sm" onClick={testLater} disabled={countdown > 0}
+            title="Fires in 10 seconds: switch to another tab to see the pop-up and hear the sound">
+            {countdown > 0 ? `Switch tabs… ${countdown}s` : `Test in ${BG_TEST_SECONDS}s`}
+          </button>
+          <button className="btn btn-outline btn-sm" onClick={test}>Send a test</button>
+        </span>
       </div>
     </div>
   );
