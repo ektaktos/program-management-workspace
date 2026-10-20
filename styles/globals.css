@@ -1198,3 +1198,22 @@ button.pday-appts-label:focus-visible { outline: 2px solid var(--primary-dark); 
 .tb-blk-sub { font-size: 9.5px; color: var(--text-muted); margin-top: 1px; }
 .tb-now { position: absolute; left: 0; right: 0; height: 2px; background: var(--danger); z-index: 3; }
 .tb-now::before { content: ''; position: absolute; left: -4px; top: -3px; width: 8px; height: 8px; border-radius: 50%; background: var(--danger); }
+
+/* ── Today: focus-day week strip ── */
+.focus-strip { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)) auto; gap: 8px; align-items: stretch; margin-bottom: 16px; }
+.focus-pill { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 9px 6px 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; cursor: pointer; font-family: inherit; color: var(--text); transition: border-color 0.15s, background 0.15s, transform 0.15s; }
+.focus-pill:hover { border-color: var(--border-strong); transform: translateY(-1px); }
+.focus-pill.on { border-color: var(--primary-dark); background: var(--accent-soft); }
+.focus-pill.past:not(.on) { opacity: 0.7; }
+.focus-pill-day { font-size: 11px; color: var(--text-muted); }
+.focus-pill.is-today .focus-pill-day { color: var(--primary-dark); font-weight: 600; }
+.focus-pill-num { font-family: Georgia, 'Times New Roman', serif; font-size: 21px; line-height: 1.05; }
+.focus-pill-dots { display: flex; gap: 3px; min-height: 5px; }
+.focus-pill-dots i { width: 5px; height: 5px; border-radius: 50%; background: var(--meeting); }
+.focus-pill-bar { width: 70%; height: 4px; border-radius: 999px; background: var(--track); overflow: hidden; }
+.focus-pill-bar i { display: block; height: 100%; background: var(--success); border-radius: 999px; transition: width 0.4s ease; }
+.focus-pill-meta { font-size: 10.5px; color: var(--text-muted); }
+.focus-back { align-self: center; white-space: nowrap; font-size: 12px; }
+.today-focus-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 16px; align-items: start; }
+@media (max-width: 900px) { .today-focus-grid { grid-template-columns: 1fr; } .focus-strip { grid-template-columns: repeat(7, minmax(0, 1fr)); } .focus-back { grid-column: 1 / -1; justify-self: center; } }
+@media (max-width: 560px) { .focus-pill-num { font-size: 17px; } .focus-pill-meta { display: none; } }

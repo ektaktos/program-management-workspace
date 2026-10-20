@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAppStore } from '@/store/useAppStore';
-import { addDaysIso, fmtDate, fmtMins, projectInArea, todayIso } from '@/lib/utils';
+import { addDaysIso, calendarEventsOn, fmtDate, fmtMins, projectInArea, todayIso } from '@/lib/utils';
 import CapacitySelect from '../ui/CapacitySelect';
 import { Task } from '@/lib/types';
 import TaskModal from '../modals/TaskModal';
@@ -28,7 +28,7 @@ type PlanItem =
 
 export default function Today() {
   const {
-    projects, tasks, todos, plannerEvents,
+    projects, tasks, todos, plannerEvents, plannerAppointments, calendarSources, calendarEvents, ensureCalendarRange,
     archivedTaskIds, archivedProjectIds, areaFilter, dailyCapacity,
     toggleTaskDone, updateTask, updatePlannerEvent,
     addPlannerEvent, addTodo, toggleTodo, navigateToTask, setView, setQuickAddOpen,
@@ -39,8 +39,18 @@ export default function Today() {
 
   const today = todayIso();
 
-  const now = new Date();
-  const dateLabel = now.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+  // ── Focus day: a strip for this week; the chosen day gets the full layout (defaults to today) ──
+  const [focus, setFocus] = useState(today);
+  const todayDow = new Date(today + 'T00:00:00').getDay();
+  const weekStart = addDaysIso(today, todayDow === 0 ? -6 : 1 - todayDow);
+  const weekDays = Array.from({ length: 7 }, (_, i) => addDaysIso(weekStart, i));
+  useEffect(() => { ensureCalendarRange(weekDays[0], weekDays[6]); },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [weekStart, calendarSources, ensureCalendarRange]);
+  const isToday = focus === today;
+  const focusDate = new Date(focus + 'T00:00:00');
+  const focusName = focusDate.toLocaleDateString('en-GB', { weekday: 'long' });
+  const dateLabel = focusDate.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
 
   const projectOf = (id?: string) => (id ? projects.find(p => p.id === id) : undefined);
   // Planner tasks follow the area filter only when linked to a project; unlinked ones always show
@@ -49,20 +59,30 @@ export default function Today() {
     !archivedTaskIds.includes(t.id) && !archivedProjectIds.includes(t.projectId) &&
     projectInArea(projectOf(t.projectId), areaFilter));
 
-  // ── Today's plan: planner tasks and project tasks planned for today ──
-  const items: PlanItem[] = [
-    ...plannerEvents.filter(e => e.date === today && inAreaEvent(e.projectId)).map(e => {
+  // ── The focused day's plan: planner tasks and project tasks planned for it ──
+  const planFor = (iso: string): PlanItem[] => [
+    ...plannerEvents.filter(e => e.date === iso && inAreaEvent(e.projectId)).map(e => {
       const p = projectOf(e.projectId);
       // Same rule as the planner: project colour when linked, otherwise the category colour
       return { kind: 'planner' as const, id: e.id, title: e.title, time: e.time, done: e.done, color: p?.color ?? `var(--cat-${e.category})`, sub: p?.name ?? e.category, estimate: e.estimate };
     }),
-    ...liveTasks.filter(t => t.plannedDate === today).map(t => {
+    ...liveTasks.filter(t => t.plannedDate === iso).map(t => {
       const p = projectOf(t.projectId);
       return { kind: 'task' as const, id: t.id, title: t.title, time: t.dueTime, done: t.status === 'done', color: p?.color, sub: p?.name, estimate: t.estimate, task: t };
     }),
   ].sort((a, b) => {
     if (a.done !== b.done) return a.done ? 1 : -1;
     return (a.time ?? '99:99').localeCompare(b.time ?? '99:99');
+  });
+  const items = planFor(focus);
+
+  // Strip data: tasks done/total and meetings per day of this week
+  const enabledCal = calendarEvents.filter(e => calendarSources.find(c => c.id === e.sourceId)?.enabled);
+  const strip = weekDays.map(iso => {
+    const plan = planFor(iso);
+    const meetings = plannerAppointments.filter(a => a.date === iso).length + calendarEventsOn(enabledCal, iso).length;
+    return { iso, total: plan.length, done: plan.filter(i => i.done).length, meetings,
+      mins: plan.filter(i => !i.done).reduce((n, i) => n + (i.estimate ?? 0), 0) };
   });
 
   const plannedMins = items.filter(i => !i.done).reduce((n, i) => n + (i.estimate ?? 0), 0);
@@ -76,7 +96,7 @@ export default function Today() {
 
   function addPlanItem() {
     if (!planInput.trim()) return;
-    addPlannerEvent({ title: planInput.trim(), date: today, category: 'personal', notes: '', done: false });
+    addPlannerEvent({ title: planInput.trim(), date: focus, category: 'personal', notes: '', done: false });
     setPlanInput('');
   }
 
@@ -100,7 +120,7 @@ export default function Today() {
         <div>
           <div style={{ fontFamily: 'Georgia, "Times New Roman", serif', fontSize: 26, color: 'var(--text)', lineHeight: 1.15 }}>{dateLabel}</div>
           <div style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 4 }}>
-            {openCount} to do · {doneToday} done today
+            {openCount} to do{isToday ? ` · ${doneToday} done today` : ` · ${items.length - openCount} done`}
             {overdueCount > 0 && <span style={{ color: 'var(--danger)' }}> · {overdueCount} overdue</span>}
             {areaFilter && <> · showing {areaFilter}</>}
           </div>
@@ -113,67 +133,92 @@ export default function Today() {
           <div className="pday-load-bar" style={{ height: 6 }}>
             <div style={{ width: `${Math.min(100, (plannedMins / dailyCapacity) * 100)}%`, background: over ? 'var(--danger)' : undefined }} />
           </div>
-          {over && <div style={{ fontSize: 11.5, color: 'var(--danger)', marginTop: 5 }}>Overbooked — consider moving something to tomorrow.</div>}
+          {over && <div style={{ fontSize: 11.5, color: 'var(--danger)', marginTop: 5 }}>Overbooked — consider moving something to the next day.</div>}
         </div>
       </div>
 
-      <div className="today-grid">
-        {/* Left column: today's plan, then today's meetings */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, minWidth: 0 }}>
-        <div className="card">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-            <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>Today&rsquo;s plan</div>
-            <button className="btn btn-ghost btn-sm" style={{ fontSize: 12 }} onClick={() => setView('planner')}>Open planner</button>
-          </div>
-          <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 12 }}>Planner tasks and project tasks planned for today.</div>
+      {/* Week strip — pick a day to focus on */}
+      <div className="focus-strip" role="tablist" aria-label="This week">
+        {strip.map(d => {
+          const dt = new Date(d.iso + 'T00:00:00');
+          return (
+            <button
+              key={d.iso}
+              role="tab"
+              aria-selected={d.iso === focus}
+              className={`focus-pill${d.iso === focus ? ' on' : ''}${d.iso === today ? ' is-today' : ''}${d.iso < today ? ' past' : ''}`}
+              onClick={() => setFocus(d.iso)}
+              title={`${d.total} task${d.total !== 1 ? 's' : ''}, ${d.meetings} meeting${d.meetings !== 1 ? 's' : ''}`}
+            >
+              <span className="focus-pill-day">{d.iso === today ? 'Today' : dt.toLocaleDateString('en-GB', { weekday: 'short' })}</span>
+              <span className="focus-pill-num">{dt.getDate()}</span>
+              <span className="focus-pill-dots" aria-hidden>
+                {Array.from({ length: Math.min(d.meetings, 4) }, (_, k) => <i key={k} />)}
+              </span>
+              <span className="focus-pill-bar" aria-hidden><i style={{ width: `${d.total ? (100 * d.done) / d.total : 0}%` }} /></span>
+              <span className="focus-pill-meta">{d.total ? `${d.done}/${d.total}` : '—'}</span>
+            </button>
+          );
+        })}
+        {!isToday && (
+          <button className="btn btn-ghost btn-sm focus-back" onClick={() => setFocus(today)}>Back to today</button>
+        )}
+      </div>
 
-          {items.length === 0 && (
-            <div style={{ fontSize: 13, color: 'var(--text-faint)', fontStyle: 'italic', padding: '8px 4px' }}>
-              Nothing planned yet. Add something below, or plan project tasks from the Weekly Planner.
+      {/* Focus day: schedule (meetings as tickets) beside the day's tasks */}
+      <div className="today-focus-grid">
+        <TodayMeetingsCard date={focus} />
+          <div className="card">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+              <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>{isToday ? 'Today’s plan' : `${focusName}’s plan`}</div>
+              <button className="btn btn-ghost btn-sm" style={{ fontSize: 12 }} onClick={() => setView('planner')}>Open planner</button>
             </div>
-          )}
-          <div className="todo-list">
-            {items.map(i => (
-              <div key={`${i.kind}-${i.id}`} className={`todo-item today-item${i.done ? ' done' : ''}`} style={{ borderLeftColor: i.color ?? 'transparent' }}>
-                <span className={`todo-check${i.done ? ' checked' : ''}`} onClick={() => toggleItem(i)}>
-                  {i.done && <CheckIcon />}
-                </span>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div
-                    className="today-item-title"
-                    onClick={() => { if (i.kind === 'task') setEditTask(i.task); else setView('planner'); }}
-                  >{i.title}</div>
-                  <div className="today-item-meta">
-                    {i.time && <span>{fmt12(i.time)}</span>}
-                    {i.color && <span className="today-dot" style={{ background: i.color }} />}
-                    {i.sub && <span style={{ textTransform: i.kind === 'planner' ? 'capitalize' : undefined }}>{i.sub}</span>}
-                    {i.estimate ? <span>· {fmtMins(i.estimate)}</span> : null}
-                  </div>
-                </div>
-                {i.kind === 'task' && !i.done && (
-                  <button className="todo-del" title="Move to tomorrow" style={{ opacity: 1, fontSize: 12 }}
-                    onClick={() => updateTask(i.id, { plannedDate: addDaysIso(today, 1) })}
-                  >→</button>
-                )}
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 12 }}>{isToday ? 'Planner tasks and project tasks planned for today.' : `Planner tasks and project tasks planned for ${focusName}.`}</div>
+
+            {items.length === 0 && (
+              <div style={{ fontSize: 13, color: 'var(--text-faint)', fontStyle: 'italic', padding: '8px 4px' }}>
+                Nothing planned yet. Add something below, or plan project tasks from the Weekly Planner.
               </div>
-            ))}
+            )}
+            <div className="todo-list">
+              {items.map(i => (
+                <div key={`${i.kind}-${i.id}`} className={`todo-item today-item${i.done ? ' done' : ''}`} style={{ borderLeftColor: i.color ?? 'transparent' }}>
+                  <span className={`todo-check${i.done ? ' checked' : ''}`} onClick={() => toggleItem(i)}>
+                    {i.done && <CheckIcon />}
+                  </span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div
+                      className="today-item-title"
+                      onClick={() => { if (i.kind === 'task') setEditTask(i.task); else setView('planner'); }}
+                    >{i.title}</div>
+                    <div className="today-item-meta">
+                      {i.time && <span>{fmt12(i.time)}</span>}
+                      {i.color && <span className="today-dot" style={{ background: i.color }} />}
+                      {i.sub && <span style={{ textTransform: i.kind === 'planner' ? 'capitalize' : undefined }}>{i.sub}</span>}
+                      {i.estimate ? <span>· {fmtMins(i.estimate)}</span> : null}
+                    </div>
+                  </div>
+                  {i.kind === 'task' && !i.done && (
+                    <button className="todo-del" title="Move to tomorrow" style={{ opacity: 1, fontSize: 12 }}
+                      onClick={() => updateTask(i.id, { plannedDate: addDaysIso(focus, 1) })}
+                    >→</button>
+                  )}
+                </div>
+              ))}
+            </div>
+            <div className="todo-input-row">
+              <input
+                value={planInput}
+                onChange={e => setPlanInput(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') addPlanItem(); }}
+                placeholder={isToday ? 'Add something for today…' : `Add something for ${focusName}…`}
+              />
+              <button onClick={addPlanItem}>Add</button>
+            </div>
           </div>
-          <div className="todo-input-row">
-            <input
-              value={planInput}
-              onChange={e => setPlanInput(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') addPlanItem(); }}
-              placeholder="Add something for today…"
-            />
-            <button onClick={addPlanItem}>Add</button>
-          </div>
-        </div>
+      </div>
 
-        <TodayMeetingsCard />
-        </div>
-
-        {/* Right column */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div className="today-grid" style={{ marginTop: 16 }}>
 
           <div className="card">
             <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>
@@ -241,7 +286,6 @@ export default function Today() {
               <button onClick={() => { if (todoInput.trim()) { addTodo(todoInput.trim()); setTodoInput(''); } }}>Add</button>
             </div>
           </div>
-        </div>
       </div>
 
       {editTask && <TaskModal task={editTask} onClose={() => setEditTask(null)} />}

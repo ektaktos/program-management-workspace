@@ -23,15 +23,17 @@ export interface TodayMeeting {
   done: boolean;
 }
 
-// Today's planner meetings + events from enabled subscribed calendars, in time order.
-// Shared by the Dashboard count and the Today page list so the two always agree.
-export function useTodayMeetings() {
+// A day's planner meetings + events from enabled subscribed calendars, in time order (default: today).
+// Shared by the Dashboard count and the Today page tickets so the two always agree.
+export function useTodayMeetings(date?: string) {
   const { plannerAppointments, calendarSources, calendarEvents, ensureCalendarRange } = useAppStore();
-  const today = todayIso();
+  const today = date ?? todayIso();
+  const realToday = todayIso();
   useEffect(() => { ensureCalendarRange(today, today); }, [today, calendarSources, ensureCalendarRange]);
 
   const now = new Date();
-  const nowHm = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  // Past days: everything is over; future days: nothing is; today: compare with the clock
+  const nowHm = today < realToday ? '99:99' : today > realToday ? '' : `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
   const sourceById = new Map(calendarSources.map(c => [c.id, c]));
 
   const meetings: TodayMeeting[] = [
@@ -41,7 +43,7 @@ export function useTodayMeetings() {
     })),
     ...calendarEventsOn(calendarEvents.filter(e => sourceById.get(e.sourceId)?.enabled), today).map(e => {
       const src = sourceById.get(e.sourceId);
-      const ended = !e.allDay && Date.parse(e.end) < now.getTime();
+      const ended = today < realToday ? true : today > realToday ? false : (!e.allDay && Date.parse(e.end) < now.getTime());
       return {
         id: e.id, title: e.title, time: e.allDay ? '' : localTimeOf(e.start), endTime: e.allDay ? undefined : localTimeOf(e.end),
         allDay: e.allDay, source: src?.name ?? 'Calendar', color: src?.color ?? 'var(--border-strong)',
@@ -55,15 +57,17 @@ export function useTodayMeetings() {
   return { meetings, left, nextId, total: meetings.length };
 }
 
-export default function TodayMeetingsCard() {
+export default function TodayMeetingsCard({ date }: { date?: string }) {
   const { setView, setCalendarsOpen, calendarSources, updatePlannerAppointment } = useAppStore();
-  const { meetings, left, nextId, total } = useTodayMeetings();
+  const { meetings, left, nextId, total } = useTodayMeetings(date);
+  const isToday = !date || date === todayIso();
+  const dayName = date ? new Date(date + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'long' }) : '';
 
   return (
     <div className="card">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
-          <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>Today&rsquo;s meetings</div>
+          <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>{isToday ? 'Today’s meetings' : `${dayName}’s meetings`}</div>
           <span className="meet-count" aria-label={`${total} meetings today`}>{total}</span>
         </div>
         <div style={{ display: 'flex', gap: 2 }}>
@@ -75,8 +79,9 @@ export default function TodayMeetingsCard() {
       </div>
       <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2, marginBottom: total ? 10 : 0 }}>
         {total === 0
-          ? 'No meetings today.'
-          : left === 0 ? 'All done for today.' : `${left} still to come${total - left ? ` · ${total - left} done` : ''}`}
+          ? (isToday ? 'No meetings today.' : `No meetings on ${dayName}.`)
+          : left === 0 ? (isToday ? 'All done for today.' : `${total} meeting${total !== 1 ? 's' : ''}, all past.`)
+          : `${left} still to come${total - left ? ` · ${total - left} done` : ''}`}
       </div>
       <div className="mt-tickets">
         {meetings.map(m => {
