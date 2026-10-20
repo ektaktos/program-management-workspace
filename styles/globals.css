@@ -1082,7 +1082,7 @@ button.pday-appts-label:focus-visible { outline: 2px solid var(--primary-dark); 
 .rail-today::before { content: ''; width: 22px; height: 22px; border-radius: 50%; background: var(--primary-dark); box-shadow: 0 0 0 4px var(--bg); flex-shrink: 0; margin-left: 0; }
 .rail-today::after { content: ''; flex: 1; height: 1.5px; background: var(--primary-dark); opacity: 0.35; }
 .rail-today span { white-space: nowrap; }
-@media (max-width: 640px) { .rail-day { grid-template-columns: 1fr; gap: 6px; } .rail-date { padding-top: 0; } }
+@media (max-width: 640px) { .rail-day { grid-template-columns: minmax(0, 1fr); gap: 6px; } .rail-date { padding-top: 0; } }
 @media (prefers-reduced-motion: reduce) { .rail-day { animation: none; } }
 
 /* Ruled task area: a 30px line grid, every row (task, subtask, '+N more') exactly one line tall,
@@ -1530,3 +1530,13 @@ tr:hover .q-due.empty, .oc-row:hover .q-due.empty, .q-due.empty:focus-visible { 
 
 .stat-meetings-when { margin-top: -2px; font-style: italic; }
 @media (max-width: 768px) { .stat-meetings { width: 80px; height: 80px; } }
+
+/* Phones: planner toolbar stacks (review/calendars, week nav, then day limit + layout switch) */
+@media (max-width: 760px) {
+  .planner-toolbar { grid-template-columns: minmax(0, 1fr) !important; row-gap: 12px; padding: 12px; }
+  .planner-toolbar > div { justify-self: stretch !important; justify-content: center; flex-wrap: wrap; }
+  .planner-toolbar .seg { max-width: 100%; }
+  .planner-toolbar .seg-btn { padding: 6px 11px; }
+}
+/* Touch screens: delete buttons on to-dos are always visible and easy to hit */
+@media (hover: none) { .todo-del { opacity: 0.7; width: 32px; height: 32px; } }
