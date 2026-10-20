@@ -1366,9 +1366,10 @@ button.pday-appts-label:focus-visible { outline: 2px solid var(--primary-dark); 
 .lg-table td.lg-c-due.late { color: var(--danger-text); font-weight: 600; }
 .lg-c-pri { width: 96px; font-size: 12px; color: var(--text-muted); }
 .lg-table td.lg-c-pri .today-dot { margin-right: 6px; vertical-align: 1px; }
-.lg-c-task { display: table-cell; }
-.lg-title { overflow: hidden; text-overflow: ellipsis; }
-.lg-tags { display: inline-flex; gap: 5px; margin-left: 8px; vertical-align: 1px; }
+.lg-task { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.lg-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.lg-tags { display: inline-flex; gap: 5px; flex-shrink: 0; }
+.lg-tags:empty { display: none; }
 .lg-tag { font-size: 10.5px; padding: 1px 7px; border-radius: 999px; background: var(--chip); color: var(--text-muted); }
 .lg-tag-plan { background: var(--accent-sky-light); color: var(--info-text); }
 .lg-proj { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; border: none; background: none; padding: 0; cursor: pointer; font: inherit; font-size: 12.5px; color: var(--text); }
@@ -1378,9 +1379,9 @@ button.pday-appts-label:focus-visible { outline: 2px solid var(--primary-dark); 
 .lg-proj-inline { display: none; }
 @media (max-width: 760px) {
   .lg-c-project, .lg-c-pri { display: none; }
-  .lg-table td.lg-c-task { white-space: normal; }
-  .lg-title { display: block; white-space: nowrap; }
-  .lg-tags { display: flex; flex-wrap: wrap; margin: 3px 0 0; }
+  .lg-task { flex-direction: column; align-items: flex-start; gap: 3px; }
+  .lg-title { max-width: 100%; }
+  .lg-tags { flex-wrap: wrap; flex-shrink: 1; }
   .lg-proj-inline { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-muted); }
   .lg-proj-inline .today-dot { margin: 0; }
   .lg-c-status { width: 96px; }
@@ -1392,3 +1393,6 @@ button.pday-appts-label:focus-visible { outline: 2px solid var(--primary-dark); 
 .rail-item-day.is-today { color: var(--primary-dark); }
 .rail-week-sum { font-size: 11px; color: var(--text-muted); margin-top: 6px; line-height: 1.4; }
 .rail-week .rail-date-main { font-size: 16px; }
+@media (max-width: 640px) {
+  .notif-popover { position: fixed; top: 60px; left: 12px; right: 12px; width: auto; max-width: none; }
+}

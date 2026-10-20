@@ -166,12 +166,14 @@ export default function AllTasks() {
                         </button>
                       </td>
                       <td className="lg-c-task">
-                        <span className="lg-title">{t.title}</span>
+                        <div className="lg-task">
+                        <span className="lg-title" title={t.title}>{t.title}</span>
                         <span className="lg-tags">
                           {subs.length > 0 && <span className="lg-tag" title="Subtasks done">{subs.filter(s => s.done).length}/{subs.length}</span>}
                           {planned && <span className="lg-tag lg-tag-plan">Planned {shortDate(planned)}</span>}
                           {p && <span className="lg-proj-inline"><span className="today-dot" style={{ background: p.color }} />{p.name}</span>}
                         </span>
+                        </div>
                       </td>
                       <td className="lg-c-project">
                         {p && (
