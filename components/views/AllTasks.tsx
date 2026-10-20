@@ -4,14 +4,14 @@ import { useEffect, useState } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { Task } from '@/lib/types';
 import { fmtDate, sortTasks, projectInArea, todayIso } from '@/lib/utils';
-import { PRIORITY_META, STATUS_META, STATUS_ORDER } from '@/lib/constants';
+import { STATUS_ORDER } from '@/lib/constants';
 import TaskModal from '../modals/TaskModal';
+import { DueEdit, PrioritySelect, StatusSelect } from '../ui/InlineQualifiers';
 
 type SortKey = 'task' | 'project' | 'status' | 'due' | 'priority';
 const SORT_KEY = 'pm_oyint_tasks_sort';
 const SORT_KEYS: SortKey[] = ['task', 'project', 'status', 'due', 'priority'];
 const PRI_RANK: Record<string, number> = { high: 0, medium: 1, low: 2 };
-const PRIORITY_DOT: Record<string, string> = { high: 'var(--danger)', medium: 'var(--warning)', low: 'var(--success)' };
 
 const shortDate = (iso: string) => fmtDate(iso).replace(/ \d{4}$/, '');
 
@@ -145,7 +145,6 @@ export default function AllTasks() {
                 {rows.map(t => {
                   const p = projectOf(t.projectId);
                   const done = t.status === 'done';
-                  const meta = STATUS_META[t.status];
                   const subs = t.subtasks ?? [];
                   const planned = t.plannedDate && t.plannedDate >= today && t.plannedDate !== t.due ? t.plannedDate : '';
                   return (
@@ -183,13 +182,9 @@ export default function AllTasks() {
                           </button>
                         )}
                       </td>
-                      <td className="lg-c-status"><span className={`badge ${meta.badgeClass}`}>{meta.label}</span></td>
-                      <td className={`lg-c-due${t.status === 'overdue' || (!done && t.due && t.due < today) ? ' late' : ''}`}>
-                        {t.due ? shortDate(t.due) : '—'}
-                      </td>
-                      <td className="lg-c-pri">
-                        <span className="today-dot" style={{ background: PRIORITY_DOT[t.priority] }} />{(PRIORITY_META[t.priority] ?? PRIORITY_META.medium).label}
-                      </td>
+                      <td className="lg-c-status"><StatusSelect task={t} /></td>
+                      <td className="lg-c-due"><DueEdit task={t} /></td>
+                      <td className="lg-c-pri"><PrioritySelect task={t} /></td>
                     </tr>
                   );
                 })}

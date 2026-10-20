@@ -3,9 +3,10 @@
 import { useEffect, useState } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { fmtDate, sortTasks } from '@/lib/utils';
-import { PRIORITY_META, STATUS_META, STATUS_ORDER } from '@/lib/constants';
+import { STATUS_ORDER } from '@/lib/constants';
 import { Phase, Task, TaskStatus } from '@/lib/types';
 import ProgressBar from '../ui/ProgressBar';
+import { DueEdit, PrioritySelect, StatusSelect } from '../ui/InlineQualifiers';
 import FilterChips from '../ui/FilterChips';
 import PhaseModal from '../modals/PhaseModal';
 import TaskModal from '../modals/TaskModal';
@@ -180,8 +181,6 @@ export default function SectionsTab({ projectId, highlightedTaskId }: SectionsTa
               const subs = t.subtasks ?? [];
               const subsDone = subs.filter(st => st.done).length;
               const subsOpen = openSubtasks.has(t.id);
-              const meta = STATUS_META[t.status];
-              const pri = PRIORITY_META[t.priority] ?? PRIORITY_META.medium;
               return (
                 <div key={t.id} role="rowgroup">
                   <div
@@ -221,15 +220,11 @@ export default function SectionsTab({ projectId, highlightedTaskId }: SectionsTa
                           {subsDone}/{subs.length}
                         </button>
                       )}
-                      <span className={`badge ${meta.badgeClass} oc-status-inline`}>{meta.label}</span>
+                      <StatusSelect task={t} className="oc-status-inline" />
                     </span>
-                    <span role="cell" className="oc-col-status"><span className={`badge ${meta.badgeClass}`}>{meta.label}</span></span>
-                    <span role="cell" className={`oc-due${t.status === 'overdue' ? ' late' : ''}`}>
-                      {t.due ? fmtDate(t.due).replace(/ \d{4}$/, '') : '—'}
-                    </span>
-                    <span role="cell" className="oc-col-pri oc-pri">
-                      <span className="today-dot" style={{ background: PRIORITY_DOT[t.priority] }} />{pri.label}
-                    </span>
+                    <span role="cell" className="oc-col-status"><StatusSelect task={t} /></span>
+                    <span role="cell" className="oc-due"><DueEdit task={t} /></span>
+                    <span role="cell" className="oc-col-pri"><PrioritySelect task={t} /></span>
                   </div>
                   {subsOpen && subs.length > 0 && (
                     <div className="oc-subs">
