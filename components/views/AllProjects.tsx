@@ -1,17 +1,28 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { calcProjectProgress, getOverdueCount, fmtDate, projectInArea } from '@/lib/utils';
 import { PROJECT_STATUS_META } from '@/lib/constants';
 import ProgressBar from '../ui/ProgressBar';
 import ProjectModal from '../modals/ProjectModal';
-import ProjectShelf from '../ui/ProjectShelf';
+import ProjectBookcase from '../ui/ProjectBookcase';
 import { Project } from '@/lib/types';
 
 export default function AllProjects() {
   const { projects, tasks: allTasks, phases, setView, archivedProjectIds, archiveProject, archivedTaskIds, areaFilter } = useAppStore();
   const [editing, setEditing] = useState<Project | null>(null);
+  const [creating, setCreating] = useState(false);
+
+  // Shelf (bookcase by progress) is the default; Grid shows the detailed cards. Remembered per device.
+  const [mode, setModeState] = useState<'shelf' | 'grid'>('shelf');
+  useEffect(() => {
+    try { const v = localStorage.getItem('pm_oyint_projects_view'); if (v === 'grid' || v === 'shelf') setModeState(v); } catch {}
+  }, []);
+  function setMode(v: 'shelf' | 'grid') {
+    setModeState(v);
+    try { localStorage.setItem('pm_oyint_projects_view', v); } catch {}
+  }
 
   const visibleProjects = projects.filter(p => !archivedProjectIds.includes(p.id) && projectInArea(p, areaFilter));
   const tasks = allTasks.filter(t => !archivedTaskIds.includes(t.id));
@@ -27,7 +38,28 @@ export default function AllProjects() {
 
   return (
     <div>
-      <ProjectShelf projects={visibleProjects} tasks={tasks} onOpen={id => setView('project', id)} />
+      <div className="projects-toolbar">
+        <div style={{ fontSize: 12.5, color: 'var(--text-muted)' }}>
+          {visibleProjects.length} project{visibleProjects.length !== 1 ? 's' : ''}
+          {mode === 'shelf' && ' · hover a book for its details, click to open it'}
+        </div>
+        <div className="seg" role="group" aria-label="View">
+          <button className={`seg-btn${mode === 'shelf' ? ' active' : ''}`} onClick={() => setMode('shelf')}>Shelf</button>
+          <button className={`seg-btn${mode === 'grid' ? ' active' : ''}`} onClick={() => setMode('grid')}>Grid</button>
+        </div>
+      </div>
+
+      {mode === 'shelf' && (
+        <ProjectBookcase
+          projects={visibleProjects}
+          tasks={tasks}
+          phases={phases}
+          onOpen={id => setView('project', id)}
+          onNew={() => setCreating(true)}
+        />
+      )}
+
+      {mode === 'grid' && (
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 18 }}>
         {visibleProjects.map(p => {
           const pct       = calcProjectProgress(p.id, tasks);
@@ -146,8 +178,10 @@ export default function AllProjects() {
           );
         })}
       </div>
+      )}
 
       {editing && <ProjectModal project={editing} onClose={() => setEditing(null)} />}
+      {creating && <ProjectModal onClose={() => setCreating(false)} />}
     </div>
   );
 }
