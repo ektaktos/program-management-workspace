@@ -61,7 +61,7 @@ export interface Phase {
 
 export interface Note {
   id: string;
-  projectId: string;
+  projectId?: string;   // unset = an independent note
   title: string;
   body: string;
   tags: string[];

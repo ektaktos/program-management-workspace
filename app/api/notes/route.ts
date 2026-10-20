@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
   const note = await prisma.note.create({
     data: {
       id:        body.id,
-      projectId: body.projectId,
+      projectId: body.projectId || null,
       title:     body.title,
       body:      body.body  ?? '',
       tags:      body.tags  ?? [],

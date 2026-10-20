@@ -29,6 +29,7 @@ export default function Dashboard() {
   const { projects: allProjects, tasks: allTasks, notes, todos, addTodo, updateTodo, toggleTodo, deleteTodo, setView, navigateToTask, archivedProjectIds, archivedTaskIds, areaFilter } = useAppStore();
   const meetingsToday = useTodayMeetings();
   const [editingNote, setEditingNote] = useState<Note | null>(null);
+  const [newNoteOpen, setNewNoteOpen] = useState(false);
   const projects = allProjects.filter(p => !archivedProjectIds.includes(p.id) && projectInArea(p, areaFilter));
   const visibleProjectIds = new Set(projects.map(p => p.id));
   const tasks    = allTasks.filter(t => !archivedTaskIds.includes(t.id) && visibleProjectIds.has(t.projectId));
@@ -71,8 +72,8 @@ export default function Dashboard() {
     .sort((a, b) => new Date(a.due!).getTime() - new Date(b.due!).getTime())
     .slice(0, 6);
 
-  // Latest notes from the projects in view (respects the area filter and archive)
-  const recentNotes = notes.filter(n => visibleProjectIds.has(n.projectId)).sort((a, b) => b.createdAt - a.createdAt).slice(0, 4);
+  // Latest notes: independent ones plus those from projects in view (respects the area filter and archive)
+  const recentNotes = notes.filter(n => !n.projectId || visibleProjectIds.has(n.projectId)).sort((a, b) => b.createdAt - a.createdAt).slice(0, 4);
 
   const statCards = [
     { label: 'Completion', value: completionPct,     pct: true, sub: 'across all projects',   onClick: undefined },
@@ -287,12 +288,12 @@ export default function Dashboard() {
           <div className="card">
             <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: 'var(--text)' }}>
               Recent Notes
-              {recentNotes.length > 0 && (
-                <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 500 }}>{recentNotes.length} latest</span>
-              )}
+              <button type="button" className="btn btn-ghost btn-sm" style={{ fontSize: 12, color: 'var(--primary-dark)', fontWeight: 500, padding: '2px 4px' }} onClick={() => setNewNoteOpen(true)}>
+                + New note
+              </button>
             </div>
             {recentNotes.length === 0 ? (
-              <div style={{ color: 'var(--text-muted)', fontSize: 13 }}>No notes yet. Add them from a project&rsquo;s Notes tab.</div>
+              <div style={{ color: 'var(--text-muted)', fontSize: 13 }}>No notes yet. Jot one down here, or from a project&rsquo;s Notes tab.</div>
             ) : (
               <div className="dash-notes">
                 {recentNotes.map(n => {
@@ -303,7 +304,9 @@ export default function Dashboard() {
                       <span className="dash-note-title">{n.title || 'Untitled note'}</span>
                       {n.body && <span className="dash-note-body">{n.body}</span>}
                       <span className="dash-note-foot">
-                        {proj && <span className="dash-note-proj"><span className="today-dot" style={{ background: proj.color, margin: 0 }} /><span className="dash-note-proj-name">{proj.name}</span></span>}
+                        {proj
+                          ? <span className="dash-note-proj"><span className="today-dot" style={{ background: proj.color, margin: 0 }} /><span className="dash-note-proj-name">{proj.name}</span></span>
+                          : <span className="dash-note-proj dash-note-free">No project</span>}
                         <span style={{ flexShrink: 0 }}>{new Date(n.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>
                       </span>
                     </button>
@@ -316,6 +319,7 @@ export default function Dashboard() {
         </div>
       </div>
       {editingNote && <NoteModal note={editingNote} onClose={() => setEditingNote(null)} />}
+      {newNoteOpen && <NoteModal onClose={() => setNewNoteOpen(false)} />}
     </div>
   );
 }

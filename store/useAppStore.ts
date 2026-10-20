@@ -257,6 +257,10 @@ interface Store extends AppState, UIState, PlannerState {
   theme:    string;
   setTheme: (id: string) => void;
 
+  // ── Calendar events marked done in the workspace (synced; the calendar itself is untouched) ──
+  doneCalendarEvents:      string[];
+  toggleCalendarEventDone: (id: string) => void;
+
   // ── Sidebar menu order (synced via settings; [] = default order) ──
   navOrder:    string[];
   setNavOrder: (ids: string[]) => void;
@@ -316,6 +320,7 @@ export const useAppStore = create<Store>((set, get) => ({
   dailyCapacity: DAILY_CAPACITY_MIN,
   theme: DEFAULT_THEME,
   navOrder: [],
+  doneCalendarEvents: [],
 
   calendarSources: [],
   calendarEvents:  [],
@@ -358,6 +363,10 @@ export const useAppStore = create<Store>((set, get) => ({
 
       if (settingsRes?.notifPrefs) set({ notifPrefs: normalizeNotifPrefs(settingsRes.notifPrefs) });
       set({ notifications: loadJson<NotifItem[]>(NOTIFS_KEY, []).slice(0, NOTIFS_MAX) });
+
+      if (Array.isArray(settingsRes?.doneCalendarEvents)) {
+        set({ doneCalendarEvents: (settingsRes!.doneCalendarEvents as unknown[]).filter((x): x is string => typeof x === 'string') });
+      }
 
       if (Array.isArray(settingsRes?.navOrder)) {
         set({ navOrder: (settingsRes!.navOrder as unknown[]).filter((x): x is string => typeof x === 'string') });
@@ -796,7 +805,7 @@ export const useAppStore = create<Store>((set, get) => ({
 
       if (p.calendarAlerts) {
         events.forEach(e => {
-          if (e.allDay) return;
+          if (e.allDay || s.doneCalendarEvents.includes(e.id)) return;   // ticked off already: no reminder
           const startAt = Date.parse(e.start);
           const alertId = `cal_${e.id}_${e.start}`;
           if (fired2.has(alertId) || now < startAt - p.calendarLead * 60_000) return;
@@ -885,6 +894,14 @@ export const useAppStore = create<Store>((set, get) => ({
   },
 
   setQuickAddOpen: (open) => set({ quickAddOpen: open }),
+
+  toggleCalendarEventDone: (id) => {
+    const cur = get().doneCalendarEvents;
+    // Newest last; keep the list bounded (old ticks for long-past events fall off)
+    const next = cur.includes(id) ? cur.filter(x => x !== id) : [...cur, id].slice(-500);
+    set({ doneCalendarEvents: next });
+    api('/api/settings/doneCalendarEvents', 'PUT', { value: next }).catch(console.error);
+  },
 
   setNavOrder: (ids) => {
     set({ navOrder: ids });

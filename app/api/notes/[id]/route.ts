@@ -7,7 +7,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   const note = await prisma.note.update({
     where: { id: params.id },
     data: {
-      projectId: body.projectId,
+      projectId: body.projectId || null,
       title:     body.title,
       body:      body.body ?? '',
       tags:      body.tags ?? [],

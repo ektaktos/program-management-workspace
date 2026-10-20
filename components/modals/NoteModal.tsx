@@ -18,7 +18,7 @@ export default function NoteModal({ note, defaultProjectId, onClose }: NoteModal
   const [form, setForm] = useState({
     title: note?.title ?? '',
     body: note?.body ?? '',
-    projectId: note?.projectId ?? defaultProjectId ?? (projects[0]?.id ?? ''),
+    projectId: note ? (note.projectId ?? '') : (defaultProjectId ?? ''),
     tags: note?.tags?.join(', ') ?? '',
   });
 
@@ -27,7 +27,7 @@ export default function NoteModal({ note, defaultProjectId, onClose }: NoteModal
   function save() {
     if (!form.title.trim()) return;
     const tags = form.tags.split(',').map(t => t.trim()).filter(Boolean);
-    const data = { title: form.title.trim(), body: form.body, projectId: form.projectId, tags };
+    const data = { title: form.title.trim(), body: form.body, projectId: form.projectId || undefined, tags };
     if (note) updateNote(note.id, data);
     else addNote(data);
     onClose();
@@ -51,6 +51,7 @@ export default function NoteModal({ note, defaultProjectId, onClose }: NoteModal
         <div className="form-group">
           <label htmlFor={`${fid}-3`}>Project</label>
           <select id={`${fid}-3`} value={form.projectId} onChange={e => setF('projectId', e.target.value)}>
+            <option value="">No project (independent note)</option>
             {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
         </div>

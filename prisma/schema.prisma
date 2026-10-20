@@ -66,12 +66,12 @@ model Phase {
 
 model Note {
   id        String   @id
-  projectId String
+  projectId String?  // optional: notes don't have to belong to a project
   title     String
   body      String   @db.Text
   tags      Json     @default("[]")
   createdAt DateTime @default(now())
-  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
 model PlannerTodo {

@@ -21,12 +21,13 @@ export interface TodayMeeting {
   location?: string;
   past: boolean;
   done: boolean;
+  ticked?: boolean;      // calendar event marked done in the workspace
 }
 
 // A day's planner meetings + events from enabled subscribed calendars, in time order (default: today).
 // Shared by the Dashboard count and the Today page tickets so the two always agree.
 export function useTodayMeetings(date?: string) {
-  const { plannerAppointments, calendarSources, calendarEvents, ensureCalendarRange } = useAppStore();
+  const { plannerAppointments, calendarSources, calendarEvents, ensureCalendarRange, doneCalendarEvents } = useAppStore();
   const today = date ?? todayIso();
   const realToday = todayIso();
   useEffect(() => { ensureCalendarRange(today, today); }, [today, calendarSources, ensureCalendarRange]);
@@ -44,10 +45,11 @@ export function useTodayMeetings(date?: string) {
     ...calendarEventsOn(calendarEvents.filter(e => sourceById.get(e.sourceId)?.enabled), today).map(e => {
       const src = sourceById.get(e.sourceId);
       const ended = today < realToday ? true : today > realToday ? false : (!e.allDay && Date.parse(e.end) < now.getTime());
+      const ticked = doneCalendarEvents.includes(e.id);   // marked done early in the workspace
       return {
         id: e.id, title: e.title, time: e.allDay ? '' : localTimeOf(e.start), endTime: e.allDay ? undefined : localTimeOf(e.end),
         allDay: e.allDay, source: src?.name ?? 'Calendar', color: src?.color ?? 'var(--border-strong)',
-        location: e.location, past: ended, done: ended,
+        location: e.location, past: ended || ticked, done: ended || ticked, ticked,
       };
     }),
   ].sort((a, b) => (a.allDay === b.allDay ? a.time.localeCompare(b.time) : a.allDay ? -1 : 1));
@@ -58,7 +60,7 @@ export function useTodayMeetings(date?: string) {
 }
 
 export default function TodayMeetingsCard({ date }: { date?: string }) {
-  const { setView, setCalendarsOpen, calendarSources, updatePlannerAppointment } = useAppStore();
+  const { setView, setCalendarsOpen, calendarSources, updatePlannerAppointment, toggleCalendarEventDone } = useAppStore();
   const { meetings, left, nextId, total } = useTodayMeetings(date);
   const isToday = !date || date === todayIso();
   const dayName = date ? new Date(date + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'long' }) : '';
@@ -122,10 +124,22 @@ export default function TodayMeetingsCard({ date }: { date?: string }) {
                     )}
                   </span>
                 ) : (
-                  <span className="today-cal-icon" title={`From your ${m.source} calendar (read-only)`} style={{ color: m.color }}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 13, height: 13 }}>
-                      <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-                    </svg>
+                  // Calendar events: tick off early here; your calendar itself isn't changed
+                  <span
+                    className={`todo-check${m.done ? ' checked' : ''}${m.done && !m.ticked ? ' auto' : ''}`}
+                    role="button"
+                    tabIndex={0}
+                    aria-pressed={m.done}
+                    aria-label={m.ticked ? `Mark "${m.title}" as not done` : m.done ? `"${m.title}" has finished` : `Mark "${m.title}" as done`}
+                    title={m.ticked ? 'Mark as not done' : m.done ? 'Finished' : 'Mark as done (only in this workspace; your calendar is unchanged)'}
+                    onClick={() => { if (m.ticked || !m.done) toggleCalendarEventDone(m.id); }}
+                    onKeyDown={e => { if ((e.key === 'Enter' || e.key === ' ') && (m.ticked || !m.done)) { e.preventDefault(); toggleCalendarEventDone(m.id); } }}
+                  >
+                    {m.done && (
+                      <svg viewBox="0 0 12 12" fill="none" style={{ width: 9, height: 9 }}>
+                        <polyline points="2,6 5,9 10,3" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    )}
                   </span>
                 )}
               </div>

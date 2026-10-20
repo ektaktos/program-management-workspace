@@ -31,7 +31,7 @@ export function toTask(t: Record<string, unknown>): Task {
 export function toNote(n: Record<string, unknown>): Note {
   return {
     id:        n.id as string,
-    projectId: n.projectId as string,
+    projectId: (n.projectId as string | null) ?? undefined,
     title:     n.title as string,
     body:      n.body as string,
     tags:      (n.tags as string[]) ?? [],

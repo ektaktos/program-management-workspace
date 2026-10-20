@@ -1543,3 +1543,6 @@ tr:hover .q-due.empty, .oc-row:hover .q-due.empty, .q-due.empty:focus-visible { 
 @media (max-width: 760px) { .planner-toolbar > div:first-child { display: flex; } }
 /* Empty-state icons sit centred above their text */
 .empty-state > svg { display: block; margin-left: auto; margin-right: auto; }
+.dash-note-free { font-style: italic; color: var(--text-faint); }
+/* A calendar meeting that simply finished: ticked, but not clickable */
+.todo-check.auto { cursor: default; opacity: 0.6; }
