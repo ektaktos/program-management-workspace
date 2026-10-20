@@ -1525,3 +1525,5 @@ tr:hover .q-due.empty, .oc-row:hover .q-due.empty, .q-due.empty:focus-visible { 
 .oc-ledger.extras .oc-row { min-width: 860px; }
 @media (max-width: 760px) { .lg-table, .lg-table.extras { min-width: 0; } }
 @media (max-width: 640px) { .oc-ledger.extras .oc-row { min-width: 0; } }
+.dash-note-proj .today-dot { flex-shrink: 0; width: 7px; height: 7px; }
+.dash-note-proj-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

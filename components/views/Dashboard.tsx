@@ -185,21 +185,23 @@ export default function Dashboard() {
 
           {/* To-Do List */}
           <div className="card">
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-              <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', marginBottom: 4 }}>
+              <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
                 To-Do List
                 {todos.length > 0 && (
-                  <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-muted)', marginLeft: 8 }}>
+                  <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
                     {openCount} open &middot; {todos.length} total
                   </span>
                 )}
               </div>
-              <span
-                style={{ fontSize: 12, color: 'var(--primary-dark)', cursor: 'pointer', fontWeight: 500 }}
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                style={{ fontSize: 12, color: 'var(--primary-dark)', fontWeight: 500, whiteSpace: 'nowrap', padding: '2px 4px' }}
                 onClick={() => setView('planner')}
               >
-                Open weekly planner →
-              </span>
+                Weekly planner →
+              </button>
             </div>
             <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 14 }}>
               Quick captures for this week. Open the planner to schedule meetings and tasks by day.
@@ -300,7 +302,7 @@ export default function Dashboard() {
                       <span className="dash-note-title">{n.title || 'Untitled note'}</span>
                       {n.body && <span className="dash-note-body">{n.body}</span>}
                       <span className="dash-note-foot">
-                        {proj && <span className="dash-note-proj"><span className="today-dot" style={{ background: proj.color, margin: 0 }} />{proj.name}</span>}
+                        {proj && <span className="dash-note-proj"><span className="today-dot" style={{ background: proj.color, margin: 0 }} /><span className="dash-note-proj-name">{proj.name}</span></span>}
                         <span style={{ flexShrink: 0 }}>{new Date(n.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>
                       </span>
                     </button>
