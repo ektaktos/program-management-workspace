@@ -16,7 +16,7 @@
   --border-strong: #d5ccbe;
   --text: #3a332d;            /* warm charcoal */
   --text-muted: #70665c;
-  --text-faint: #aba194;
+  --text-faint: #90867b;
 
   --primary: #d8ccb9;         /* light oak — borders, hover outlines */
   --primary-dark: #836a4f;    /* walnut — links, progress */
@@ -80,7 +80,7 @@
   --bg: #f3f5f0; --surface: #fbfcf9;
   --sidebar-bg: #e9ede4; --sidebar-text: #3f4a3c; --sidebar-active: #dde3d6; --sidebar-border: #dde3d6;
   --border: #e1e6da; --border-strong: #ccd4c3;
-  --text: #2f372d; --text-muted: #5f685b; --text-faint: #9da696;
+  --text: #2f372d; --text-muted: #5f685b; --text-faint: #818a7b;
   --primary: #c9d3bf; --primary-dark: #586d51; --primary-light: #dfe6d6;
   --accent: #3f4a3c; --accent-soft: #e6ebdf; --accent-softer: #f0f3ec;
   --chip: #e8ece2; --track: #e2e7db; --btn-primary-bg: #d9e1cf; --btn-primary-hover: #cad5bd;
@@ -92,7 +92,7 @@
   --bg: #f6f1e9; --surface: #fcf9f4;
   --sidebar-bg: #ece3d5; --sidebar-text: #4a3526; --sidebar-active: #e0d4c1; --sidebar-border: #e0d4c1;
   --border: #e5dccd; --border-strong: #d2c4ae;
-  --text: #3b2a1e; --text-muted: #6a5849; --text-faint: #a8977f;
+  --text: #3b2a1e; --text-muted: #6a5849; --text-faint: #8c7b67;
   --primary: #d3bf9f; --primary-dark: #87492a; --primary-light: #e6dac6;
   --accent: #4a3526; --accent-soft: #eee4d4; --accent-softer: #f5efe5;
   --chip: #ede4d6; --track: #e7dccb; --btn-primary-bg: #e3d3b9; --btn-primary-hover: #d6c3a4;
@@ -106,7 +106,7 @@
   --bg: #f7f5f0; --surface: #fefdfb;
   --sidebar-bg: #eaeff3; --sidebar-text: #1f3d5a; --sidebar-active: #dbe5ee; --sidebar-border: #dbe5ee;
   --border: #e5e3dd; --border-strong: #d0ccc3;
-  --text: #1f2f3d; --text-muted: #56636f; --text-faint: #9ea7ae;
+  --text: #1f2f3d; --text-muted: #56636f; --text-faint: #7e8892;
   --primary: #c9d8e4; --primary-dark: #2a5b85; --primary-light: #dde8f1;
   --accent: #1f3d5a; --accent-soft: #e8eef3; --accent-softer: #f2f5f7;
   --chip: #e9edf0; --track: #e2e7eb; --btn-primary-bg: #d7e4ee; --btn-primary-hover: #c6d7e5;
@@ -121,7 +121,7 @@
   --bg: #f8f1ea; --surface: #fffaf5;
   --sidebar-bg: #f1e0dd; --sidebar-text: #5a2e3a; --sidebar-active: #e6cdca; --sidebar-border: #e6cdca;
   --border: #ecdccf; --border-strong: #dbc4b2;
-  --text: #3f2430; --text-muted: #6e5057; --text-faint: #ae9190;
+  --text: #3f2430; --text-muted: #6e5057; --text-faint: #917476;
   --primary: #e3c4a8; --primary-dark: #94463a; --primary-light: #f0dcd6;
   --accent: #5a2e3a; --accent-soft: #f3e3d6; --accent-softer: #f8ede4;
   --chip: #f1e2d6; --track: #ecdccd; --btn-primary-bg: #efd9a0; --btn-primary-hover: #e6c97f;
@@ -137,7 +137,7 @@
   --bg: #f8f2ea; --surface: #fffbf6;
   --sidebar-bg: #f0e3d3; --sidebar-text: #5b3424; --sidebar-active: #e8d4bf; --sidebar-border: #e8d4bf;
   --border: #ecdfcf; --border-strong: #dbc6ad;
-  --text: #3e2a20; --text-muted: #6d5446; --text-faint: #ad9580;
+  --text: #3e2a20; --text-muted: #6d5446; --text-faint: #907866;
   --primary: #e2c3a0; --primary-dark: #276d6b; --primary-light: #eedbc6;
   --accent: #8c3f26; --accent-soft: #f3e4d3; --accent-softer: #f8eee3;
   --chip: #f1e4d6; --track: #ecdecd; --btn-primary-bg: #d6eae6; --btn-primary-hover: #c2dfd9;
@@ -187,7 +187,7 @@
   --bg: #f7f1e3; --surface: #fffaf0;
   --sidebar-bg: #efe3c8; --sidebar-text: #3f2b1d; --sidebar-active: #e6d3ab; --sidebar-border: #e6d3ab;
   --border: #eadfc6; --border-strong: #d8c69f;
-  --text: #2f2218; --text-muted: #67533f; --text-faint: #a8957a;
+  --text: #2f2218; --text-muted: #67533f; --text-faint: #8b775f;
   --primary: #e2c27a; --primary-dark: #1d6864; --primary-light: #f0e0b9;
   --accent: #3f2b1d; --accent-soft: #f2e6c9; --accent-softer: #f8f0dc;
   --chip: #f1e6cc; --track: #ebdfc3; --btn-primary-bg: #e8c76a; --btn-primary-hover: #dcb54d;
@@ -204,7 +204,7 @@
   --bg: #f6f4f8; --surface: #fdfcfe;
   --sidebar-bg: #ece7f2; --sidebar-text: #3e2f4f; --sidebar-active: #e0d8ea; --sidebar-border: #e0d8ea;
   --border: #e6e1ec; --border-strong: #d2c9dd;
-  --text: #2e2438; --text-muted: #61576b; --text-faint: #a59cae;
+  --text: #2e2438; --text-muted: #61576b; --text-faint: #867d90;
   --primary: #d7cce4; --primary-dark: #674c89; --primary-light: #e6dfef;
   --accent: #3e2f4f; --accent-soft: #ece7f2; --accent-softer: #f3f0f6;
   --chip: #ebe6f1; --track: #e5dfec; --btn-primary-bg: #e0d6ec; --btn-primary-hover: #d2c4e3;
