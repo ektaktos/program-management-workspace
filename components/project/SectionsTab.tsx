@@ -190,7 +190,6 @@ export default function SectionsTab({ projectId, highlightedTaskId }: SectionsTa
 
     return (
       <div key={sec.id} className={`ic-file${complete ? ' is-complete' : ''}`} onClick={() => openSection(sec.id)}>
-        <span className={`ic-tab${sec.phase ? '' : ' muted'}`}>{range ?? (sec.phase ? 'No dates' : 'Not in a section')}</span>
         {layers >= 2 && <span className="ic-layer ic-layer-2" aria-hidden />}
         {layers >= 1 && <span className="ic-layer ic-layer-1" aria-hidden />}
       <div className={`section-card ic-paper${sec.phase ? '' : ' ic-unsorted'}`}>
@@ -207,6 +206,8 @@ export default function SectionsTab({ projectId, highlightedTaskId }: SectionsTa
           </div>
           <span className="badge badge-gray" style={{ flexShrink: 0 }}>{sec.tasks.length}</span>
         </div>
+        {range && <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 6 }}>{range}</div>}
+
         <div style={{ margin: '10px 0 12px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>
             <span>{prog.done}/{prog.total} done</span>
@@ -215,10 +216,10 @@ export default function SectionsTab({ projectId, highlightedTaskId }: SectionsTa
           <ProgressBar value={prog.pct} height={5} />
         </div>
 
-        {/* Embedded task list */}
-        <div style={{ borderTop: '1px solid var(--border)', paddingTop: 8, flex: 1 }}>
+        {/* Embedded task list — ruled like an index card, one row per line */}
+        <div className="ic-lines">
           {preview.length === 0 && (
-            <div style={{ fontSize: 12.5, color: 'var(--text-faint)', fontStyle: 'italic', padding: '6px 2px' }}>No tasks yet.</div>
+            <div className="ic-line-text" style={{ fontSize: 12.5, color: 'var(--text-faint)', fontStyle: 'italic' }}>No tasks yet.</div>
           )}
           {preview.map(t => {
             const done = t.status === 'done';
@@ -290,7 +291,7 @@ export default function SectionsTab({ projectId, highlightedTaskId }: SectionsTa
             );
           })}
           {hidden > 0 && (
-            <div style={{ fontSize: 12, color: 'var(--primary-dark)', padding: '6px 2px 0', fontWeight: 500 }}>+{hidden} more</div>
+            <div className="ic-line-text" style={{ fontSize: 12, color: 'var(--primary-dark)', fontWeight: 500 }}>+{hidden} more</div>
           )}
         </div>
 

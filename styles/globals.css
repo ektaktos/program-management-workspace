@@ -1039,20 +1039,19 @@ button.pday-appts-label:focus-visible { outline: 2px solid var(--primary-dark); 
 .note-card-new { background: transparent; background-image: none; border-style: dashed; border-color: var(--border-strong); min-height: 140px; display: flex; align-items: center; justify-content: center; color: var(--primary-dark); font-size: 13px; transform: rotate(1deg); }
 
 /* ── Sections as filed index cards ── */
-.ic-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px 18px; align-items: start; padding-top: 4px; }
-.ic-file { position: relative; padding-top: 18px; cursor: pointer; }
+.ic-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px 18px; align-items: start; padding-top: 4px; }
+.ic-file { position: relative; cursor: pointer; }
 .ic-tab { position: absolute; top: 0; left: 16px; z-index: 2; max-width: calc(100% - 32px); padding: 3px 12px 4px; border-radius: 8px 8px 0 0; background: var(--btn-primary-bg); color: var(--text); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ic-layer { position: absolute; left: 0; right: 0; top: 18px; bottom: 0; border: 1px solid var(--border); border-radius: var(--radius); transition: transform 0.3s ease; }
+.ic-layer { position: absolute; left: 0; right: 0; top: 0; bottom: 0; border: 1px solid var(--border); border-radius: var(--radius); transition: transform 0.3s ease; }
 .ic-layer-1 { background: var(--accent-softer); transform: translate(6px, 5px) rotate(1.2deg); }
 .ic-layer-2 { background: var(--chip); transform: translate(-6px, 7px) rotate(-1.4deg); }
 .ic-file:hover .ic-layer-1 { transform: translate(8px, 7px) rotate(2deg); }
 .ic-file:hover .ic-layer-2 { transform: translate(-8px, 9px) rotate(-2.2deg); }
-.ic-paper { position: relative; z-index: 1; background-color: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px 12px; display: flex; flex-direction: column; transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.2s;
-  background-image: repeating-linear-gradient(transparent 0 29px, var(--track) 29px 30px); background-position: 0 104px; }
+.ic-paper { position: relative; z-index: 1; background-color: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px 12px; display: flex; flex-direction: column; transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.2s; }
 .ic-file:hover .ic-paper { transform: translateY(-2px); box-shadow: var(--shadow-md); border-color: var(--border-strong); }
 .ic-paper.ic-unsorted { border-style: dashed; }
 .ic-tab.muted { background: var(--chip); color: var(--text-muted); }
-.ic-title { padding-bottom: 7px; margin-bottom: 2px; border-bottom: 1.5px solid var(--meeting); }
+.ic-title { margin-bottom: 0; }
 .ic-stamp { position: absolute; right: 14px; bottom: 44px; z-index: 3; pointer-events: none; border: 2px solid var(--success); color: var(--success-text); background: color-mix(in srgb, var(--surface) 70%, transparent); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding: 3px 9px; border-radius: 4px; transform: rotate(-8deg); opacity: 0.88; animation: ic-stamp-in 0.4s cubic-bezier(.2,.9,.3,1.3) both; }
 @keyframes ic-stamp-in { from { transform: rotate(-8deg) scale(1.7); opacity: 0; } to { transform: rotate(-8deg) scale(1); opacity: 0.88; } }
 @media (prefers-reduced-motion: reduce) { .ic-stamp { animation: none; } .ic-layer, .ic-paper { transition: none; } }
@@ -1083,3 +1082,21 @@ button.pday-appts-label:focus-visible { outline: 2px solid var(--primary-dark); 
 .rail-today span { white-space: nowrap; }
 @media (max-width: 640px) { .rail-day { grid-template-columns: 1fr; gap: 6px; } .rail-date { padding-top: 0; } }
 @media (prefers-reduced-motion: reduce) { .rail-day { animation: none; } }
+
+/* Ruled task area: a 30px line grid, every row (task, subtask, '+N more') exactly one line tall,
+   text sitting just above its rule like handwriting on an index card */
+.ic-lines { --ic-line: 30px; flex: 1; border-top: 1.5px solid var(--meeting); margin-top: 2px;
+  background-image: repeating-linear-gradient(to bottom, transparent 0 calc(var(--ic-line) - 1px), var(--track) calc(var(--ic-line) - 1px) var(--ic-line)); }
+.ic-lines .section-task-row, .ic-lines .section-subtask-row, .ic-lines .ic-line-text { height: var(--ic-line); padding: 0 2px; margin: 0; border-radius: 0; display: flex; align-items: center; box-sizing: border-box; }
+.ic-lines .section-task-row:hover { background: color-mix(in srgb, var(--accent-soft) 70%, transparent); }
+.ic-lines .section-subtask-list { margin: 0 0 0 22px; padding-left: 8px; }
+.rail-item-time { width: 58px; flex-shrink: 0; font-size: 12px; font-weight: 600; color: var(--text); display: flex; flex-direction: column; line-height: 1.3; }
+.rail-item-time span { font-size: 10.5px; font-weight: 400; color: var(--text-muted); }
+.rail-kind { font-size: 10px; letter-spacing: 0.3px; padding: 1px 6px; border-radius: 999px; background: var(--chip); color: var(--text-muted); }
+.rail-kind-due { background: var(--accent-butter-light); color: var(--warning-text); }
+.rail-kind-planned { background: var(--accent-sky-light); color: var(--info-text); }
+.rail-kind-meeting, .rail-kind-calendar { background: var(--accent-blush-light); color: var(--meeting-text); }
+.rail-empty { font-size: 12.5px; color: var(--text-faint); font-style: italic; padding: 8px 2px; }
+.rail-overdue { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--danger); border-radius: 0 12px 12px 0; padding: 10px 14px; margin-bottom: 18px; }
+.rail-overdue-head { display: flex; align-items: center; gap: 8px; width: 100%; background: none; border: none; padding: 0; cursor: pointer; font: inherit; font-size: 13px; font-weight: 600; color: var(--danger-text); text-align: left; }
+.rail-overdue-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--danger); flex-shrink: 0; }
