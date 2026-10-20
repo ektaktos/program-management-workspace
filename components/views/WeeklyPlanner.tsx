@@ -956,6 +956,7 @@ export default function WeeklyPlanner() {
                               <button
                                 type="button"
                                 className={`pevent-check${tDone ? ' checked' : ''}`}
+                                aria-label={tDone ? `Mark "${t.title}" as not done` : `Mark "${t.title}" as done`}
                                 onMouseDown={e => e.stopPropagation()}
                                 onClick={e => { e.stopPropagation(); e.preventDefault(); toggleTaskDone(t.id); }}
                               >
@@ -987,6 +988,7 @@ export default function WeeklyPlanner() {
                             <button
                               type="button"
                               className={`pevent-check${ev.done ? ' checked' : ''}`}
+                              aria-label={ev.done ? `Mark "${ev.title}" as not done` : `Mark "${ev.title}" as done`}
                               onMouseDown={e => e.stopPropagation()}
                               onClick={e => { e.stopPropagation(); e.preventDefault(); updatePlannerEvent(ev.id, { done: !ev.done }); }}
                             >
