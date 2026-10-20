@@ -1090,7 +1090,7 @@ button.pday-appts-label:focus-visible { outline: 2px solid var(--primary-dark); 
 .ic-lines .section-task-row, .ic-lines .section-subtask-row, .ic-lines .ic-line-text { height: var(--ic-line); padding: 0 2px; margin: 0; border-radius: 0; display: flex; align-items: center; box-sizing: border-box; }
 .ic-lines .section-task-row:hover { background: color-mix(in srgb, var(--accent-soft) 70%, transparent); }
 .ic-lines .section-subtask-list { margin: 0 0 0 22px; padding-left: 8px; }
-.rail-item-time { width: 58px; flex-shrink: 0; font-size: 12px; font-weight: 600; color: var(--text); display: flex; flex-direction: column; line-height: 1.3; }
+.rail-item-time { width: 70px; flex-shrink: 0; white-space: nowrap; font-size: 12px; font-weight: 600; color: var(--text); display: flex; flex-direction: column; line-height: 1.3; }
 .rail-item-time span { font-size: 10.5px; font-weight: 400; color: var(--text-muted); }
 .rail-kind { font-size: 10px; letter-spacing: 0.3px; padding: 1px 6px; border-radius: 999px; background: var(--chip); color: var(--text-muted); }
 .rail-kind-due { background: var(--accent-butter-light); color: var(--warning-text); }
@@ -1138,3 +1138,7 @@ button.pday-appts-label:focus-visible { outline: 2px solid var(--primary-dark); 
 @keyframes tea-rise { from { height: 0; } }
 @keyframes tea-wave { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @media (prefers-reduced-motion: reduce) { .tea-liquid, .tea-liquid svg { animation: none; } }
+
+.rail-join { color: var(--primary-dark); text-decoration: none; font-weight: 600; white-space: nowrap; }
+.rail-join:hover { text-decoration: underline; }
+.rail-item-meta { min-width: 0; }

@@ -5,7 +5,7 @@ import { useAppStore } from '@/store/useAppStore';
 import { PlannerEvent, PlannerAppointment, Task, CalendarEvent } from '@/lib/types';
 import TaskModal from '../modals/TaskModal';
 import WeeklyReviewModal from '../modals/WeeklyReviewModal';
-import { uid, fmtMins, fmtDate, projectInArea, calendarEventsOn, localTimeOf } from '@/lib/utils';
+import { uid, fmtMins, fmtDate, projectInArea, calendarEventsOn, localTimeOf, parseLocation } from '@/lib/utils';
 import { ESTIMATE_OPTIONS } from '@/lib/constants';
 import CapacitySelect from '../ui/CapacitySelect';
 
@@ -400,7 +400,7 @@ export default function WeeklyPlanner() {
   const calTitle = (e: CalendarEvent) => {
     const src = sourceById.get(e.sourceId);
     const when = e.allDay ? 'All day' : `${fmt12(localTimeOf(e.start))}–${fmt12(localTimeOf(e.end))}`;
-    return [e.title, when, e.location, src ? `${src.name} calendar · read-only` : ''].filter(Boolean).join('\n');
+    return [e.title, when, parseLocation(e.location)?.label, src ? `${src.name} calendar · read-only` : ''].filter(Boolean).join('\n');
   };
   const liveTasks = tasks.filter(t =>
     !archivedTaskIds.includes(t.id) && !archivedProjectIds.includes(t.projectId));
@@ -935,7 +935,7 @@ export default function WeeklyPlanner() {
                             <div className="pagenda-body">
                               <div className="pagenda-title">{ce.title}</div>
                               <div className="pagenda-meta">
-                                {ce.allDay ? '' : `${fmt12(localTimeOf(ce.start))}–${fmt12(localTimeOf(ce.end))}`}{ce.location ? `${ce.allDay ? '' : ' · '}${ce.location}` : ''}
+                                {ce.allDay ? '' : `${fmt12(localTimeOf(ce.start))}–${fmt12(localTimeOf(ce.end))}`}{parseLocation(ce.location) ? `${ce.allDay ? '' : ' · '}${parseLocation(ce.location)!.label}` : ''}
                               </div>
                             </div>
                             <span className="pagenda-cat">{src?.name ?? 'Calendar'}</span>

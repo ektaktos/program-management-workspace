@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useAppStore } from '@/store/useAppStore';
-import { calendarEventsOn, localTimeOf, todayIso } from '@/lib/utils';
+import { calendarEventsOn, localTimeOf, parseLocation, todayIso } from '@/lib/utils';
 
 function fmt12(time: string): string {
   const [h, m] = time.split(':').map(Number);
@@ -93,7 +93,14 @@ export default function TodayMeetingsCard() {
                   <div className="meet-title" title={m.location ? `${m.title}\n${m.location}` : m.title}>{m.title}</div>
                   <div className="meet-src">
                     <span className="today-dot" style={{ background: m.color, marginRight: 5, verticalAlign: 1 }} />
-                    {m.source}{m.location ? ` · ${m.location}` : ''}
+                    {m.source}
+                    {(() => {
+                      const loc = parseLocation(m.location);
+                      if (!loc) return null;
+                      return loc.url
+                        ? <> · <a className="rail-join" href={loc.url} target="_blank" rel="noopener noreferrer" title={m.location}>{loc.label}</a></>
+                        : <span title={m.location}> · {loc.label}</span>;
+                    })()}
                   </div>
                 </div>
                 {m.id === nextId && <span className="badge badge-primary" style={{ fontSize: 10.5 }}>Next</span>}

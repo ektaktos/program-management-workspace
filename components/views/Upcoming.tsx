@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useAppStore } from '@/store/useAppStore';
-import { addDaysIso, calendarEventsOn, fmtMins, fmt12hr, localTimeOf, projectInArea, todayIso } from '@/lib/utils';
+import { addDaysIso, calendarEventsOn, fmtMins, fmt12hr, localTimeOf, parseLocation, projectInArea, todayIso } from '@/lib/utils';
 import { Task } from '@/lib/types';
 import TaskModal from '../modals/TaskModal';
 
@@ -38,6 +38,7 @@ interface RailItem {
   time?: string;
   endTime?: string;
   meta: string[];
+  location?: string;
   projectId?: string;
   task?: Task;
   plannerId?: string;
@@ -101,7 +102,7 @@ export default function Upcoming() {
       if (e.allDay && e.startDate && e.startDate < iso && iso !== today) continue;
       items.push({ key: `cal-${e.id}-${iso}`, kind: 'calendar', date: iso, sortKey: e.allDay ? '00:00' : localTimeOf(e.start), title: e.title,
         color: src?.color ?? 'var(--border-strong)', time: e.allDay ? undefined : localTimeOf(e.start), endTime: e.allDay ? undefined : localTimeOf(e.end),
-        meta: [src?.name ?? 'Calendar', e.allDay ? 'All day' : '', e.location ?? ''].filter(Boolean) });
+        meta: [src?.name ?? 'Calendar', e.allDay ? 'All day' : ''].filter(Boolean), location: e.location });
     }
   }
 
@@ -151,6 +152,13 @@ export default function Upcoming() {
               </button>
             )}
             {it.meta.map(m => <span key={m} style={{ textTransform: it.kind === 'planner' ? 'capitalize' : undefined }}>· {m}</span>)}
+            {(() => {
+              const loc = parseLocation(it.location);
+              if (!loc) return null;
+              return loc.url
+                ? <a className="rail-join" href={loc.url} target="_blank" rel="noopener noreferrer" title={it.location}>· {loc.label}</a>
+                : <span title={it.location}>· {loc.label}</span>;
+            })()}
           </div>
         </div>
       </div>

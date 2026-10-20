@@ -129,3 +129,23 @@ export function localTimeOf(isoInstant: string): string {
   const d = new Date(isoInstant);
   return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
+
+// Calendar locations are often long meeting URLs (plus dial-in text). Turn them into a short label,
+// and a link to join when there is one.
+export function parseLocation(loc?: string): { label: string; url?: string } | null {
+  if (!loc || !loc.trim()) return null;
+  const m = loc.match(/https?:\/\/[^\s,;<>"]+/i);
+  if (m) {
+    let host = '';
+    try { host = new URL(m[0]).hostname.replace(/^www\./, ''); } catch { host = ''; }
+    const name =
+      /zoom\./i.test(host) ? 'Zoom' :
+      /teams\.(microsoft|live)\.com/i.test(host) ? 'Teams' :
+      /meet\.google\.com/i.test(host) ? 'Google Meet' :
+      /webex\.com/i.test(host) ? 'Webex' :
+      host || 'meeting';
+    return { label: `Join ${name}`, url: m[0] };
+  }
+  const text = loc.replace(/\s+/g, ' ').trim();
+  return { label: text.length > 48 ? text.slice(0, 47) + '…' : text };
+}
