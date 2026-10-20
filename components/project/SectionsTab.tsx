@@ -183,19 +183,17 @@ export default function SectionsTab({ projectId, highlightedTaskId }: SectionsTa
     const preview = sec.tasks.slice(0, PREVIEW_LIMIT);
     const hidden = sec.tasks.length - preview.length;
 
+    // Index card: folder tab with the dates, a stack behind it when more tasks are filed than shown,
+    // and a COMPLETE stamp once every task in the section is done
+    const complete = prog.total > 0 && prog.done === prog.total;
+    const layers = hidden > 5 ? 2 : hidden > 0 ? 1 : 0;
+
     return (
-      <div
-        key={sec.id}
-        className="section-card"
-        onClick={() => openSection(sec.id)}
-        style={{
-          background: 'var(--surface)', border: '1px solid var(--border)',
-          borderRadius: 'var(--radius)', padding: '16px 18px',
-          cursor: 'pointer', transition: 'border-color 0.18s, box-shadow 0.18s',
-          display: 'flex', flexDirection: 'column', position: 'relative',
-          borderStyle: sec.phase ? 'solid' : 'dashed',
-        }}
-      >
+      <div key={sec.id} className={`ic-file${complete ? ' is-complete' : ''}`} onClick={() => openSection(sec.id)}>
+        <span className={`ic-tab${sec.phase ? '' : ' muted'}`}>{range ?? (sec.phase ? 'No dates' : 'Not in a section')}</span>
+        {layers >= 2 && <span className="ic-layer ic-layer-2" aria-hidden />}
+        {layers >= 1 && <span className="ic-layer ic-layer-1" aria-hidden />}
+      <div className={`section-card ic-paper${sec.phase ? '' : ' ic-unsorted'}`}>
         {sec.phase && (
           <div className="section-card-actions" style={{ position: 'absolute', top: 10, right: 10, display: 'flex', gap: 4 }}>
             <button className="btn-icon" title="Edit section" onClick={e => { e.stopPropagation(); setEditing(sec.phase); }}>{editIcon}</button>
@@ -203,14 +201,12 @@ export default function SectionsTab({ projectId, highlightedTaskId }: SectionsTa
           </div>
         )}
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingRight: 56, marginBottom: 2 }}>
+        <div className="ic-title" style={{ display: 'flex', alignItems: 'center', gap: 8, paddingRight: 56 }}>
           <div style={{ fontFamily: 'Georgia, "Times New Roman", serif', fontSize: 17, fontWeight: 400, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {sec.name}
           </div>
           <span className="badge badge-gray" style={{ flexShrink: 0 }}>{sec.tasks.length}</span>
         </div>
-        {range && <div style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>{range}</div>}
-
         <div style={{ margin: '10px 0 12px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>
             <span>{prog.done}/{prog.total} done</span>
@@ -308,6 +304,8 @@ export default function SectionsTab({ projectId, highlightedTaskId }: SectionsTa
           </span>
         </div>
       </div>
+        {complete && <span className="ic-stamp" aria-label="Section complete">Complete</span>}
+      </div>
     );
   }
 
@@ -350,7 +348,7 @@ export default function SectionsTab({ projectId, highlightedTaskId }: SectionsTa
       ) : expanded ? (
         renderExpanded(expanded)
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 14, alignItems: 'start' }}>
+        <div className="ic-grid">
           {sections.map(renderCard)}
         </div>
       )}
