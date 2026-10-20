@@ -140,6 +140,7 @@ export default function Dashboard() {
               >
                 <span className="stat-meetings-num">{meetingsToday.total}</span>
                 <span className="stat-meetings-lbl">meeting{meetingsToday.total !== 1 ? 's' : ''}</span>
+                <span className="stat-meetings-lbl stat-meetings-when">today</span>
               </button>
             )}
           </div>

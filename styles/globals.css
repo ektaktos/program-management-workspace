@@ -1008,12 +1008,12 @@ button.pday-appts-label:focus-visible { outline: 2px solid var(--primary-dark); 
 .meet-src { font-size: 11.5px; color: var(--text-muted); margin-top: 1px; }
 
 /* ── Dashboard: today's meeting count, a quarter circle tucked into the Tasks card's top-right corner ── */
-.stat-meetings { position: absolute; top: 0; right: 0; width: 96px; height: 96px; border: none; border-left: 1.5px solid var(--border-strong); border-bottom: 1.5px solid var(--border-strong); border-radius: 0 0 0 100%; background: var(--accent-soft); color: var(--text); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 0 0 22px 22px; cursor: pointer; font-family: inherit; transition: background 0.15s, border-color 0.15s; }
+.stat-meetings { position: absolute; top: 0; right: 0; width: 100px; height: 100px; border: none; border-left: 1.5px solid var(--border-strong); border-bottom: 1.5px solid var(--border-strong); border-radius: 0 0 0 100%; background: var(--accent-soft); color: var(--text); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 0 0 22px 22px; cursor: pointer; font-family: inherit; transition: background 0.15s, border-color 0.15s; }
 .stat-meetings:hover { background: var(--primary-light); border-color: var(--primary-dark); }
 .stat-meetings:focus-visible { outline: 2px solid var(--primary-dark); outline-offset: -4px; }
 .stat-meetings-num { font-family: Georgia, 'Times New Roman', serif; font-size: 24px; line-height: 1; }
 .stat-meetings-lbl { font-size: 10.5px; color: var(--text-muted); letter-spacing: 0.3px; }
-@media (max-width: 768px) { .stat-meetings { width: 72px; height: 72px; padding: 0 0 16px 16px; } .stat-meetings-num { font-size: 18px; } .stat-meetings-lbl { font-size: 8.5px; } }
+@media (max-width: 768px) { .stat-meetings { width: 72px; height: 72px; padding: 0 0 16px 16px; } .stat-meetings-num { font-size: 18px; } .stat-meetings-lbl { font-size: 10px; } }
 
 /* ── Reorderable sidebar menu ── */
 .nav-item-wrap { position: relative; border-radius: 10px; }
@@ -1527,3 +1527,6 @@ tr:hover .q-due.empty, .oc-row:hover .q-due.empty, .q-due.empty:focus-visible { 
 @media (max-width: 640px) { .oc-ledger.extras .oc-row { min-width: 0; } }
 .dash-note-proj .today-dot { flex-shrink: 0; width: 7px; height: 7px; }
 .dash-note-proj-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.stat-meetings-when { margin-top: -2px; font-style: italic; }
+@media (max-width: 768px) { .stat-meetings { width: 80px; height: 80px; } }
