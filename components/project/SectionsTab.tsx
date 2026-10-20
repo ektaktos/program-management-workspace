@@ -3,11 +3,10 @@
 import { useEffect, useState } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { fmtDate, sortTasks } from '@/lib/utils';
-import { STATUS_ORDER } from '@/lib/constants';
+import { PRIORITY_META, STATUS_META, STATUS_ORDER } from '@/lib/constants';
 import { Phase, Task, TaskStatus } from '@/lib/types';
 import ProgressBar from '../ui/ProgressBar';
 import FilterChips from '../ui/FilterChips';
-import TaskCard from './TaskCard';
 import PhaseModal from '../modals/PhaseModal';
 import TaskModal from '../modals/TaskModal';
 import ConfirmModal from '../modals/ConfirmModal';
@@ -43,7 +42,7 @@ interface SectionsTabProps {
 }
 
 export default function SectionsTab({ projectId, highlightedTaskId }: SectionsTabProps) {
-  const { phases, tasks, deletePhase, toggleTaskDone, updateTask, archivedTaskIds } = useAppStore();
+  const { phases, tasks, projects, deletePhase, toggleTaskDone, updateTask, archivedTaskIds } = useAppStore();
   const [showAddSection, setShowAddSection] = useState(false);
   const [editing, setEditing] = useState<Phase | null>(null);
   const [confirming, setConfirming] = useState<string | null>(null);
@@ -87,6 +86,7 @@ export default function SectionsTab({ projectId, highlightedTaskId }: SectionsTa
     if (!t) return;
     setFilter('all');
     setExpandedId(t.phaseId && phaseIds.has(t.phaseId) ? t.phaseId : UNSORTED);
+    setTimeout(() => document.getElementById(`oc-task-${t.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [highlightedTaskId]);
 
@@ -121,56 +121,146 @@ export default function SectionsTab({ projectId, highlightedTaskId }: SectionsTa
     </svg>
   );
 
-  // ── Expanded: one section, full task list ──
+  // ── Expanded: the section pulled out of the file as one large open card, tasks in a ruled ledger ──
   function renderExpanded(sec: SectionView) {
     const prog = progressOf(sec.tasks);
     const counts: Partial<Record<TaskStatus | 'all', number>> = { all: sec.tasks.length };
     STATUS_ORDER.forEach(s => { counts[s] = sec.tasks.filter(t => t.status === s).length; });
     const shown = filter === 'all' ? sec.tasks : sec.tasks.filter(t => t.status === filter);
     const range = dateRange(sec.phase);
+    const color = projects.find(p => p.id === projectId)?.color ?? 'var(--primary-dark)';
+    const complete = prog.total > 0 && prog.done === prog.total;
 
     return (
-      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '20px 22px' }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14, gap: 12 }}>
-          <div>
-            <div style={{ fontFamily: 'Georgia, "Times New Roman", serif', fontSize: 21, fontWeight: 400, color: 'var(--text)' }}>{sec.name}</div>
-            {range && <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>{range}</div>}
-            {!sec.phase && <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>Tasks not yet placed in a section. Edit a task to move it.</div>}
-          </div>
-          {sec.phase && (
-            <div style={{ display: 'flex', gap: 4 }}>
-              <button className="btn-icon" title="Edit section" onClick={() => setEditing(sec.phase)}>{editIcon}</button>
-              <button className="btn-icon" title="Delete section" style={{ color: 'var(--danger)' }} onClick={() => setConfirming(sec.id)}>{deleteIcon}</button>
+      <div className={`oc-file${complete ? ' is-complete' : ''}`}>
+        <span className="oc-layer" aria-hidden />
+        <div className="oc-card">
+          <div className="oc-head">
+            <div style={{ minWidth: 0 }}>
+              <div className="oc-name">{sec.name}</div>
+              {range && <div className="oc-sub">{range}</div>}
+              {!sec.phase && <div className="oc-sub">Tasks not yet placed in a section. Edit a task to move it.</div>}
             </div>
-          )}
-        </div>
-
-        <div style={{ marginBottom: 14 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--text-muted)', marginBottom: 5 }}>
-            <span>{prog.done}/{prog.total} done</span>
-            <span>{prog.pct}%</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+              <span className="oc-sub" style={{ marginTop: 0 }}>{prog.done}/{prog.total} done · {prog.pct}%</span>
+              {sec.phase && (
+                <span style={{ display: 'flex', gap: 4 }}>
+                  <button className="btn-icon" title="Edit section" onClick={() => setEditing(sec.phase)}>{editIcon}</button>
+                  <button className="btn-icon" title="Delete section" style={{ color: 'var(--danger)' }} onClick={() => setConfirming(sec.id)}>{deleteIcon}</button>
+                </span>
+              )}
+            </div>
           </div>
-          <ProgressBar value={prog.pct} />
-        </div>
+          <div className="oc-bar"><i style={{ width: `${prog.pct}%`, background: color }} /></div>
 
-        {sec.phase?.notes && <p style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.6, marginBottom: 14 }}>{sec.phase.notes}</p>}
+          {sec.phase?.notes && <p className="oc-notes">{sec.phase.notes}</p>}
 
-        <div style={{ borderTop: '1px solid var(--border)', paddingTop: 14 }}>
           {sec.tasks.length > 0 && (
-            <div className="filter-chips-wrap" style={{ marginBottom: 14 }}>
+            <div className="filter-chips-wrap" style={{ margin: '14px 0 0' }}>
               <FilterChips active={filter} counts={counts} onChange={s => setFilter(prev => prev === s ? 'all' : s)} />
             </div>
           )}
-          {shown.length === 0 ? (
-            <div style={{ fontSize: 13, color: 'var(--text-faint)', fontStyle: 'italic', marginBottom: 10 }}>
-              {sec.tasks.length === 0 ? 'No tasks in this section yet.' : 'No tasks match this filter.'}
+
+          <div className="oc-ledger" role="table" aria-label={`Tasks in ${sec.name}`}>
+            <div className="oc-row oc-row-head" role="row">
+              <span role="columnheader" aria-label="Done" />
+              <span role="columnheader">Task</span>
+              <span role="columnheader" className="oc-col-status">Status</span>
+              <span role="columnheader">Due</span>
+              <span role="columnheader" className="oc-col-pri">Priority</span>
             </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 10 }}>
-              {shown.map(t => <TaskCard key={t.id} task={t} isHighlighted={highlightedTaskId === t.id} />)}
-            </div>
-          )}
-          {addTaskButton(sec.phase?.id, 'Add task to section')}
+            {shown.length === 0 && (
+              <div className="oc-row oc-row-empty">
+                <span />
+                <span>{sec.tasks.length === 0 ? 'No tasks in this section yet.' : 'No tasks match this filter.'}</span>
+              </div>
+            )}
+            {shown.map(t => {
+              const done = t.status === 'done';
+              const subs = t.subtasks ?? [];
+              const subsDone = subs.filter(st => st.done).length;
+              const subsOpen = openSubtasks.has(t.id);
+              const meta = STATUS_META[t.status];
+              const pri = PRIORITY_META[t.priority] ?? PRIORITY_META.medium;
+              return (
+                <div key={t.id} role="rowgroup">
+                  <div
+                    id={`oc-task-${t.id}`}
+                    role="row"
+                    className={`oc-row${done ? ' done' : ''}${highlightedTaskId === t.id ? ' task-highlight' : ''}`}
+                    title="Edit task"
+                    onClick={() => setEditingTask(t)}
+                  >
+                    <span role="cell">
+                      <button
+                        type="button"
+                        className={`section-task-check${done ? ' checked' : ''}`}
+                        title={done ? 'Mark as not done' : 'Mark as done'}
+                        aria-label={done ? `Mark "${t.title}" as not done` : `Mark "${t.title}" as done`}
+                        onClick={e => { e.stopPropagation(); toggleTaskDone(t.id); }}
+                      >
+                        {done && (
+                          <svg viewBox="0 0 12 12" fill="none" style={{ width: 8, height: 8 }}>
+                            <polyline points="2,6 5,9 10,3" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        )}
+                      </button>
+                    </span>
+                    <span role="cell" className="oc-title">
+                      <span className="oc-title-text">{t.title}</span>
+                      {subs.length > 0 && (
+                        <button
+                          type="button"
+                          className={`section-subtask-chip${subsOpen ? ' open' : ''}`}
+                          title={subsOpen ? 'Hide subtasks' : 'Show subtasks'}
+                          onClick={e => { e.stopPropagation(); toggleSubtaskList(t.id); }}
+                        >
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" style={{ width: 9, height: 9, transform: subsOpen ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s' }}>
+                            <polyline points="9 18 15 12 9 6"/>
+                          </svg>
+                          {subsDone}/{subs.length}
+                        </button>
+                      )}
+                      <span className={`badge ${meta.badgeClass} oc-status-inline`}>{meta.label}</span>
+                    </span>
+                    <span role="cell" className="oc-col-status"><span className={`badge ${meta.badgeClass}`}>{meta.label}</span></span>
+                    <span role="cell" className={`oc-due${t.status === 'overdue' ? ' late' : ''}`}>
+                      {t.due ? fmtDate(t.due).replace(/ \d{4}$/, '') : '—'}
+                    </span>
+                    <span role="cell" className="oc-col-pri oc-pri">
+                      <span className="today-dot" style={{ background: PRIORITY_DOT[t.priority] }} />{pri.label}
+                    </span>
+                  </div>
+                  {subsOpen && subs.length > 0 && (
+                    <div className="oc-subs">
+                      {subs.map(st => (
+                        <div key={st.id} className="oc-sub-row">
+                          <button
+                            type="button"
+                            className={`section-task-check small${st.done ? ' checked' : ''}`}
+                            title={st.done ? 'Mark subtask as not done' : 'Mark subtask as done'}
+                            onClick={() => toggleSubtask(t, st.id)}
+                          >
+                            {st.done && (
+                              <svg viewBox="0 0 12 12" fill="none" style={{ width: 7, height: 7 }}>
+                                <polyline points="2,6 5,9 10,3" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                              </svg>
+                            )}
+                          </button>
+                          <span className="section-task-title" style={{ fontSize: 12.5, ...(st.done ? { textDecoration: 'line-through', opacity: 0.55 } : {}) }}>{st.title}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+            <button type="button" className="oc-row oc-row-add" onClick={() => setAddingTask({ phaseId: sec.phase?.id })}>
+              <span aria-hidden>+</span>
+              <span>Add a task to {sec.name}…</span>
+            </button>
+          </div>
+          {complete && <span className="ic-stamp oc-stamp" aria-label="Section complete">Complete</span>}
         </div>
       </div>
     );

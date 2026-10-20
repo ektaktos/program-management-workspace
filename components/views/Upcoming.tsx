@@ -9,6 +9,8 @@ import TaskModal from '../modals/TaskModal';
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const RANGES = [7, 14, 30];
+const WEEK_RANGES = [2, 4, 8];
+const MODE_KEY = 'pm_oyint_upcoming_mode';
 
 function dayDiff(iso: string, today: string) {
   return Math.round((new Date(iso + 'T00:00:00').getTime() - new Date(today + 'T00:00:00').getTime()) / 864e5);
@@ -21,6 +23,18 @@ function relLabel(n: number) {
   if (n < 7) return `In ${n} days`;
   if (n < 14) return 'Next week';
   return `In ${Math.round(n / 7)} weeks`;
+}
+function mondayOf(iso: string) {
+  return addDaysIso(iso, -((new Date(iso + 'T00:00:00').getDay() + 6) % 7));
+}
+function weekRel(n: number) {
+  return n === 0 ? 'This week' : n === 1 ? 'Next week' : `In ${n} weeks`;
+}
+function weekSpan(mon: string) {
+  const a = new Date(mon + 'T00:00:00'), b = new Date(addDaysIso(mon, 6) + 'T00:00:00');
+  return a.getMonth() === b.getMonth()
+    ? `${MONTHS[a.getMonth()]} ${a.getDate()} – ${b.getDate()}`
+    : `${MONTHS[a.getMonth()]} ${a.getDate()} – ${MONTHS[b.getMonth()]} ${b.getDate()}`;
 }
 function dayLabel(iso: string) {
   const d = new Date(iso + 'T00:00:00');
@@ -48,7 +62,8 @@ interface RailItem {
 const KIND_LABEL: Record<Kind, string> = { due: 'Due', planned: 'Planned', planner: 'Planner task', meeting: 'Meeting', calendar: 'Calendar' };
 
 // Upcoming: everything ahead on one timeline rail — project deadlines, planned project tasks, planner
-// tasks, planner meetings and subscribed-calendar events — for the next 7/14/30 days, overdue folded on top
+// tasks, planner meetings and subscribed-calendar events — day by day (7/14/30 days) or week by week
+// (2/4/8 weeks), overdue folded on top
 export default function Upcoming() {
   const {
     tasks, projects, plannerEvents, plannerAppointments, calendarSources, calendarEvents,
@@ -57,9 +72,30 @@ export default function Upcoming() {
   } = useAppStore();
   const [editTask, setEditTask] = useState<Task | null>(null);
   const [range, setRange] = useState(14);
+  const [weeks, setWeeks] = useState(4);
+  const [mode, setMode] = useState<'days' | 'weeks'>('days');
   const [showOverdue, setShowOverdue] = useState(false);
   const today = todayIso();
-  const end = addDaysIso(today, range - 1);
+  const thisMonday = mondayOf(today);
+  // Week mode runs to the Sunday of the last week shown
+  const end = mode === 'days' ? addDaysIso(today, range - 1) : addDaysIso(thisMonday, weeks * 7 - 1);
+  const span = dayDiff(end, today) + 1;
+
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(MODE_KEY) ?? 'null');
+      if (saved?.mode === 'days' || saved?.mode === 'weeks') setMode(saved.mode);
+      if (RANGES.includes(saved?.range)) setRange(saved.range);
+      if (WEEK_RANGES.includes(saved?.weeks)) setWeeks(saved.weeks);
+    } catch {}
+  }, []);
+  function remember(next: { mode?: 'days' | 'weeks'; range?: number; weeks?: number }) {
+    const v = { mode, range, weeks, ...next };
+    if (next.mode) setMode(next.mode);
+    if (next.range) setRange(next.range);
+    if (next.weeks) setWeeks(next.weeks);
+    try { localStorage.setItem(MODE_KEY, JSON.stringify(v)); } catch {}
+  }
 
   useEffect(() => { ensureCalendarRange(today, end); }, [today, end, calendarSources, ensureCalendarRange]);
 
@@ -94,7 +130,7 @@ export default function Upcoming() {
   }
   const sourceById = new Map(calendarSources.map(c => [c.id, c]));
   const visibleCal = calendarEvents.filter(e => sourceById.get(e.sourceId)?.enabled);
-  for (let i = 0; i < range; i++) {
+  for (let i = 0; i < span; i++) {
     const iso = addDaysIso(today, i);
     for (const e of calendarEventsOn(visibleCal, iso)) {
       const src = sourceById.get(e.sourceId);
@@ -125,8 +161,9 @@ export default function Upcoming() {
     else if (it.kind !== 'calendar') setView('planner');
   }
 
-  const row = (it: RailItem) => {
+  const row = (it: RailItem, withDay = false) => {
     const p = projectOf(it.projectId);
+    const d = withDay ? new Date(it.date + 'T00:00:00') : null;
     const readOnly = it.kind === 'calendar';
     return (
       <div key={it.key} className={`rail-item kind-${it.kind}`} style={{ borderLeftColor: it.color }}>
@@ -139,7 +176,12 @@ export default function Upcoming() {
         ) : (
           <button type="button" className="section-task-check" title="Mark as done" aria-label={`Mark "${it.title}" as done`} onClick={() => toggle(it)} />
         )}
-        {it.time && (
+        {d ? (
+          <span className={`rail-item-time rail-item-day${it.date === today ? ' is-today' : ''}`}>
+            {it.date === today ? 'Today' : `${WEEKDAYS[d.getDay()]} ${d.getDate()}`}
+            {it.time && <span>{fmt12hr(it.time)}</span>}
+          </span>
+        ) : it.time && (
           <span className="rail-item-time">{fmt12hr(it.time)}{it.endTime ? <span>{fmt12hr(it.endTime)}</span> : null}</span>
         )}
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -172,14 +214,24 @@ export default function Upcoming() {
           <span>Coming up</span>
           <span className="badge badge-gray">{total}</span>
         </div>
-        <div className="seg" role="group" aria-label="How far ahead">
-          {RANGES.map(r => (
-            <button key={r} className={`seg-btn${range === r ? ' active' : ''}`} onClick={() => setRange(r)}>{r} days</button>
-          ))}
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <div className="seg" role="group" aria-label="Group by">
+            <button className={`seg-btn${mode === 'days' ? ' active' : ''}`} aria-pressed={mode === 'days'} onClick={() => remember({ mode: 'days' })}>Days</button>
+            <button className={`seg-btn${mode === 'weeks' ? ' active' : ''}`} aria-pressed={mode === 'weeks'} onClick={() => remember({ mode: 'weeks' })}>Weeks</button>
+          </div>
+          <div className="seg" role="group" aria-label="How far ahead">
+            {mode === 'days'
+              ? RANGES.map(r => (
+                <button key={r} className={`seg-btn${range === r ? ' active' : ''}`} onClick={() => remember({ range: r })}>{r} days</button>
+              ))
+              : WEEK_RANGES.map(w => (
+                <button key={w} className={`seg-btn${weeks === w ? ' active' : ''}`} onClick={() => remember({ weeks: w })}>{w} weeks</button>
+              ))}
+          </div>
         </div>
       </div>
       <div style={{ fontSize: 12.5, color: 'var(--text-muted)', marginBottom: 16 }}>
-        Deadlines, planned work, planner tasks, meetings and calendar events for the next {range} days.
+        Deadlines, planned work, planner tasks, meetings and calendar events {mode === 'days' ? `for the next ${range} days` : `for the next ${weeks} weeks, week by week`}.
       </div>
 
       {overdue.length > 0 && (
@@ -202,6 +254,37 @@ export default function Upcoming() {
         </div>
       )}
 
+      {mode === 'weeks' ? (
+      <div className="rail-up">
+        {Array.from({ length: weeks }, (_, w) => addDaysIso(thisMonday, w * 7)).map((mon, w) => {
+          const sun = addDaysIso(mon, 6);
+          const list = items.filter(it => it.date >= mon && it.date <= sun)
+            .sort((a, b) => (a.date === b.date ? a.sortKey.localeCompare(b.sortKey) : a.date.localeCompare(b.date)));
+          const dueN = list.filter(it => it.kind === 'due').length;
+          const meetN = list.filter(it => it.kind === 'meeting' || it.kind === 'calendar').length;
+          const summary = [
+            `${list.length} item${list.length !== 1 ? 's' : ''}`,
+            dueN && `${dueN} due`,
+            meetN && `${meetN} meeting${meetN !== 1 ? 's' : ''}`,
+          ].filter(Boolean).join(' · ');
+          return (
+            <div key={mon} className={`rail-day rail-week${w === 0 ? ' is-today' : ''}`}>
+              <span className="rail-node" aria-hidden />
+              <div className="rail-date">
+                <div className="rail-date-main">{weekRel(w)}</div>
+                <div className="rail-date-rel">{weekSpan(mon)}</div>
+                {list.length > 0 && <div className="rail-week-sum">{summary}</div>}
+              </div>
+              <div className="rail-items">
+                {list.length === 0
+                  ? <div className="rail-empty">Nothing scheduled this week yet.</div>
+                  : list.map(it => row(it, true))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      ) : (
       <div className="rail-up">
         {days.map(iso => {
           const n = dayDiff(iso, today);
@@ -216,7 +299,7 @@ export default function Upcoming() {
               <div className="rail-items">
                 {list.length === 0
                   ? <div className="rail-empty">Nothing scheduled — a good day to plan ahead.</div>
-                  : list.map(row)}
+                  : list.map(it => row(it))}
               </div>
             </div>
           );
@@ -225,6 +308,7 @@ export default function Upcoming() {
           <div className="rail-empty" style={{ marginTop: 6 }}>Nothing in the next {range} days. Plan tasks from the Weekly Planner or give tasks a due date.</div>
         )}
       </div>
+      )}
 
       {editTask && <TaskModal task={editTask} onClose={() => setEditTask(null)} />}
     </div>
