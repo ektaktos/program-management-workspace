@@ -29,6 +29,7 @@ function fmt12(time: string): string {
 }
 
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const FULL_DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const CATEGORIES = ['personal', 'work', 'health', 'social', 'learning', 'errand', 'rest'];
 
@@ -269,7 +270,17 @@ export default function WeeklyPlanner() {
     sidebarOpen,
   } = useAppStore();
 
-  const [layout, setLayout] = useState<'grid' | 'agenda'>('grid');
+  const [layout, setLayoutState] = useState<'journal' | 'blocks' | 'agenda'>('journal');
+  useEffect(() => {
+    try {
+      const v = localStorage.getItem('pm_oyint_planner_layout');
+      if (v === 'journal' || v === 'blocks' || v === 'agenda') setLayoutState(v);
+    } catch {}
+  }, []);
+  function setLayout(v: 'journal' | 'blocks' | 'agenda') {
+    setLayoutState(v);
+    try { localStorage.setItem('pm_oyint_planner_layout', v); } catch {}
+  }
 
   // Modal state
   const [newEventModal, setNewEventModal] = useState<{ open: boolean; presetDate?: string }>({ open: false });
@@ -457,6 +468,127 @@ export default function WeeklyPlanner() {
     if (d?.kind === 'task') updateTask(d.id, { plannedDate: undefined });
   }
 
+
+  // ── Time blocks: an hourly calendar for the week (toggle in the toolbar) ──
+  const [blocksWeekdays, setBlocksWeekdays] = useState(false);
+  function renderBlocks() {
+    type Blk = { key: string; start: number; end: number; title: string; sub?: string; color: string; bg: string; onClick?: () => void; tip: string; done?: boolean };
+    const toMin = (hm: string) => { const [h, m] = hm.split(':').map(Number); return h * 60 + (m || 0); };
+    const dayIdx = blocksWeekdays ? [0, 1, 2, 3, 4] : [0, 1, 2, 3, 4, 5, 6];
+    const perDay = dayIdx.map(i => {
+      const iso = isoOf(days[i]);
+      const timed: Blk[] = [];
+      const anytime: { key: string; title: string; color: string; onClick?: () => void; done?: boolean }[] = [];
+      for (const e of calOn(iso)) {
+        const src = sourceById.get(e.sourceId);
+        if (e.allDay) { anytime.push({ key: e.id, title: e.title, color: src?.color ?? 'var(--border-strong)' }); continue; }
+        const st = toMin(localTimeOf(e.start));
+        const endSameDay = isoOf(new Date(e.end)) === iso;
+        const en = endSameDay ? toMin(localTimeOf(e.end)) : 24 * 60;
+        timed.push({ key: e.id, start: st, end: Math.max(en, st + 20), title: e.title, sub: src?.name, color: src?.color ?? 'var(--border-strong)',
+          bg: `color-mix(in srgb, ${src?.color ?? 'var(--border-strong)'} 22%, var(--surface))`, tip: calTitle(e) });
+      }
+      for (const a of plannerAppointments.filter(x => x.date === iso)) {
+        const st = toMin(a.time);
+        timed.push({ key: a.id, start: st, end: st + 30, title: a.title, sub: 'Meeting', color: 'var(--meeting)', bg: 'var(--meeting-bg-hover)',
+          onClick: () => setEditApptModal({ open: true, appt: a }), tip: `${a.title} · ${fmt12(a.time)}`, done: a.done });
+      }
+      for (const ev of plannerEvents.filter(x => x.date === iso)) {
+        const p = projectOf(ev.projectId);
+        const color = p?.color ?? `var(--cat-${ev.category})`;
+        if (ev.time) {
+          const st = toMin(ev.time);
+          timed.push({ key: ev.id, start: st, end: st + Math.max(ev.estimate ?? 30, 20), title: ev.title, sub: p?.name ?? ev.category, color,
+            bg: `color-mix(in srgb, ${color} 18%, var(--surface))`, onClick: () => setEditEventModal({ open: true, event: ev }), tip: ev.title, done: ev.done });
+        } else {
+          anytime.push({ key: ev.id, title: ev.title, color, onClick: () => setEditEventModal({ open: true, event: ev }), done: ev.done });
+        }
+      }
+      for (const t of plannedTasksOn(iso)) {
+        anytime.push({ key: t.id, title: t.title, color: projectOf(t.projectId)?.color ?? 'var(--border-strong)', onClick: () => setEditTask(t), done: t.status === 'done' });
+      }
+      // side-by-side columns for overlapping blocks
+      timed.sort((a, b) => a.start - b.start || b.end - a.end);
+      const placed: (Blk & { col: number; cols: number })[] = [];
+      let cluster: (Blk & { col: number; cols: number })[] = [];
+      let clusterEnd = -1;
+      const flush = () => { const n = Math.max(1, ...cluster.map(c => c.col + 1)); cluster.forEach(c => { c.cols = n; }); placed.push(...cluster); cluster = []; };
+      for (const b of timed) {
+        if (b.start >= clusterEnd && cluster.length) flush();
+        const used = new Set(cluster.filter(c => c.end > b.start).map(c => c.col));
+        let col = 0; while (used.has(col)) col++;
+        cluster.push({ ...b, col, cols: 1 });
+        clusterEnd = Math.max(clusterEnd, b.end);
+      }
+      if (cluster.length) flush();
+      return { i, iso, placed, anytime };
+    });
+    const allTimed = perDay.flatMap(d => d.placed);
+    const startH = Math.max(6, Math.min(8, ...allTimed.map(b => Math.floor(b.start / 60))));
+    const endH = Math.min(24, Math.max(18, ...allTimed.map(b => Math.ceil(b.end / 60))));
+    const PX = 44;
+    const now = new Date();
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+    const cols = `48px repeat(${dayIdx.length}, minmax(96px, 1fr))`;
+
+    return (
+      <div className="card tblocks-card">
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+          <label className="quickadd-check">
+            <input type="checkbox" checked={blocksWeekdays} onChange={e => setBlocksWeekdays(e.target.checked)} />
+            Weekdays only
+          </label>
+        </div>
+        <div className="tblocks" style={{ gridTemplateColumns: cols }}>
+          <div className="tb-corner" />
+          {perDay.map(d => (
+            <div key={d.iso} className={`tb-dayhead${d.iso === todayIso ? ' today' : ''}`}>
+              <span>{DAY_NAMES[d.i]}</span> <b>{days[d.i].getDate()}</b>
+            </div>
+          ))}
+          <div className="tb-anylabel">Any&shy;time</div>
+          {perDay.map(d => (
+            <div key={d.iso} className="tb-any" onDragOver={e => e.preventDefault()} onDrop={e => dropOnDay(e, d.iso)}>
+              {d.anytime.map(a => (
+                <div key={a.key} className={`tb-chip${a.done ? ' done' : ''}`} style={{ borderLeftColor: a.color }} onClick={a.onClick} title={a.title}>{a.title}</div>
+              ))}
+            </div>
+          ))}
+          <div className="tb-hours" style={{ height: (endH - startH) * PX }}>
+            {Array.from({ length: endH - startH }, (_, k) => (
+              <span key={k} style={{ top: k * PX }}>{fmt12(`${String(startH + k).padStart(2, '0')}:00`).replace(':00', '')}</span>
+            ))}
+          </div>
+          {perDay.map(d => (
+            <div key={d.iso} className={`tb-col${d.iso === todayIso ? ' today' : ''}`} style={{ height: (endH - startH) * PX, backgroundSize: `100% ${PX}px` }}>
+              {d.iso === todayIso && nowMin >= startH * 60 && nowMin <= endH * 60 && (
+                <div className="tb-now" style={{ top: ((nowMin - startH * 60) / 60) * PX }} />
+              )}
+              {d.placed.map(b => (
+                <div
+                  key={b.key}
+                  className={`tb-blk${b.onClick ? ' clickable' : ''}${b.done ? ' done' : ''}`}
+                  title={b.tip}
+                  onClick={b.onClick}
+                  style={{
+                    top: ((b.start - startH * 60) / 60) * PX + 1,
+                    height: Math.max(((b.end - b.start) / 60) * PX - 2, 18),
+                    left: `calc(${(100 / b.cols) * b.col}% + 2px)`,
+                    width: `calc(${100 / b.cols}% - 4px)`,
+                    background: b.bg, borderLeftColor: b.color,
+                  }}
+                >
+                  <b>{fmt12(`${String(Math.floor(b.start / 60)).padStart(2, '0')}:${String(b.start % 60).padStart(2, '0')}`)}</b> {b.title}
+                  {b.sub && (b.end - b.start) >= 45 && <div className="tb-blk-sub">{b.sub}</div>}
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
       {/* Toolbar — 3-column grid: empty | centered nav | seg control */}
@@ -496,7 +628,8 @@ export default function WeeklyPlanner() {
         <div style={{ display: 'flex', alignItems: 'center', justifySelf: 'end', gap: 10 }}>
           <CapacitySelect />
           <div className="seg">
-            <button className={`seg-btn${layout === 'grid' ? ' active' : ''}`} onClick={() => setLayout('grid')}>Week grid</button>
+            <button className={`seg-btn${layout === 'journal' ? ' active' : ''}`} onClick={() => setLayout('journal')}>Journal</button>
+            <button className={`seg-btn${layout === 'blocks' ? ' active' : ''}`} onClick={() => setLayout('blocks')}>Time blocks</button>
             <button className={`seg-btn${layout === 'agenda' ? ' active' : ''}`} onClick={() => setLayout('agenda')}>Agenda</button>
           </div>
         </div>
@@ -717,11 +850,13 @@ export default function WeeklyPlanner() {
             )}
           </div>
 
-          {/* Week grid */}
-          {layout === 'grid' && (
-            <div className="card" style={{ padding: 16, overflowX: sidebarOpen ? 'auto' : 'visible' }}>
-              <div className="planner-week-grid" style={sidebarOpen ? { gridTemplateColumns: 'repeat(7, minmax(110px, 1fr))' } : undefined}>
-                {days.map((day, i) => {
+          {/* Journal spread: Mon–Wed on the left page, Thu–Sun on the right */}
+          {layout === 'journal' && (
+            <div className="jspread">
+              {[[0, 1, 2], [3, 4, 5, 6]].map((page, pi) => (
+              <div key={pi} className={`jpage jpage-${pi === 0 ? 'left' : 'right'}`}>
+                {page.map(i => {
+                  const day = days[i];
                   const iso = isoOf(day);
                   const isToday = iso === todayIso;
                   const isWeekend = i >= 5;
@@ -741,8 +876,13 @@ export default function WeeklyPlanner() {
                       onDrop={e => dropOnDay(e, iso)}
                     >
                       <div className="pday-head">
-                        <span className="pday-name">{DAY_NAMES[i]}</span>
-                        <span className="pday-num">{day.getDate()}</span>
+                        <span className="pday-name">{FULL_DAY_NAMES[i]}</span>
+                        <span className="pday-num">{MONTH_NAMES[day.getMonth()]} {day.getDate()}</span>
+                        {isToday && <span className="pday-today-pill">Today</span>}
+                        {(() => {
+                          const all = [...plannedTasksOn(iso).map(t => t.status === 'done'), ...dayEvents.map(e => e.done)];
+                          return all.length ? <span className="pday-count">{all.filter(Boolean).length}/{all.length}</span> : null;
+                        })()}
                       </div>
                       {(() => {
                         const load = dayLoad(iso);
@@ -876,8 +1016,11 @@ export default function WeeklyPlanner() {
                   );
                 })}
               </div>
+              ))}
             </div>
           )}
+
+          {layout === 'blocks' && renderBlocks()}
 
           {/* Agenda */}
           {layout === 'agenda' && (
