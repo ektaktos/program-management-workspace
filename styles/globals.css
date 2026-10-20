@@ -1319,7 +1319,7 @@ button.pday-appts-label:focus-visible { outline: 2px solid var(--primary-dark); 
 .oc-bar i { display: block; height: 100%; border-radius: 999px; transition: width 0.4s ease; }
 .oc-notes { font-size: 13px; color: var(--text); line-height: 1.6; margin: 12px 0 0; }
 .oc-ledger { margin-top: 14px; border-top: 1.5px solid var(--meeting); }
-.oc-row { display: grid; grid-template-columns: 26px minmax(0, 1fr) 112px 76px 86px; align-items: center; gap: 8px; min-height: 36px; padding: 0 6px; border-bottom: 1px solid var(--border); font-size: 13.5px; color: var(--text); cursor: pointer; border-radius: 0; }
+.oc-row { display: grid; grid-template-columns: 26px minmax(0, 1fr) 112px 76px 86px 28px; align-items: center; gap: 8px; min-height: 36px; padding: 0 6px; border-bottom: 1px solid var(--border); font-size: 13.5px; color: var(--text); cursor: pointer; border-radius: 0; }
 .oc-row:hover { background: var(--accent-softer); }
 .oc-row-head { min-height: 28px; cursor: default; font-size: 10px; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-faint); }
 .oc-row-head:hover, .oc-row-empty:hover { background: none; }
@@ -1339,7 +1339,7 @@ button.pday-appts-label:focus-visible { outline: 2px solid var(--primary-dark); 
 .oc-stamp { right: 22px; bottom: 14px; }
 @media (max-width: 640px) {
   .oc-card { padding: 16px 14px 12px; }
-  .oc-row { grid-template-columns: 24px minmax(0, 1fr) 62px; }
+  .oc-row { grid-template-columns: 24px minmax(0, 1fr) 62px 28px; }
   .oc-col-status, .oc-col-pri { display: none; }
   .oc-status-inline { display: inline-flex; flex-shrink: 0; }
   .oc-head { flex-direction: column; }
@@ -1420,10 +1420,18 @@ tr:hover .q-due.empty, .oc-row:hover .q-due.empty, .q-due.empty:focus-visible { 
 /* The date editor needs more room than the Due column gives it */
 .lg-table td.lg-c-due, .oc-due { overflow: visible; }
 .q-due-edit { position: relative; z-index: 5; }
-.oc-row:has(.q-due-edit) { grid-template-columns: 26px minmax(0, 1fr) 112px 150px 86px; }
+.oc-row:has(.q-due-edit) { grid-template-columns: 26px minmax(0, 1fr) 112px 150px 86px 28px; }
 @media (max-width: 640px) {
-  .oc-row:has(.q-due-edit) { grid-template-columns: 24px minmax(0, 1fr) 150px; }
+  .oc-row:has(.q-due-edit) { grid-template-columns: 24px minmax(0, 1fr) 150px 28px; }
   .lg-table td.lg-c-due { overflow: visible; }
   .lg-c-due .q-due-edit { position: absolute; right: 8px; margin-top: -12px; }
   .lg-table td.lg-c-due { position: relative; }
 }
+
+/* Row delete (section ledger + All Tasks): faint until the row is hovered */
+.row-delete { width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; border: none; background: none; border-radius: 8px; color: var(--text-faint); cursor: pointer; opacity: 0.35; transition: opacity 0.12s, background 0.12s, color 0.12s; }
+.oc-row:hover .row-delete, tr:hover .row-delete, .row-delete:focus-visible { opacity: 1; }
+.row-delete:hover { color: var(--danger); background: var(--danger-light); }
+@media (hover: none) { .row-delete { opacity: 0.8; } }
+.lg-c-del { width: 40px; }
+.lg-table td.lg-c-del { padding: 0 6px 0 0; text-align: right; }

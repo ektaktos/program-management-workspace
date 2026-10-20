@@ -43,10 +43,11 @@ interface SectionsTabProps {
 }
 
 export default function SectionsTab({ projectId, highlightedTaskId }: SectionsTabProps) {
-  const { phases, tasks, projects, deletePhase, toggleTaskDone, updateTask, archivedTaskIds } = useAppStore();
+  const { phases, tasks, projects, deletePhase, deleteTask, toggleTaskDone, updateTask, archivedTaskIds } = useAppStore();
   const [showAddSection, setShowAddSection] = useState(false);
   const [editing, setEditing] = useState<Phase | null>(null);
   const [confirming, setConfirming] = useState<string | null>(null);
+  const [deletingTask, setDeletingTask] = useState<Task | null>(null);
   const [addingTask, setAddingTask] = useState<{ phaseId?: string } | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [filter, setFilter] = useState<TaskStatus | 'all'>('all');
@@ -169,6 +170,7 @@ export default function SectionsTab({ projectId, highlightedTaskId }: SectionsTa
               <span role="columnheader" className="oc-col-status">Status</span>
               <span role="columnheader">Due</span>
               <span role="columnheader" className="oc-col-pri">Priority</span>
+              <span role="columnheader" aria-label="Delete" />
             </div>
             {shown.length === 0 && (
               <div className="oc-row oc-row-empty">
@@ -225,6 +227,12 @@ export default function SectionsTab({ projectId, highlightedTaskId }: SectionsTa
                     <span role="cell" className="oc-col-status"><StatusSelect task={t} /></span>
                     <span role="cell" className="oc-due"><DueEdit task={t} /></span>
                     <span role="cell" className="oc-col-pri"><PrioritySelect task={t} /></span>
+                    <span role="cell">
+                      <button type="button" className="row-delete" title="Delete task" aria-label={`Delete "${t.title}"`}
+                        onClick={e => { e.stopPropagation(); setDeletingTask(t); }}>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+                      </button>
+                    </span>
                   </div>
                   {subsOpen && subs.length > 0 && (
                     <div className="oc-subs">
@@ -447,6 +455,13 @@ export default function SectionsTab({ projectId, highlightedTaskId }: SectionsTa
           defaultProjectId={projectId}
           defaultPhaseId={addingTask.phaseId}
           onClose={() => setAddingTask(null)}
+        />
+      )}
+      {deletingTask && (
+        <ConfirmModal
+          message={`Delete "${deletingTask.title}"? This can't be undone.`}
+          onConfirm={() => { deleteTask(deletingTask.id); setDeletingTask(null); }}
+          onCancel={() => setDeletingTask(null)}
         />
       )}
       {confirming && (
