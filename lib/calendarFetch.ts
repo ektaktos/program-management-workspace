@@ -2,6 +2,7 @@
 import { isCalendarText } from './ics';
 
 const CACHE_TTL_MS = 10 * 60 * 1000;
+const FRESH_MIN_GAP_MS = 20 * 1000;
 const MAX_BYTES = 5 * 1024 * 1024;
 const cache = new Map<string, { text: string; at: number }>();
 
@@ -25,6 +26,9 @@ export function normalizeCalendarUrl(input: string): string | null {
 export async function fetchCalendarText(url: string, { fresh = false } = {}): Promise<string> {
   const hit = cache.get(url);
   if (!fresh && hit && Date.now() - hit.at < CACHE_TTL_MS) return hit.text;
+  // Even a forced refresh reuses a copy fetched in the last 20 seconds, so repeated clicks
+  // don't hammer the calendar provider (which may throttle the link)
+  if (fresh && hit && Date.now() - hit.at < FRESH_MIN_GAP_MS) return hit.text;
 
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 12_000);

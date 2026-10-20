@@ -12,6 +12,7 @@ const ISO = /^\d{4}-\d{2}-\d{2}$/;
 export async function GET(req: NextRequest) {
   const from = req.nextUrl.searchParams.get('from') ?? '';
   const to = req.nextUrl.searchParams.get('to') ?? '';
+  const fresh = req.nextUrl.searchParams.get('fresh') === '1';   // "Refresh now": skip the 10-minute copy
   if (!ISO.test(from) || !ISO.test(to)) return NextResponse.json({ error: 'from and to must be YYYY-MM-DD' }, { status: 400 });
   const fromMs = Date.parse(from + 'T00:00:00Z') - 864e5;
   const toMs = Date.parse(to + 'T00:00:00Z') + 2 * 864e5;
@@ -21,7 +22,7 @@ export async function GET(req: NextRequest) {
   const errors: { sourceId: string; message: string }[] = [];
   const results = await Promise.all(sources.map(async s => {
     try {
-      const text = await fetchCalendarText(s.url);
+      const text = await fetchCalendarText(s.url, { fresh });
       return occurrencesInRange(text, fromMs, toMs).map(o => ({
         id: `${s.id}:${o.uid}:${o.startMs}`,
         sourceId: s.id,

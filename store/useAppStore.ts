@@ -268,8 +268,8 @@ interface Store extends AppState, UIState, PlannerState {
   calendarWindow:  { from: string; to: string } | null;
   calendarsOpen:   boolean;
   setCalendarsOpen: (open: boolean) => void;
-  ensureCalendarRange: (from: string, to: string) => Promise<void>;
-  refreshCalendars:    () => Promise<void>;
+  ensureCalendarRange: (from: string, to: string, fresh?: boolean) => Promise<void>;
+  refreshCalendars:    (opts?: { fresh?: boolean }) => Promise<void>;
   addCalendarSource:    (c: { name: string; url: string; color: string }) => Promise<string | null>;
   updateCalendarSource: (id: string, patch: Partial<Omit<CalendarSource, 'id'>>) => Promise<string | null>;
   deleteCalendarSource: (id: string) => Promise<void>;
@@ -901,10 +901,10 @@ export const useAppStore = create<Store>((set, get) => ({
   // ── Subscribed calendars ──
   setCalendarsOpen: (open) => set({ calendarsOpen: open }),
 
-  ensureCalendarRange: async (from, to) => {
+  ensureCalendarRange: async (from, to, fresh = false) => {
     const { calendarWindow, calendarSources } = get();
     if (!calendarSources.some(c => c.enabled)) { set({ calendarEvents: [], calendarErrors: {} }); return; }
-    if (calendarWindow && calendarWindow.from <= from && calendarWindow.to >= to) return;
+    if (!fresh && calendarWindow && calendarWindow.from <= from && calendarWindow.to >= to) return;
     // Fetch a window that also covers today (±1 week) when it's close by, so Today and the planner share one load
     const t = todayIso();
     let wFrom = from, wTo = to;
@@ -912,7 +912,7 @@ export const useAppStore = create<Store>((set, get) => ({
     if (wTo < addDaysIso(t, 7) && wTo >= addDaysIso(t, -35)) wTo = addDaysIso(t, 7);
     set({ calendarWindow: { from: wFrom, to: wTo } });
     try {
-      const res = await api(`/api/calendars/events?from=${wFrom}&to=${wTo}`) as { events: CalendarEvent[]; errors: { sourceId: string; message: string }[] };
+      const res = await api(`/api/calendars/events?from=${wFrom}&to=${wTo}${fresh ? '&fresh=1' : ''}`) as { events: CalendarEvent[]; errors: { sourceId: string; message: string }[] };
       // Ignore a stale response if the window moved while loading
       const w = get().calendarWindow;
       if (!w || w.from !== wFrom || w.to !== wTo) return;
@@ -925,11 +925,13 @@ export const useAppStore = create<Store>((set, get) => ({
     }
   },
 
-  refreshCalendars: async () => {
+  // fresh: ask the server to download each feed again instead of using its 10-minute copy
+  refreshCalendars: async ({ fresh = false } = {}) => {
     const w = get().calendarWindow;
     set({ calendarWindow: null });
     const t = todayIso();
-    await get().ensureCalendarRange(w?.from ?? t, w?.to ?? t);
+    if (fresh) reminderFetchedAt = 0;   // reminders pick up the new events on the next check
+    await get().ensureCalendarRange(w?.from ?? t, w?.to ?? t, fresh);
   },
 
   addCalendarSource: async ({ name, url, color }) => {

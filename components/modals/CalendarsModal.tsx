@@ -109,6 +109,8 @@ export default function CalendarsModal() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showHelp, setShowHelp] = useState(calendarSources.length === 0);
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshedAt, setRefreshedAt] = useState<number | null>(null);
 
   useEscape(() => setCalendarsOpen(false), calendarsOpen);
 
@@ -138,10 +140,26 @@ export default function CalendarsModal() {
         {calendarSources.length > 0 && (
           <div style={{ marginBottom: 18 }}>
             {calendarSources.map(src => <SourceRow key={src.id} src={src} />)}
-            <button className="btn btn-ghost btn-sm" style={{ fontSize: 12, marginTop: 6 }} onClick={() => refreshCalendars()}>
+            <button
+              className="btn btn-ghost btn-sm"
+              style={{ fontSize: 12, marginTop: 6 }}
+              disabled={refreshing}
+              title="Download every calendar again now"
+              onClick={async () => {
+                setRefreshing(true);
+                await refreshCalendars({ fresh: true });
+                setRefreshing(false);
+                setRefreshedAt(Date.now());
+              }}
+            >
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
-              Refresh now
+              {refreshing ? 'Refreshing…' : 'Refresh now'}
             </button>
+            {refreshedAt && !refreshing && (
+              <span style={{ fontSize: 11.5, color: 'var(--text-muted)', marginLeft: 6 }}>
+                Updated {new Date(refreshedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+              </span>
+            )}
           </div>
         )}
 
