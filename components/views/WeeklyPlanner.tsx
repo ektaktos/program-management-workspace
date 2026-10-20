@@ -177,6 +177,7 @@ interface ApptModalProps {
 
 const ALERT_OPTIONS = [
   { label: 'No alert',      value: -1 },
+  { label: 'At start time', value: 0 },
   { label: '5 min before',  value: 5 },
   { label: '10 min before', value: 10 },
   { label: '15 min before', value: 15 },

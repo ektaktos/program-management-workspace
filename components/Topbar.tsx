@@ -5,6 +5,7 @@ import { useAppStore } from '@/store/useAppStore';
 import ProjectModal from './modals/ProjectModal';
 import ConfirmModal from './modals/ConfirmModal';
 import ThemePicker from './ThemePicker';
+import NotificationCenter from './NotificationCenter';
 
 const VIEW_META: Record<string, { title: string; subtitle: string }> = {
   dashboard: { title: 'Dashboard',         subtitle: 'A gentle overview of everything' },
@@ -17,7 +18,7 @@ const VIEW_META: Record<string, { title: string; subtitle: string }> = {
 };
 
 export default function Topbar() {
-  const { currentView, activeProjectId, projects, toasts, sidebarOpen, setSidebarOpen, setView, deleteProject, setPlannerModalTrigger, setQuickAddOpen } = useAppStore();
+  const { currentView, activeProjectId, projects, sidebarOpen, setSidebarOpen, setView, deleteProject, setPlannerModalTrigger, setQuickAddOpen } = useAppStore();
   const [editProject, setEditProject] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -131,23 +132,7 @@ export default function Topbar() {
 
           <ThemePicker />
 
-          {/* Bell */}
-          <button className="bell-btn" title="Alert status">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
-              <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-              <path d="M13.73 21a2 2 0 01-3.46 0"/>
-            </svg>
-            {toasts.length > 0 && (
-              <span style={{
-                position: 'absolute', top: -2, right: -2,
-                minWidth: 18, height: 18, padding: '0 4px',
-                background: 'var(--danger)', borderRadius: 999,
-                fontSize: 10, color: '#fff',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontWeight: 700, border: '2px solid var(--bg)',
-              }}>{toasts.length}</span>
-            )}
-          </button>
+          <NotificationCenter />
         </div>
       </header>
 

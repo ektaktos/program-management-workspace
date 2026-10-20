@@ -35,3 +35,14 @@ self.addEventListener('fetch', (event) => {
     );
   }
 });
+
+// Clicking a reminder pop-up brings the workspace back to the front (or opens it)
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((wins) => {
+      const win = wins.find((w) => new URL(w.url).origin === self.location.origin);
+      return win ? win.focus() : self.clients.openWindow('/');
+    })
+  );
+});

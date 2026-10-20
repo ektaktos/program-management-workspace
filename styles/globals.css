@@ -1248,3 +1248,61 @@ button.pday-appts-label:focus-visible { outline: 2px solid var(--primary-dark); 
 .bc-pop-meta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); font-size: 11.5px; color: var(--text-muted); }
 @media (max-width: 640px) { .bc-book { width: 52px; } .bc-books { gap: 9px; } }
 @media (prefers-reduced-motion: reduce) { .bc-book { transition: none; } .bc-pop { animation: none; } }
+
+/* ── Notifications: bell, centre, toasts ── */
+.bell-badge { position: absolute; top: -3px; right: -3px; min-width: 18px; height: 18px; padding: 0 4px; background: var(--danger); border-radius: 999px; font-size: 10px; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; border: 2px solid var(--bg); box-sizing: content-box; }
+.notif-popover { position: absolute; top: calc(100% + 8px); right: 0; z-index: 120; width: 360px; max-width: calc(100vw - 24px); max-height: min(78vh, 620px); display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-lg); overflow: hidden; }
+.notif-head { padding: 8px 8px 0; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.notif-tabs { display: flex; gap: 2px; }
+.notif-tabs button { border: none; background: transparent; font-family: inherit; font-size: 12.5px; font-weight: 500; color: var(--text-muted); padding: 8px 10px 9px; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.notif-tabs button.on { color: var(--text); border-bottom-color: var(--primary-dark); }
+.notif-list { overflow-y: auto; flex: 1 1 auto; padding: 4px 6px 6px; }
+.notif-day { font-size: 10.5px; font-weight: 600; letter-spacing: 0.7px; text-transform: uppercase; color: var(--text-faint); padding: 10px 8px 4px; }
+.notif-row { display: flex; align-items: flex-start; gap: 10px; width: 100%; padding: 9px 8px; border: none; background: transparent; border-radius: 10px; cursor: pointer; font-family: inherit; color: var(--text); }
+.notif-row:hover { background: var(--accent-soft); }
+.notif-row.unread { background: var(--accent-softer); }
+.notif-row.unread:hover { background: var(--accent-soft); }
+.notif-row-title { display: block; font-size: 12.5px; font-weight: 600; }
+.notif-row:not(.unread) .notif-row-title { font-weight: 500; color: var(--text-muted); }
+.notif-row-msg { display: block; font-size: 12.5px; color: var(--text); margin-top: 1px; line-height: 1.4; overflow-wrap: anywhere; }
+.notif-row:not(.unread) .notif-row-msg { color: var(--text-muted); }
+.notif-row-time { display: block; font-size: 11px; color: var(--text-faint); margin-top: 3px; }
+.notif-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary-dark); flex-shrink: 0; margin-top: 6px; }
+.notif-empty { padding: 28px 22px 30px; text-align: center; font-size: 12.5px; color: var(--text-muted); line-height: 1.55; }
+.notif-foot { display: flex; justify-content: flex-end; align-items: center; gap: 4px; padding: 8px 10px; border-top: 1px solid var(--border); flex-shrink: 0; }
+.notif-settings { overflow-y: auto; flex: 1 1 auto; }
+.notif-settings .notif-foot { position: sticky; bottom: 0; background: var(--surface); }
+.notif-set-head { font-size: 10.5px; font-weight: 600; letter-spacing: 0.7px; text-transform: uppercase; color: var(--text-faint); padding: 14px 14px 4px; }
+.notif-set-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 7px 14px; font-size: 13px; color: var(--text); }
+.notif-set-row > span:first-child { min-width: 0; }
+.notif-set-row small { display: block; font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+.notif-select { width: auto; padding: 4px 6px; font-size: 12px; border-radius: 8px; }
+.notif-sounds { display: flex; flex-wrap: wrap; gap: 6px; padding: 2px 14px 6px; }
+.notif-sounds.off { opacity: 0.5; }
+.notif-sound { border: 1px solid var(--border); background: var(--surface); color: var(--text); font-family: inherit; font-size: 12px; padding: 5px 10px; border-radius: 999px; cursor: pointer; }
+.notif-sound:hover:not(:disabled) { border-color: var(--primary); }
+.notif-sound.on { background: var(--primary-light); border-color: var(--primary-dark); font-weight: 500; }
+.notif-sound:disabled { cursor: default; }
+.notif-volume { width: 150px; accent-color: var(--primary-dark); padding: 0; border: none; background: transparent; }
+
+.notif-icon { width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; background: var(--chip); color: var(--text-muted); }
+.notif-icon svg { width: 14px; height: 14px; }
+.notif-icon-task { background: color-mix(in srgb, var(--warning) 20%, var(--surface)); color: var(--warning-text); }
+.notif-icon-meeting { background: color-mix(in srgb, var(--meeting) 24%, var(--surface)); color: var(--meeting-text); }
+.notif-icon-calendar { background: color-mix(in srgb, var(--primary) 24%, var(--surface)); color: var(--primary-dark); }
+.notif-icon-digest { background: color-mix(in srgb, var(--success) 20%, var(--surface)); color: var(--success-text); }
+
+.toast-stack { position: fixed; bottom: 22px; right: 22px; z-index: 2000; display: flex; flex-direction: column; gap: 10px; max-width: calc(100vw - 32px); }
+.toast { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-md); padding: 12px 12px 12px 14px; display: flex; align-items: flex-start; gap: 12px; width: 340px; max-width: 100%; box-sizing: border-box; }
+.toast-alert { border-left: 3px solid var(--primary-dark); }
+.toast-task.toast-alert { border-left-color: var(--warning); }
+.toast-meeting.toast-alert { border-left-color: var(--meeting); }
+.toast-digest.toast-alert { border-left-color: var(--success); }
+.toast-title { font-weight: 600; font-size: 13px; color: var(--text); margin-bottom: 2px; }
+.toast-msg { font-size: 12.5px; color: var(--text-muted); line-height: 1.45; overflow-wrap: anywhere; }
+.toast-actions { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+.toast-actions .btn-sm { padding: 3px 10px; font-size: 12px; }
+@media (max-width: 640px) {
+  .toast-stack { right: 16px; left: 16px; bottom: 16px; }
+  .toast { width: 100%; }
+}

@@ -16,6 +16,7 @@ import ToastContainer from '@/components/ui/Toast';
 import PWAInit from '@/components/PWAInit';
 import QuickAdd from '@/components/QuickAdd';
 import CalendarsModal from '@/components/modals/CalendarsModal';
+import { unlockAudio } from '@/lib/notifications';
 
 export default function Home() {
   const currentView    = useAppStore(s => s.currentView);
@@ -34,11 +35,22 @@ export default function Home() {
       interval = setInterval(() => {
         runAutoOverdue();
         runAlertCheck();
-      }, 60_000);
+      }, 30_000);
       // Subscribed calendars: pick up new or moved events while the app stays open
       calInterval = setInterval(() => { refreshCalendars(); }, 10 * 60_000);
     });
-    return () => { clearInterval(interval); clearInterval(calInterval); };
+    // Coming back to the tab: check straight away rather than waiting for the next tick
+    const onVisible = () => { if (document.visibilityState === 'visible' && useAppStore.getState().isLoaded) runAlertCheck(); };
+    document.addEventListener('visibilitychange', onVisible);
+    // Sound needs a first interaction before the browser lets it play
+    const unlock = () => { unlockAudio(); window.removeEventListener('pointerdown', unlock); window.removeEventListener('keydown', unlock); };
+    window.addEventListener('pointerdown', unlock);
+    window.addEventListener('keydown', unlock);
+    return () => {
+      clearInterval(interval); clearInterval(calInterval);
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('pointerdown', unlock); window.removeEventListener('keydown', unlock);
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

@@ -5,6 +5,7 @@ import { AppState, Project, Task, Milestone, Phase, Note, Todo, PlannerEvent, Pl
 import { uid, autoMarkOverdue, addDaysIso, todayIso } from '@/lib/utils';
 import { DAILY_CAPACITY_MIN } from '@/lib/constants';
 import { DEFAULT_THEME, applyTheme, isThemeId } from '@/lib/themes';
+import { NotifItem, NotifKind, NotifPrefs, NotifTarget, DEFAULT_NOTIF_PREFS, normalizeNotifPrefs, inQuietHours, playSound } from '@/lib/notifications';
 
 const NOTIFIED_KEY  = 'pm_oyint_notified';
 const PLANNER_KEY   = 'pm_oyint_planner';
@@ -12,6 +13,11 @@ const ARCHIVED_KEY  = 'pm_oyint_archived';
 const ORDER_KEY     = 'pm_oyint_proj_order';
 const AREA_KEY      = 'pm_oyint_area_filter';
 const CAPACITY_KEY  = 'pm_oyint_daily_capacity'; // legacy per-browser value, migrated to the DB on load
+const NOTIFS_KEY    = 'pm_oyint_notifications';  // notification history (per device)
+const SNOOZE_KEY    = 'pm_oyint_snoozed';
+const DIGEST_KEY    = 'pm_oyint_digest_day';
+const NOTIFS_MAX    = 100;
+const NOTIFIED_MAX  = 400;
 
 function loadNotified(): string[] {
   if (typeof window === 'undefined') return [];
@@ -19,16 +25,53 @@ function loadNotified(): string[] {
 }
 function saveNotified(ids: string[]) {
   if (typeof window === 'undefined') return;
-  localStorage.setItem(NOTIFIED_KEY, JSON.stringify(ids));
+  try { localStorage.setItem(NOTIFIED_KEY, JSON.stringify(ids.slice(-NOTIFIED_MAX))); } catch {}
 }
 
-function showOSNotification(title: string, body: string) {
+function loadJson<T>(key: string, fallback: T): T {
+  if (typeof window === 'undefined') return fallback;
+  try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) as T : fallback; } catch { return fallback; }
+}
+function saveJson(key: string, value: unknown) {
+  if (typeof window === 'undefined') return;
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
+}
+
+interface Snoozed { due: number; item: Omit<NotifItem, 'id' | 'at' | 'read'> }
+
+// System pop-up, only when the workspace isn't in front (the in-app toast covers that case).
+// Goes through the service worker where possible so a click can bring the tab back.
+function showOSNotification(title: string, body: string, tag: string) {
   if (typeof window === 'undefined' || !('Notification' in window)) return;
   if (Notification.permission !== 'granted') return;
-  try {
-    new Notification(title, { body, icon: '/icons/icon-192.png', badge: '/icons/icon-192.png' });
-  } catch (_) {}
+  if (document.visibilityState === 'visible' && document.hasFocus()) return;
+  const opts: NotificationOptions = { body, tag, icon: '/icons/icon-192.png', badge: '/icons/icon-192.png' };
+  const fallback = () => {
+    try { const n = new Notification(title, opts); n.onclick = () => { window.focus(); n.close(); }; } catch {}
+  };
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistration().then(reg => (reg ? reg.showNotification(title, opts) : fallback())).catch(fallback);
+  } else fallback();
 }
+
+function fmtClock(hm: string): string {
+  const [h, m] = hm.split(':').map(Number);
+  return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`;
+}
+
+function leadLabel(mins: number): string {
+  if (mins <= 0) return 'now';
+  if (mins < 60) return `in ${mins} min`;
+  if (mins < 1440) { const h = Math.round(mins / 60); return `in ${h} hr`; }
+  const d = Math.round(mins / 1440);
+  return d === 1 ? 'tomorrow' : `in ${d} days`;
+}
+
+// Today's calendar events for reminders: a small separate load so they keep working
+// whatever week the planner happens to be showing.
+let reminderEvents: CalendarEvent[] = [];
+let reminderFetchedAt = 0;
+let reminderFetching = false;
 
 function loadArchived(): { projectIds: string[]; taskIds: string[] } {
   if (typeof window === 'undefined') return { projectIds: [], taskIds: [] };
@@ -99,6 +142,8 @@ export interface Toast {
   title: string;
   message: string;
   type?: 'info' | 'alert';
+  kind?: NotifKind;
+  notifId?: string;      // history entry this toast belongs to (enables Open / Snooze)
 }
 
 interface UIState {
@@ -153,6 +198,17 @@ interface Store extends AppState, UIState, PlannerState {
   removeToast:  (id: string)           => void;
   runAlertCheck:  () => void;
   runAutoOverdue: () => Promise<void>;
+
+  // ── Notifications ──
+  notifications:  NotifItem[];
+  notifPrefs:     NotifPrefs;
+  setNotifPrefs:  (patch: Partial<NotifPrefs>) => void;
+  notify:         (n: { kind: NotifKind; title: string; message: string; target?: NotifTarget }) => void;
+  openNotification: (id: string) => void;
+  markNotifRead:  (id: string) => void;
+  markAllNotifsRead: () => void;
+  clearNotifications: () => void;
+  snoozeNotification: (id: string, minutes: number) => void;
 
   addTodo: (text: string) => void;
   updateTodo: (id: string, text: string) => void;
@@ -245,6 +301,9 @@ export const useAppStore = create<Store>((set, get) => ({
   toasts:          [],
   sidebarOpen:     true,
 
+  notifications:   [],
+  notifPrefs:      DEFAULT_NOTIF_PREFS,
+
   // ── Archive ──
   archivedProjectIds: [],
   archivedTaskIds:    [],
@@ -296,6 +355,9 @@ export const useAppStore = create<Store>((set, get) => ({
         try { cached = localStorage.getItem('pm_oyint_theme') ?? ''; } catch {}
         if (isThemeId(cached)) set({ theme: cached });
       }
+
+      if (settingsRes?.notifPrefs) set({ notifPrefs: normalizeNotifPrefs(settingsRes.notifPrefs) });
+      set({ notifications: loadJson<NotifItem[]>(NOTIFS_KEY, []).slice(0, NOTIFS_MAX) });
 
       if (Array.isArray(settingsRes?.navOrder)) {
         set({ navOrder: (settingsRes!.navOrder as unknown[]).filter((x): x is string => typeof x === 'string') });
@@ -583,8 +645,8 @@ export const useAppStore = create<Store>((set, get) => ({
   // ── Toasts ──
   addToast: (t) => {
     const toast: Toast = { ...t, id: uid() };
-    set(s => ({ toasts: [...s.toasts, toast] }));
-    setTimeout(() => get().removeToast(toast.id), 6000);
+    set(s => ({ toasts: [...s.toasts, toast].slice(-4) }));
+    setTimeout(() => get().removeToast(toast.id), t.type === 'alert' ? 15000 : 6000);
   },
   removeToast: (id) => set(s => ({ toasts: s.toasts.filter(t => t.id !== id) })),
 
@@ -604,75 +666,184 @@ export const useAppStore = create<Store>((set, get) => ({
     }
   },
 
-  // ── Alert check (localStorage-backed notifiedAlerts) ──
-  runAlertCheck: () => {
-    const { tasks, plannerAppointments, notifiedAlerts, addToast } = get();
-    const now = new Date();
-    const newNotified = [...notifiedAlerts];
+  // ── Notifications ──
+  notify: ({ kind, title, message, target }) => {
+    const { notifPrefs: p, addToast } = get();
+    const item: NotifItem = { id: uid(), kind, title, message, at: Date.now(), read: false, target };
+    const notifications = [item, ...get().notifications].slice(0, NOTIFS_MAX);
+    set({ notifications });
+    saveJson(NOTIFS_KEY, notifications);
+    addToast({ title, message, type: 'alert', kind, notifId: item.id });
+    // Quiet hours: still logged and shown in the app, just no sound or system pop-up
+    if (inQuietHours(p)) return;
+    if (p.sound) playSound(p.soundId, p.volume);
+    if (p.desktop) showOSNotification(title, message, item.id);
+  },
 
-    function playAlertTone() {
-      try {
-        const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(880, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.3);
-        gain.gain.setValueAtTime(0.4, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
-        osc.start(ctx.currentTime);
-        osc.stop(ctx.currentTime + 0.5);
-        osc.onended = () => ctx.close();
-      } catch (_) {}
+  openNotification: (id) => {
+    const n = get().notifications.find(x => x.id === id);
+    get().markNotifRead(id);
+    set(s => ({ toasts: s.toasts.filter(t => t.notifId !== id) }));
+    const t = n?.target;
+    if (!t) return;
+    if (t.taskId && t.projectId && get().tasks.some(x => x.id === t.taskId)) get().navigateToTask(t.taskId, t.projectId);
+    else get().setView(t.view, t.projectId);
+  },
+
+  markNotifRead: (id) => {
+    const notifications = get().notifications.map(n => (n.id === id ? { ...n, read: true } : n));
+    set({ notifications });
+    saveJson(NOTIFS_KEY, notifications);
+  },
+
+  markAllNotifsRead: () => {
+    const notifications = get().notifications.map(n => (n.read ? n : { ...n, read: true }));
+    set({ notifications });
+    saveJson(NOTIFS_KEY, notifications);
+  },
+
+  clearNotifications: () => {
+    set({ notifications: [] });
+    saveJson(NOTIFS_KEY, []);
+  },
+
+  snoozeNotification: (id, minutes) => {
+    const n = get().notifications.find(x => x.id === id);
+    if (!n) return;
+    const snoozed = loadJson<Snoozed[]>(SNOOZE_KEY, []);
+    snoozed.push({ due: Date.now() + minutes * 60_000, item: { kind: n.kind, title: n.title, message: n.message, target: n.target } });
+    saveJson(SNOOZE_KEY, snoozed);
+    get().markNotifRead(id);
+    set(s => ({ toasts: s.toasts.filter(t => t.notifId !== id) }));
+    get().addToast({ title: 'Snoozed', message: `We'll remind you again in ${minutes < 60 ? `${minutes} min` : `${minutes / 60} hr`}.`, type: 'info' });
+  },
+
+  setNotifPrefs: (patch) => {
+    const notifPrefs = normalizeNotifPrefs({ ...get().notifPrefs, ...patch });
+    set({ notifPrefs });
+    api('/api/settings/notifPrefs', 'PUT', { value: notifPrefs }).catch(console.error);
+  },
+
+  // ── Alert check: runs every 30s; fired ids are remembered per device ──
+  runAlertCheck: () => {
+    const { tasks, projects, plannerAppointments, notifiedAlerts, notifPrefs: p, archivedTaskIds, archivedProjectIds, notify } = get();
+    const now = Date.now();
+    const today = todayIso();
+    const tomorrow = addDaysIso(today, 1);
+    const fired = new Set(notifiedAlerts);
+    let changed = false;
+    const mark = (id: string) => { fired.add(id); changed = true; };
+
+    // Snoozed reminders coming back
+    const snoozed = loadJson<Snoozed[]>(SNOOZE_KEY, []);
+    if (snoozed.length) {
+      const due = snoozed.filter(x => x.due <= now);
+      if (due.length) {
+        saveJson(SNOOZE_KEY, snoozed.filter(x => x.due > now));
+        due.forEach(x => notify({ ...x.item, title: `${x.item.title} (snoozed)` }));
+      }
     }
 
     // Task alerts
+    const liveProjects = new Set(projects.filter(pr => !archivedProjectIds.includes(pr.id)).map(pr => pr.id));
     tasks.forEach(t => {
       if (!t.due || t.status === 'done' || !t.alerts?.length) return;
-      const due = t.dueTime
-        ? new Date(`${t.due}T${t.dueTime}`)
-        : new Date(`${t.due}T23:59:59`);
-
-      t.alerts!.forEach((alert, i) => {
-        const alertId = `${t.id}_${i}`;
-        if (newNotified.includes(alertId)) return;
-        const ms =
-          alert.unit === 'minutes' ? alert.value * 60_000 :
-          alert.unit === 'hours'   ? alert.value * 3_600_000 :
-                                     alert.value * 86_400_000;
-        if (now >= new Date(due.getTime() - ms)) {
-          addToast({ title: 'Task reminder', message: `"${t.title}" is due soon`, type: 'alert' });
-          showOSNotification('Task reminder', `"${t.title}" is due soon`);
-          newNotified.push(alertId);
-          playAlertTone();
-        }
+      if (archivedTaskIds.includes(t.id) || !liveProjects.has(t.projectId)) return;
+      const dueAt = new Date(t.dueTime ? `${t.due}T${t.dueTime}` : `${t.due}T23:59:59`).getTime();
+      (t.alerts ?? []).forEach((alert, i) => {
+        // Keyed on the due date/time too, so rescheduling re-arms the alert (older ids had no suffix)
+        const alertId = `${t.id}_${i}_${t.due}${t.dueTime ?? ''}`;
+        if (fired.has(alertId) || fired.has(`${t.id}_${i}`)) return;
+        const ms = alert.unit === 'minutes' ? alert.value * 60_000 : alert.unit === 'hours' ? alert.value * 3_600_000 : alert.value * 86_400_000;
+        if (now < dueAt - ms) return;
+        mark(alertId);
+        // Long past (e.g. first visit on a new device): remember it quietly instead of a burst of old alerts
+        if (now > dueAt + 12 * 3_600_000) return;
+        if (!p.taskAlerts) return;
+        const day = t.due === today ? 'today' : t.due === tomorrow ? 'tomorrow' : `on ${new Date(t.due + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}`;
+        const when = now > dueAt ? 'is now overdue' : t.dueTime ? `is due ${day} at ${fmtClock(t.dueTime)}` : `is due ${day}`;
+        notify({ kind: 'task', title: 'Task reminder', message: `"${t.title}" ${when}`, target: { view: 'project', projectId: t.projectId, taskId: t.id } });
       });
     });
 
-    // Meeting alerts
+    // Planner meeting alerts
     plannerAppointments.forEach(a => {
-      if (!a.alertMinutes || a.alertMinutes < 0 || a.done) return;
-      const alertId = `appt_${a.id}`;
-      if (newNotified.includes(alertId)) return;
-      const meetingTime = new Date(`${a.date}T${a.time}`);
-      if (now >= new Date(meetingTime.getTime() - a.alertMinutes * 60_000)) {
-        const label = a.alertMinutes < 60
-          ? `${a.alertMinutes} min`
-          : a.alertMinutes < 1440
-            ? `${a.alertMinutes / 60} hr`
-            : '1 day';
-        addToast({ title: 'Meeting reminder', message: `"${a.title}" starts in ${label}`, type: 'alert' });
-        showOSNotification('Meeting reminder', `"${a.title}" starts in ${label}`);
-        newNotified.push(alertId);
-        playAlertTone();
-      }
+      if (a.alertMinutes == null || a.alertMinutes < 0 || a.done || !a.time) return;
+      const alertId = `appt_${a.id}_${a.date}T${a.time}_${a.alertMinutes}`;
+      if (fired.has(alertId) || fired.has(`appt_${a.id}`)) return;
+      const startAt = new Date(`${a.date}T${a.time}`).getTime();
+      if (now < startAt - a.alertMinutes * 60_000) return;
+      mark(alertId);
+      if (now > startAt + 15 * 60_000 || !p.meetingAlerts) return;
+      const mins = Math.round((startAt - now) / 60_000);
+      notify({ kind: 'meeting', title: 'Meeting reminder', message: `"${a.title}" starts ${mins <= 0 ? 'now' : leadLabel(mins)} · ${fmtClock(a.time)}`, target: { view: 'planner' } });
     });
 
-    if (newNotified.length !== notifiedAlerts.length) {
-      set({ notifiedAlerts: newNotified });
-      saveNotified(newNotified);
+    if (changed) {
+      const ids = Array.from(fired).slice(-NOTIFIED_MAX);
+      set({ notifiedAlerts: ids });
+      saveNotified(ids);
+    }
+
+    // Calendar reminders and the daily digest need today's calendar events
+    const afterEvents = () => {
+      const s = get();
+      const fired2 = new Set(s.notifiedAlerts);
+      let changed2 = false;
+      const enabled = new Set(s.calendarSources.filter(c => c.enabled).map(c => c.id));
+      const nameOf = new Map(s.calendarSources.map(c => [c.id, c.name]));
+      const events = reminderEvents.filter(e => enabled.has(e.sourceId));
+
+      if (p.calendarAlerts) {
+        events.forEach(e => {
+          if (e.allDay) return;
+          const startAt = Date.parse(e.start);
+          const alertId = `cal_${e.id}_${e.start}`;
+          if (fired2.has(alertId) || now < startAt - p.calendarLead * 60_000) return;
+          fired2.add(alertId); changed2 = true;
+          if (now > startAt + 5 * 60_000) return;
+          const mins = Math.round((startAt - now) / 60_000);
+          const at = new Date(startAt);
+          const clock = fmtClock(`${String(at.getHours()).padStart(2, '0')}:${String(at.getMinutes()).padStart(2, '0')}`);
+          notify({ kind: 'calendar', title: nameOf.get(e.sourceId) ?? 'Calendar', message: `"${e.title}" starts ${mins <= 0 ? 'now' : leadLabel(mins)} · ${clock}`, target: { view: 'today' } });
+        });
+      }
+
+      // Morning digest, once a day, after the chosen time
+      const nowD = new Date();
+      const hm = `${String(nowD.getHours()).padStart(2, '0')}:${String(nowD.getMinutes()).padStart(2, '0')}`;
+      if (p.digest && hm >= p.digestTime && loadJson<string>(DIGEST_KEY, '') !== today) {
+        saveJson(DIGEST_KEY, today);
+        const open = s.tasks.filter(t => t.status !== 'done' && !s.archivedTaskIds.includes(t.id) && liveProjects.has(t.projectId));
+        const dueToday = open.filter(t => t.due === today).length;
+        const overdue = open.filter(t => t.due && t.due < today).length;
+        const meetings = s.plannerAppointments.filter(a => a.date === today).length
+          + events.filter(e => (e.allDay ? (e.startDate ?? '') <= today && today < (e.endDate ?? '') : isoDate(new Date(e.start)) === today)).length;
+        const parts = [
+          dueToday && `${dueToday} task${dueToday !== 1 ? 's' : ''} due today`,
+          overdue && `${overdue} overdue`,
+          meetings && `${meetings} meeting${meetings !== 1 ? 's' : ''}`,
+        ].filter(Boolean);
+        if (parts.length) notify({ kind: 'digest', title: 'Your day', message: parts.join(' · '), target: { view: 'today' } });
+      }
+
+      if (changed2) {
+        const ids = Array.from(fired2).slice(-NOTIFIED_MAX);
+        set({ notifiedAlerts: ids });
+        saveNotified(ids);
+      }
+    };
+
+    const wantEvents = get().calendarSources.some(c => c.enabled) && (p.calendarAlerts || p.digest);
+    if (wantEvents && now - reminderFetchedAt > 10 * 60_000 && !reminderFetching) {
+      reminderFetching = true;
+      api(`/api/calendars/events?from=${today}&to=${tomorrow}`)
+        .then((res: { events?: CalendarEvent[] }) => { reminderEvents = res.events ?? []; reminderFetchedAt = Date.now(); })
+        .catch(() => { reminderFetchedAt = Date.now() - 8 * 60_000; })   // retry in ~2 min
+        .finally(() => { reminderFetching = false; afterEvents(); });
+    } else if (!reminderFetching) {
+      if (!wantEvents) reminderEvents = [];
+      afterEvents();
     }
   },
 
