@@ -6,8 +6,8 @@ import { fmtDate, sortTasks } from '@/lib/utils';
 import { STATUS_ORDER } from '@/lib/constants';
 import { Phase, Task, TaskStatus } from '@/lib/types';
 import ProgressBar from '../ui/ProgressBar';
-import { TaskChips, taskHasChips } from './TaskCard';
-import { DueEdit, PrioritySelect, StatusSelect } from '../ui/InlineQualifiers';
+import { InlineAssigneeBadge, InlineRecurringBadge } from './TaskCard';
+import { DueEdit, ExtrasToggle, PrioritySelect, StatusSelect, useLedgerExtras } from '../ui/InlineQualifiers';
 import FilterChips from '../ui/FilterChips';
 import PhaseModal from '../modals/PhaseModal';
 import TaskModal from '../modals/TaskModal';
@@ -49,6 +49,7 @@ export default function SectionsTab({ projectId, highlightedTaskId }: SectionsTa
   const [editing, setEditing] = useState<Phase | null>(null);
   const [confirming, setConfirming] = useState<string | null>(null);
   const [deletingTask, setDeletingTask] = useState<Task | null>(null);
+  const [extras, toggleExtras] = useLedgerExtras();
   const [addingTask, setAddingTask] = useState<{ phaseId?: string } | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [filter, setFilter] = useState<TaskStatus | 'all'>('all');
@@ -164,14 +165,16 @@ export default function SectionsTab({ projectId, highlightedTaskId }: SectionsTa
             </div>
           )}
 
-          <div className="oc-ledger" role="table" aria-label={`Tasks in ${sec.name}`}>
+          <div className={`oc-ledger${extras ? ' extras' : ''}`} role="table" aria-label={`Tasks in ${sec.name}`}>
             <div className="oc-row oc-row-head" role="row">
               <span role="columnheader" aria-label="Done" />
               <span role="columnheader">Task</span>
               <span role="columnheader" className="oc-col-status">Status</span>
               <span role="columnheader">Due</span>
               <span role="columnheader" className="oc-col-pri">Priority</span>
-              <span role="columnheader" aria-label="Delete" />
+              {extras && <span role="columnheader" className="oc-col-x">Assignee</span>}
+              {extras && <span role="columnheader" className="oc-col-x">Repeat</span>}
+              <span role="columnheader" className="oc-corner"><ExtrasToggle open={extras} onToggle={toggleExtras} /></span>
             </div>
             {shown.length === 0 && (
               <div className="oc-row oc-row-empty">
@@ -226,11 +229,20 @@ export default function SectionsTab({ projectId, highlightedTaskId }: SectionsTa
                       )}
                       <StatusSelect task={t} className="oc-status-inline" />
                       </span>
-                      {taskHasChips(t) && <TaskChips task={t} />}
                     </span>
                     <span role="cell" className="oc-col-status"><StatusSelect task={t} /></span>
                     <span role="cell" className="oc-due"><DueEdit task={t} /></span>
                     <span role="cell" className="oc-col-pri"><PrioritySelect task={t} /></span>
+                    {extras && (
+                      <span role="cell" className="oc-col-x" onClick={e => e.stopPropagation()}>
+                        {t.assignee ? <InlineAssigneeBadge assignee={t.assignee} onSave={val => updateTask(t.id, { assignee: val })} /> : <span className="x-empty">—</span>}
+                      </span>
+                    )}
+                    {extras && (
+                      <span role="cell" className="oc-col-x" onClick={e => e.stopPropagation()}>
+                        {t.recurring ? <InlineRecurringBadge recurring={t.recurring} onSave={val => updateTask(t.id, { recurring: val })} /> : <span className="x-empty">—</span>}
+                      </span>
+                    )}
                     <span role="cell">
                       <button type="button" className="row-delete" title="Delete task" aria-label={`Delete "${t.title}"`}
                         onClick={e => { e.stopPropagation(); setDeletingTask(t); }}>

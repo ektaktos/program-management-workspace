@@ -1325,7 +1325,7 @@ button.pday-appts-label:focus-visible { outline: 2px solid var(--primary-dark); 
 .oc-bar i { display: block; height: 100%; border-radius: 999px; transition: width 0.4s ease; }
 .oc-notes { font-size: 13px; color: var(--text); line-height: 1.6; margin: 12px 0 0; }
 .oc-ledger { margin-top: 14px; border-top: 1.5px solid var(--meeting); }
-.oc-row { display: grid; grid-template-columns: 26px minmax(0, 1fr) 108px 76px 96px 28px; align-items: center; gap: 8px; min-height: 36px; padding: 0 6px; border-bottom: 1px solid var(--border); font-size: 13.5px; color: var(--text); cursor: pointer; border-radius: 0; }
+.oc-row { display: grid; grid-template-columns: 26px minmax(0, 1fr) 108px 120px 96px 28px; align-items: center; gap: 8px; min-height: 36px; padding: 0 6px; border-bottom: 1px solid var(--border); font-size: 13.5px; color: var(--text); cursor: pointer; border-radius: 0; }
 .oc-row:hover { background: var(--accent-softer); }
 .oc-row-head { min-height: 28px; cursor: default; font-size: 10px; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-faint); }
 .oc-row-head:hover, .oc-row-empty:hover { background: none; }
@@ -1373,7 +1373,7 @@ button.pday-appts-label:focus-visible { outline: 2px solid var(--primary-dark); 
 .lg-table td.lg-c-check { padding-right: 0; }
 .lg-c-project { width: 160px; }
 .lg-c-status { width: 116px; }
-.lg-c-due { width: 84px; font-size: 12px; color: var(--text-muted); }
+.lg-c-due { width: 124px; font-size: 12px; color: var(--text-muted); }
 .lg-table td.lg-c-due.late { color: var(--danger-text); font-weight: 600; }
 .lg-c-pri { width: 96px; font-size: 12px; color: var(--text-muted); }
 .lg-table td.lg-c-pri .today-dot { margin-right: 6px; vertical-align: 1px; }
@@ -1433,9 +1433,10 @@ tr:hover .q-due.empty, .oc-row:hover .q-due.empty, .q-due.empty:focus-visible { 
 /* The date editor needs more room than the Due column gives it */
 .lg-table td.lg-c-due, .oc-due { overflow: visible; }
 .q-due-edit { position: relative; z-index: 5; }
-.oc-row:has(.q-due-edit) { grid-template-columns: 26px minmax(0, 1fr) 108px 150px 96px 28px; }
+.oc-row:has(.q-due-edit) { grid-template-columns: 26px minmax(0, 1fr) 108px 250px 96px 28px; }
 @media (max-width: 640px) {
   .oc-row:has(.q-due-edit) { grid-template-columns: 24px minmax(0, 1fr) 150px 28px; }
+  .oc-row:has(.q-due-edit) .q-due-edit { flex-wrap: wrap; }
   .lg-table td.lg-c-due { overflow: visible; }
   .lg-c-due .q-due-edit { position: absolute; right: 8px; margin-top: -12px; }
   .lg-table td.lg-c-due { position: relative; }
@@ -1476,3 +1477,30 @@ tr:hover .q-due.empty, .oc-row:hover .q-due.empty, .q-due.empty:focus-visible { 
 .dash-note-proj { display: inline-flex; align-items: center; gap: 5px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 @media (prefers-reduced-motion: reduce) { .dash-note { transition: none; } }
 @media (max-width: 420px) { .dash-notes { grid-template-columns: 1fr; } }
+
+/* Due cell: date with its time beside it */
+.q-due-time { margin-left: 6px; padding-left: 6px; border-left: 1px solid var(--border-strong); font-weight: 400; }
+.q-due-edit input[type="time"] { width: 96px; }
+.q-due-edit input:disabled { opacity: 0.45; }
+
+/* Assignee / Repeat columns behind the corner toggle */
+.oc-ledger.extras .oc-row { grid-template-columns: 26px minmax(0, 1fr) 108px 120px 96px 110px 96px 28px; }
+.oc-ledger.extras .oc-row:has(.q-due-edit) { grid-template-columns: 26px minmax(0, 1fr) 108px 250px 96px 110px 96px 28px; }
+.oc-col-x { min-width: 0; font-size: 12px; overflow: visible; }
+.x-empty { color: var(--text-faint); font-size: 12px; }
+.oc-corner { display: flex; justify-content: center; }
+.extras-toggle { width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--border); background: var(--surface); border-radius: 6px; cursor: pointer; color: var(--text-muted); padding: 0; }
+.extras-toggle svg { width: 11px; height: 11px; }
+.extras-toggle:hover, .extras-toggle.open { color: var(--text); border-color: var(--border-strong); background: var(--accent-soft); }
+.lg-c-x { width: 112px; font-size: 12px; }
+.lg-table td.lg-c-x { overflow: visible; }
+.lg-th-plain { display: block; padding: 9px 10px; font-size: 10.5px; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); }
+.lg-table th.lg-c-del { text-align: right; padding-right: 8px; }
+@media (max-width: 640px) {
+  .oc-ledger.extras .oc-row { grid-template-columns: 24px minmax(0, 1fr) 70px 28px; }
+  .oc-ledger.extras .oc-row:has(.q-due-edit) { grid-template-columns: 24px minmax(0, 1fr) 150px 28px; }
+  .oc-col-x, .oc-corner .extras-toggle { display: none; }
+  .oc-row { grid-template-columns: 24px minmax(0, 1fr) 70px 28px; }
+  .q-due-time { display: block; margin: 1px 0 0; padding: 0; border: none; font-size: 11px; }
+}
+@media (max-width: 760px) { .lg-c-x, .lg-c-del .extras-toggle { display: none; } }

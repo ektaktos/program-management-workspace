@@ -6,9 +6,9 @@ import { Task } from '@/lib/types';
 import { sortTasks, projectInArea } from '@/lib/utils';
 import { STATUS_ORDER } from '@/lib/constants';
 import TaskModal from '../modals/TaskModal';
-import { TaskChips, taskHasChips } from '../project/TaskCard';
+import { InlineAssigneeBadge, InlineRecurringBadge } from '../project/TaskCard';
 import ConfirmModal from '../modals/ConfirmModal';
-import { DueEdit, PrioritySelect, StatusSelect } from '../ui/InlineQualifiers';
+import { DueEdit, ExtrasToggle, PrioritySelect, StatusSelect, useLedgerExtras } from '../ui/InlineQualifiers';
 
 type SortKey = 'task' | 'project' | 'status' | 'due' | 'priority';
 const SORT_KEY = 'pm_oyint_tasks_sort';
@@ -19,12 +19,13 @@ const PRI_RANK: Record<string, number> = { high: 0, medium: 1, low: 2 };
 // All Tasks as a ledger: one row per task, sortable columns, tick to complete, click to edit.
 // Done tasks always sink to the bottom so open work stays in view whatever the sort.
 export default function AllTasks() {
-  const { tasks: allTasks, projects, searchQuery, setSearch, archivedTaskIds, archivedProjectIds, areaFilter, toggleTaskDone, deleteTask, setView } = useAppStore();
+  const { tasks: allTasks, projects, searchQuery, setSearch, archivedTaskIds, archivedProjectIds, areaFilter, toggleTaskDone, updateTask, deleteTask, setView } = useAppStore();
   const [statusFilter, setStatusFilter]     = useState('');
   const [priorityFilter, setPriorityFilter] = useState('');
   const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 }>({ key: 'due', dir: 1 });
   const [editing, setEditing] = useState<Task | null>(null);
   const [deleting, setDeleting] = useState<Task | null>(null);
+  const [extras, toggleExtras] = useLedgerExtras();
 
   useEffect(() => {
     try {
@@ -140,7 +141,9 @@ export default function AllTasks() {
                   {th('status', 'Status', 'lg-c-status')}
                   {th('due', 'Due', 'lg-c-due')}
                   {th('priority', 'Priority', 'lg-c-pri')}
-                  <th className="lg-c-del" aria-label="Delete" />
+                  {extras && <th className="lg-c-x"><span className="lg-th-plain">Assignee</span></th>}
+                  {extras && <th className="lg-c-x"><span className="lg-th-plain">Repeat</span></th>}
+                  <th className="lg-c-del"><ExtrasToggle open={extras} onToggle={toggleExtras} /></th>
                 </tr>
               </thead>
               <tbody>
@@ -174,7 +177,6 @@ export default function AllTasks() {
                           {p && <span className="lg-proj-inline"><span className="today-dot" style={{ background: p.color }} />{p.name}</span>}
                         </span>
                         </div>
-                        {taskHasChips(t) && <TaskChips task={t} />}
                         </div>
                       </td>
                       <td className="lg-c-project">
@@ -188,6 +190,16 @@ export default function AllTasks() {
                       <td className="lg-c-status"><StatusSelect task={t} /></td>
                       <td className="lg-c-due"><DueEdit task={t} /></td>
                       <td className="lg-c-pri"><PrioritySelect task={t} /></td>
+                      {extras && (
+                        <td className="lg-c-x" onClick={e => e.stopPropagation()}>
+                          {t.assignee ? <InlineAssigneeBadge assignee={t.assignee} onSave={val => updateTask(t.id, { assignee: val })} /> : <span className="x-empty">—</span>}
+                        </td>
+                      )}
+                      {extras && (
+                        <td className="lg-c-x" onClick={e => e.stopPropagation()}>
+                          {t.recurring ? <InlineRecurringBadge recurring={t.recurring} onSave={val => updateTask(t.id, { recurring: val })} /> : <span className="x-empty">—</span>}
+                        </td>
+                      )}
                       <td className="lg-c-del">
                         <button type="button" className="row-delete" title="Delete task" aria-label={`Delete "${t.title}"`}
                           onClick={e => { e.stopPropagation(); setDeleting(t); }}>

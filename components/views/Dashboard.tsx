@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { useAppStore } from '@/store/useAppStore';
-import { calcProjectProgress, fmtDate, projectInArea } from '@/lib/utils';
+import { calcProjectProgress, projectInArea } from '@/lib/utils';
 import ProgressBar from '../ui/ProgressBar';
 import NoteModal from '../modals/NoteModal';
 import { Note } from '@/lib/types';
@@ -75,8 +75,8 @@ export default function Dashboard() {
   const recentNotes = notes.filter(n => visibleProjectIds.has(n.projectId)).sort((a, b) => b.createdAt - a.createdAt).slice(0, 4);
 
   const statCards = [
-    { label: 'Tasks',      value: totalTasks,        sub: `${doneTasks} completed`,           onClick: () => setView('tasks'), meetings: true },
     { label: 'Completion', value: completionPct,     pct: true, sub: 'across all projects',   onClick: undefined },
+    { label: 'Tasks',      value: totalTasks,        sub: `${doneTasks} completed`,           onClick: () => setView('tasks'), meetings: true },
     { label: 'Projects',   value: projects.length, sub: `${activeProjects.length} active`,   onClick: () => setView('projects') },
     {
       label: 'Overdue', value: overdueTasks,

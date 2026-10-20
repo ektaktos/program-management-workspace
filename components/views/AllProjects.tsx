@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { calcProjectProgress, getOverdueCount, fmtDate, projectInArea } from '@/lib/utils';
 import { PROJECT_STATUS_META } from '@/lib/constants';
-import ProgressBar from '../ui/ProgressBar';
 import ProjectModal from '../modals/ProjectModal';
 import ProjectBookcase from '../ui/ProjectBookcase';
 import { Project } from '@/lib/types';
