@@ -4,6 +4,8 @@ import { useState, useRef } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { calcProjectProgress, fmtDate, projectInArea } from '@/lib/utils';
 import ProgressBar from '../ui/ProgressBar';
+import NoteModal from '../modals/NoteModal';
+import { Note } from '@/lib/types';
 import { useTodayMeetings } from '../ui/TodayMeetings';
 
 function daysLeft(iso: string): string {
@@ -26,6 +28,7 @@ function CheckIcon() {
 export default function Dashboard() {
   const { projects: allProjects, tasks: allTasks, notes, todos, addTodo, updateTodo, toggleTodo, deleteTodo, setView, navigateToTask, archivedProjectIds, archivedTaskIds, areaFilter } = useAppStore();
   const meetingsToday = useTodayMeetings();
+  const [editingNote, setEditingNote] = useState<Note | null>(null);
   const projects = allProjects.filter(p => !archivedProjectIds.includes(p.id) && projectInArea(p, areaFilter));
   const visibleProjectIds = new Set(projects.map(p => p.id));
   const tasks    = allTasks.filter(t => !archivedTaskIds.includes(t.id) && visibleProjectIds.has(t.projectId));
@@ -68,12 +71,13 @@ export default function Dashboard() {
     .sort((a, b) => new Date(a.due!).getTime() - new Date(b.due!).getTime())
     .slice(0, 6);
 
-  const recentNotes = [...notes].sort((a, b) => b.createdAt - a.createdAt).slice(0, 3);
+  // Latest notes from the projects in view (respects the area filter and archive)
+  const recentNotes = notes.filter(n => visibleProjectIds.has(n.projectId)).sort((a, b) => b.createdAt - a.createdAt).slice(0, 4);
 
   const statCards = [
-    { label: 'Projects',   value: projects.length, sub: `${activeProjects.length} active`,   onClick: () => setView('projects') },
     { label: 'Tasks',      value: totalTasks,        sub: `${doneTasks} completed`,           onClick: () => setView('tasks'), meetings: true },
     { label: 'Completion', value: completionPct,     pct: true, sub: 'across all projects',   onClick: undefined },
+    { label: 'Projects',   value: projects.length, sub: `${activeProjects.length} active`,   onClick: () => setView('projects') },
     {
       label: 'Overdue', value: overdueTasks,
       sub: overdueTasks > 0 ? 'needs attention' : 'all on track',
@@ -276,28 +280,39 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Recent notes */}
+          {/* Recent notes, as taped index cards */}
           <div className="card">
-            <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 14, color: 'var(--text)' }}>Recent Notes</div>
+            <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: 'var(--text)' }}>
+              Recent Notes
+              {recentNotes.length > 0 && (
+                <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 500 }}>{recentNotes.length} latest</span>
+              )}
+            </div>
             {recentNotes.length === 0 ? (
-              <div style={{ color: 'var(--text-muted)', fontSize: 13 }}>No notes yet.</div>
+              <div style={{ color: 'var(--text-muted)', fontSize: 13 }}>No notes yet. Add them from a project&rsquo;s Notes tab.</div>
             ) : (
-              recentNotes.map(n => {
-                const proj = projects.find(p => p.id === n.projectId);
-                return (
-                  <div key={n.id} style={{ padding: '11px 0', borderBottom: '1px solid var(--border)' }}>
-                    <div style={{ fontSize: 14, fontWeight: 500 }}>{n.title}</div>
-                    <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 3 }}>
-                      {proj?.name} &middot; {new Date(n.createdAt).toLocaleDateString('en-US')}
-                    </div>
-                  </div>
-                );
-              })
+              <div className="dash-notes">
+                {recentNotes.map(n => {
+                  const proj = projects.find(p => p.id === n.projectId);
+                  return (
+                    <button key={n.id} type="button" className="dash-note" onClick={() => setEditingNote(n)} title="Open note">
+                      <span className="note-tape" aria-hidden />
+                      <span className="dash-note-title">{n.title || 'Untitled note'}</span>
+                      {n.body && <span className="dash-note-body">{n.body}</span>}
+                      <span className="dash-note-foot">
+                        {proj && <span className="dash-note-proj"><span className="today-dot" style={{ background: proj.color, margin: 0 }} />{proj.name}</span>}
+                        <span style={{ flexShrink: 0 }}>{new Date(n.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
             )}
           </div>
 
         </div>
       </div>
+      {editingNote && <NoteModal note={editingNote} onClose={() => setEditingNote(null)} />}
     </div>
   );
 }
