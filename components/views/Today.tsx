@@ -165,9 +165,8 @@ export default function Today() {
         )}
       </div>
 
-      {/* Focus day: schedule (meetings as tickets) beside the day's tasks */}
-      <div className="today-focus-grid">
-        <TodayMeetingsCard date={focus} />
+      {/* Four aligned panels, as sketched: plan | meetings on top, due | to-dos below */}
+      <div className="today-quad">
           <div className="card">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
               <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>{isToday ? 'Today’s plan' : `${focusName}’s plan`}</div>
@@ -216,9 +215,8 @@ export default function Today() {
               <button onClick={addPlanItem}>Add</button>
             </div>
           </div>
-      </div>
+        <TodayMeetingsCard date={focus} />
 
-      <div className="today-grid" style={{ marginTop: 16 }}>
 
           <div className="card">
             <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text)', marginBottom: 4 }}>

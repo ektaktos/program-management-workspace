@@ -146,6 +146,7 @@
   --cat-personal: #b07a8c; --cat-work: #4f9a98; --cat-health: #9aa77a; --cat-social: #d8865f;
   --cat-learning: #d9a54b; --cat-errand: #c49a72; --cat-rest: #a99a8a;
   --highlight-bg: #fbf2e7; --highlight-border: #e4c7a6;
+  --tea-fill: color-mix(in srgb, #c97a58 34%, var(--surface))  /* terracotta */;
 }
 
 /* Sumi — dark ink with warm tan accents */
@@ -195,6 +196,7 @@
   --cat-personal: #c46a4a; --cat-work: #2f8a85; --cat-health: #8aa35a; --cat-social: #e08a5a;
   --cat-learning: #d9a63a; --cat-errand: #a8825a; --cat-rest: #8f9aa0;
   --highlight-bg: #fbf3df; --highlight-border: #e3c98f;
+  --tea-fill: color-mix(in srgb, #e8c76a 55%, var(--surface))  /* mustard */;
 }
 
 /* Lavender Fields — pale lilac, sage-grey and aubergine */
@@ -1217,3 +1219,12 @@ button.pday-appts-label:focus-visible { outline: 2px solid var(--primary-dark); 
 .today-focus-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 16px; align-items: start; }
 @media (max-width: 900px) { .today-focus-grid { grid-template-columns: 1fr; } .focus-strip { grid-template-columns: repeat(7, minmax(0, 1fr)); } .focus-back { grid-column: 1 / -1; justify-self: center; } }
 @media (max-width: 560px) { .focus-pill-num { font-size: 17px; } .focus-pill-meta { display: none; } }
+
+/* ── Today: four aligned panels (plan | meetings / due | to-dos) ── */
+.today-quad { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: auto; gap: 16px; align-items: stretch; }
+.today-quad > .card { display: flex; flex-direction: column; min-width: 0; min-height: 300px; margin: 0; }
+.today-quad > .card .todo-list, .today-quad > .card .mt-tickets { flex: 1 1 auto; min-height: 0; max-height: 360px; overflow-y: auto; overflow-x: hidden; padding-right: 2px; }
+.today-quad > .card .todo-input-row { margin-top: auto; padding-top: 10px; }
+.today-quad .today-item { min-width: 0; }
+.today-quad .today-item .btn { flex-shrink: 0; }
+@media (max-width: 900px) { .today-quad { grid-template-columns: 1fr; } .today-quad > .card { min-height: 0; } }
