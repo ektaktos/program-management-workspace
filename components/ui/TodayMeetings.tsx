@@ -78,38 +78,49 @@ export default function TodayMeetingsCard() {
           ? 'No meetings today.'
           : left === 0 ? 'All done for today.' : `${left} still to come${total - left ? ` · ${total - left} done` : ''}`}
       </div>
-      {meetings.map(m => (
-        <div key={m.id} className={`meet-row${m.past ? ' past' : ''}${m.id === nextId ? ' next' : ''}`} style={{ borderLeftColor: m.color }}>
-          {m.apptId ? (
-            <span
-              className={`todo-check${m.done ? ' checked' : ''}`}
-              title={m.done ? 'Mark as not done' : 'Mark as done'}
-              onClick={() => updatePlannerAppointment(m.apptId!, { done: !m.done })}
-            >
-              {m.done && (
-                <svg viewBox="0 0 12 12" fill="none" style={{ width: 9, height: 9 }}>
-                  <polyline points="2,6 5,9 10,3" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              )}
-            </span>
-          ) : (
-            <span className="today-cal-icon" title={`From your ${m.source} calendar (read-only)`} style={{ color: m.color }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 13, height: 13 }}>
-                <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-              </svg>
-            </span>
-          )}
-          <div className="meet-time">
-            {m.allDay ? 'All day' : fmt12(m.time)}
-            {m.endTime && <span>{fmt12(m.endTime)}</span>}
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="meet-title" title={m.location ? `${m.title}\n${m.location}` : m.title}>{m.title}</div>
-            <div className="meet-src">{m.source}{m.location ? ` · ${m.location}` : ''}</div>
-          </div>
-          {m.id === nextId && <span className="badge badge-primary" style={{ fontSize: 10.5 }}>Next</span>}
-        </div>
-      ))}
+      <div className="mt-tickets">
+        {meetings.map(m => {
+          const [hm, ap] = m.allDay ? ['All', 'day'] : fmt12(m.time).split(' ');
+          return (
+            <div key={m.id} className={`mt-ticket${m.past ? ' past' : ''}${m.id === nextId ? ' next' : ''}`}>
+              <div className="mt-stub" style={{ background: `color-mix(in srgb, ${m.color} 26%, var(--surface))` }}>
+                <span className="mt-stub-time">{hm}</span>
+                <span className="mt-stub-ap">{ap}</span>
+                {m.endTime && <span className="mt-stub-end">to {fmt12(m.endTime)}</span>}
+              </div>
+              <div className="mt-body">
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div className="meet-title" title={m.location ? `${m.title}\n${m.location}` : m.title}>{m.title}</div>
+                  <div className="meet-src">
+                    <span className="today-dot" style={{ background: m.color, marginRight: 5, verticalAlign: 1 }} />
+                    {m.source}{m.location ? ` · ${m.location}` : ''}
+                  </div>
+                </div>
+                {m.id === nextId && <span className="badge badge-primary" style={{ fontSize: 10.5 }}>Next</span>}
+                {m.apptId ? (
+                  <span
+                    className={`todo-check${m.done ? ' checked' : ''}`}
+                    title={m.done ? 'Mark as not done' : 'Mark as done'}
+                    onClick={() => updatePlannerAppointment(m.apptId!, { done: !m.done })}
+                  >
+                    {m.done && (
+                      <svg viewBox="0 0 12 12" fill="none" style={{ width: 9, height: 9 }}>
+                        <polyline points="2,6 5,9 10,3" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    )}
+                  </span>
+                ) : (
+                  <span className="today-cal-icon" title={`From your ${m.source} calendar (read-only)`} style={{ color: m.color }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 13, height: 13 }}>
+                      <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                  </span>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

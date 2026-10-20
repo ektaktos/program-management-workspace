@@ -6,6 +6,7 @@ import { calcProjectProgress, getOverdueCount, fmtDate, projectInArea } from '@/
 import { PROJECT_STATUS_META } from '@/lib/constants';
 import ProgressBar from '../ui/ProgressBar';
 import ProjectModal from '../modals/ProjectModal';
+import ProjectShelf from '../ui/ProjectShelf';
 import { Project } from '@/lib/types';
 
 export default function AllProjects() {
@@ -26,6 +27,7 @@ export default function AllProjects() {
 
   return (
     <div>
+      <ProjectShelf projects={visibleProjects} tasks={tasks} onOpen={id => setView('project', id)} />
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 18 }}>
         {visibleProjects.map(p => {
           const pct       = calcProjectProgress(p.id, tasks);

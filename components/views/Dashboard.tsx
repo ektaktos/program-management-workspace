@@ -103,10 +103,19 @@ export default function Dashboard() {
             onMouseOver={e => { if (c.onClick) { (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--primary)'; (e.currentTarget as HTMLDivElement).style.boxShadow = 'var(--shadow)'; (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-1px)'; } }}
             onMouseOut={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLDivElement).style.boxShadow = 'none'; (e.currentTarget as HTMLDivElement).style.transform = 'none'; }}
           >
-            <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.7px' }}>
+            {c.pct && (
+              // Completion steeps like tea: the liquid rises to the completion level with a slow wave on top
+              <div className="tea-liquid" style={{ height: `${Math.max(c.value, 3)}%` }} aria-hidden>
+                <svg viewBox="0 0 400 20" preserveAspectRatio="none">
+                  <path d="M0 10 Q25 0 50 10 T100 10 T150 10 T200 10 T250 10 T300 10 T350 10 T400 10 V20 H0Z" style={{ fill: 'var(--tea-fill)' }} />
+                </svg>
+              </div>
+            )}
+            <div style={{ position: 'relative', fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.7px' }}>
               {c.label}
             </div>
             <div className="stat-value" style={{
+              position: 'relative',
               fontSize: 44, fontWeight: 700,
               fontFamily: 'Georgia, "Times New Roman", serif',
               letterSpacing: '-0.025em', lineHeight: 1,
@@ -114,7 +123,7 @@ export default function Dashboard() {
             }}>
               {c.value}{c.pct && <span style={{ fontSize: 24, color: 'var(--text-muted)', fontWeight: 600 }}>%</span>}
             </div>
-            <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 8 }}>{c.sub}</div>
+            <div style={{ position: 'relative', fontSize: 11.5, color: 'var(--text-muted)', marginTop: 8 }}>{c.sub}</div>
             {c.meetings && (
               <button
                 type="button"
