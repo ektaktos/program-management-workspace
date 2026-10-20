@@ -6,9 +6,9 @@ import { Task } from '@/lib/types';
 import { sortTasks, projectInArea } from '@/lib/utils';
 import { STATUS_ORDER } from '@/lib/constants';
 import TaskModal from '../modals/TaskModal';
-import { InlineAssigneeBadge, InlineRecurringBadge } from '../project/TaskCard';
+import { InlineAssigneeBadge } from '../project/TaskCard';
 import ConfirmModal from '../modals/ConfirmModal';
-import { DueEdit, ExtrasToggle, PrioritySelect, StatusSelect, useLedgerExtras } from '../ui/InlineQualifiers';
+import { DueEdit, ExtrasToggle, PrioritySelect, RepeatSelect, StatusSelect, useLedgerExtras } from '../ui/InlineQualifiers';
 
 type SortKey = 'task' | 'project' | 'status' | 'due' | 'priority';
 const SORT_KEY = 'pm_oyint_tasks_sort';
@@ -132,7 +132,7 @@ export default function AllTasks() {
             {rows.length} task{rows.length !== 1 ? 's' : ''}{openCount !== rows.length ? ` · ${openCount} open` : ''} · click a column to sort
           </div>
           <div className="lg-wrap">
-            <table className="lg-table">
+            <table className={`lg-table${extras ? ' extras' : ''}`}>
               <thead>
                 <tr>
                   <th className="lg-c-check" aria-label="Done" />
@@ -197,7 +197,7 @@ export default function AllTasks() {
                       )}
                       {extras && (
                         <td className="lg-c-x" onClick={e => e.stopPropagation()}>
-                          {t.recurring ? <InlineRecurringBadge recurring={t.recurring} onSave={val => updateTask(t.id, { recurring: val })} /> : <span className="x-empty">—</span>}
+                          <RepeatSelect task={t} />
                         </td>
                       )}
                       <td className="lg-c-del">

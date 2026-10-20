@@ -6,8 +6,8 @@ import { fmtDate, sortTasks } from '@/lib/utils';
 import { STATUS_ORDER } from '@/lib/constants';
 import { Phase, Task, TaskStatus } from '@/lib/types';
 import ProgressBar from '../ui/ProgressBar';
-import { InlineAssigneeBadge, InlineRecurringBadge } from './TaskCard';
-import { DueEdit, ExtrasToggle, PrioritySelect, StatusSelect, useLedgerExtras } from '../ui/InlineQualifiers';
+import { InlineAssigneeBadge } from './TaskCard';
+import { DueEdit, ExtrasToggle, PrioritySelect, RepeatSelect, StatusSelect, useLedgerExtras } from '../ui/InlineQualifiers';
 import FilterChips from '../ui/FilterChips';
 import PhaseModal from '../modals/PhaseModal';
 import TaskModal from '../modals/TaskModal';
@@ -240,7 +240,7 @@ export default function SectionsTab({ projectId, highlightedTaskId }: SectionsTa
                     )}
                     {extras && (
                       <span role="cell" className="oc-col-x" onClick={e => e.stopPropagation()}>
-                        {t.recurring ? <InlineRecurringBadge recurring={t.recurring} onSave={val => updateTask(t.id, { recurring: val })} /> : <span className="x-empty">—</span>}
+                        <RepeatSelect task={t} />
                       </span>
                     )}
                     <span role="cell">

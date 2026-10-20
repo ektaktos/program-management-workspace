@@ -1516,3 +1516,12 @@ tr:hover .q-due.empty, .oc-row:hover .q-due.empty, .q-due.empty:focus-visible { 
 .note-card:not(.note-card-new) { background-image: repeating-linear-gradient(transparent 0 25px, var(--note-line) 25px 26px); }
 .note-tape { background: var(--note-tape); opacity: 1; }
 .note-card-title, .dash-note-title { border-bottom-color: var(--note-rule); }
+
+/* Ledgers scroll sideways inside their box when the columns don't fit, instead of crushing the task title */
+.lg-wrap { overflow-x: auto; }
+.lg-table { min-width: 780px; }
+.lg-table.extras { min-width: 1000px; }
+.oc-ledger { overflow-x: auto; }
+.oc-ledger.extras .oc-row { min-width: 860px; }
+@media (max-width: 760px) { .lg-table, .lg-table.extras { min-width: 0; } }
+@media (max-width: 640px) { .oc-ledger.extras .oc-row { min-width: 0; } }

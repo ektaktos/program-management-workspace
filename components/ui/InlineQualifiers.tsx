@@ -164,3 +164,30 @@ export function ExtrasToggle({ open, onToggle }: { open: boolean; onToggle: () =
     </button>
   );
 }
+
+// Repeat pattern as a compact select (no pop-up menu, so it works inside a scrolling table)
+const REPEAT_OPTIONS = ['daily', 'weekly', 'monthly', 'yearly'];
+export function RepeatSelect({ task }: { task: Task }) {
+  const updateTask = useAppStore(s => s.updateTask);
+  if (!task.recurring) return <span className="x-empty">—</span>;
+  return (
+    <span className="q-wrap badge badge-gray" onClick={stop}>
+      <select
+        className="q-select"
+        value={task.recurring}
+        aria-label={`Repeat for "${task.title}"`}
+        title="Change how this repeats"
+        onChange={e => updateTask(task.id, { recurring: e.target.value || undefined })}
+      >
+        {REPEAT_OPTIONS.map(o => <option key={o} value={o}>{o.charAt(0).toUpperCase() + o.slice(1)}</option>)}
+        <option value="">Don&rsquo;t repeat</option>
+      </select>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 10, height: 10 }} aria-hidden>
+        <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+        <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+      </svg>
+      {task.recurring.charAt(0).toUpperCase() + task.recurring.slice(1)}
+      {caret}
+    </span>
+  );
+}
