@@ -146,7 +146,7 @@
   --cat-personal: #b07a8c; --cat-work: #4f9a98; --cat-health: #9aa77a; --cat-social: #d8865f;
   --cat-learning: #d9a54b; --cat-errand: #c49a72; --cat-rest: #a99a8a;
   --highlight-bg: #fbf2e7; --highlight-border: #e4c7a6;
-  --tea-fill: color-mix(in srgb, #c97a58 34%, var(--surface))  /* terracotta */;
+  --tea-fill: color-mix(in srgb, #c97a58 34%, var(--surface)); /* terracotta */
 }
 
 /* Sumi — dark ink with warm tan accents */
@@ -196,7 +196,7 @@
   --cat-personal: #c46a4a; --cat-work: #2f8a85; --cat-health: #8aa35a; --cat-social: #e08a5a;
   --cat-learning: #d9a63a; --cat-errand: #a8825a; --cat-rest: #8f9aa0;
   --highlight-bg: #fbf3df; --highlight-border: #e3c98f;
-  --tea-fill: color-mix(in srgb, #e8c76a 55%, var(--surface))  /* mustard */;
+  --tea-fill: color-mix(in srgb, #e8c76a 55%, var(--surface)); /* mustard */
 }
 
 /* Lavender Fields — pale lilac, sage-grey and aubergine */
