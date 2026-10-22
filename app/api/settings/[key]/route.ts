@@ -13,6 +13,11 @@ const VALIDATORS: Record<string, (v: unknown) => boolean> = {
   notifPrefs: v => isNotifPrefs(v),
   styleTheme: v => isStyleTheme(v),
   dayOrder: v => isDayOrder(v),
+  // Archived project and task ids, and the sidebar's project order (all synced across browsers)
+  archive: v => !!v && typeof v === 'object' && !Array.isArray(v)
+    && Object.keys(v as object).every(k => k === 'projectIds' || k === 'taskIds')
+    && ['projectIds', 'taskIds'].every(k => { const a = (v as Record<string, unknown>)[k]; return Array.isArray(a) && a.length <= 5000 && a.every(x => typeof x === 'string' && x.length <= 100); }),
+  projectOrder: v => Array.isArray(v) && v.length <= 1000 && v.every(x => typeof x === 'string' && x.length <= 100),
   // Calendar events ticked off in the workspace (the calendar itself is read-only)
   doneCalendarEvents: v => Array.isArray(v) && v.length <= 1000 && v.every(x => typeof x === 'string' && x.length <= 400),
   navOrder: v => Array.isArray(v) && v.length <= NAV_IDS.length && v.every(x => typeof x === 'string' && NAV_IDS.includes(x)),

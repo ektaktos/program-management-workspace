@@ -82,9 +82,10 @@ function loadArchived(): { projectIds: string[]; taskIds: string[] } {
   try { return JSON.parse(localStorage.getItem(ARCHIVED_KEY) ?? '{"projectIds":[],"taskIds":[]}'); }
   catch { return { projectIds: [], taskIds: [] }; }
 }
+// Archive and project order are saved to the DB; the localStorage readers above remain only
+// to migrate what older versions kept in each browser
 function saveArchived(data: { projectIds: string[]; taskIds: string[] }) {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem(ARCHIVED_KEY, JSON.stringify(data));
+  api('/api/settings/archive', 'PUT', { value: data }).catch(console.error);
 }
 
 function loadProjectOrder(): string[] {
@@ -93,8 +94,7 @@ function loadProjectOrder(): string[] {
   catch { return []; }
 }
 function saveProjectOrder(order: string[]) {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem(ORDER_KEY, JSON.stringify(order));
+  api('/api/settings/projectOrder', 'PUT', { value: order }).catch(console.error);
 }
 
 // Read legacy localStorage planner data for one-time migration
@@ -359,8 +359,24 @@ export const useAppStore = create<Store>((set, get) => ({
       ]);
       if (Array.isArray(calendarsRes)) set({ calendarSources: calendarsRes });
 
-      const archived = loadArchived();
-      const order    = loadProjectOrder();
+      // Archive and project order live in the DB (synced). Older versions kept them per browser:
+      // the first load in each browser merges its local copy in, then clears it.
+      const strList = (v: unknown) => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []);
+      const localArch = loadArchived();
+      const localOrder = loadProjectOrder();
+      const dbArch = settingsRes?.archive as { projectIds?: unknown; taskIds?: unknown } | undefined;
+      const archived = {
+        projectIds: Array.from(new Set([...strList(dbArch?.projectIds), ...strList(localArch.projectIds)])),
+        taskIds: Array.from(new Set([...strList(dbArch?.taskIds), ...strList(localArch.taskIds)])),
+      };
+      const dbOrder = strList(settingsRes?.projectOrder);
+      const order = dbOrder.length ? dbOrder : strList(localOrder);
+      if (settingsRes) {
+        const archChanged = archived.projectIds.length !== strList(dbArch?.projectIds).length || archived.taskIds.length !== strList(dbArch?.taskIds).length;
+        if (archChanged) api('/api/settings/archive', 'PUT', { value: archived }).catch(console.error);
+        if (!dbOrder.length && order.length) api('/api/settings/projectOrder', 'PUT', { value: order }).catch(console.error);
+        try { localStorage.removeItem(ARCHIVED_KEY); localStorage.removeItem(ORDER_KEY); } catch {}
+      }
       let areaFilter = '';
       try { areaFilter = localStorage.getItem(AREA_KEY) ?? ''; } catch {}
       set({ areaFilter });
@@ -906,35 +922,36 @@ export const useAppStore = create<Store>((set, get) => ({
   },
 
   // ── Archive ──
+  // Archive is synced via the 'archive' setting so every browser shows the same thing
   archiveProject: (id) => {
     const s = get();
-    const newIds = [...s.archivedProjectIds, id];
-    saveArchived({ projectIds: newIds, taskIds: s.archivedTaskIds });
+    const newIds = s.archivedProjectIds.includes(id) ? s.archivedProjectIds : [...s.archivedProjectIds, id];
     set({ archivedProjectIds: newIds });
+    saveArchived({ projectIds: newIds, taskIds: s.archivedTaskIds });
   },
   unarchiveProject: (id) => {
     const s = get();
     const newIds = s.archivedProjectIds.filter(x => x !== id);
-    saveArchived({ projectIds: newIds, taskIds: s.archivedTaskIds });
     set({ archivedProjectIds: newIds });
+    saveArchived({ projectIds: newIds, taskIds: s.archivedTaskIds });
   },
   archiveTask: (id) => {
     const s = get();
-    const newIds = [...s.archivedTaskIds, id];
-    saveArchived({ projectIds: s.archivedProjectIds, taskIds: newIds });
+    const newIds = s.archivedTaskIds.includes(id) ? s.archivedTaskIds : [...s.archivedTaskIds, id];
     set({ archivedTaskIds: newIds });
+    saveArchived({ projectIds: s.archivedProjectIds, taskIds: newIds });
   },
   unarchiveTask: (id) => {
     const s = get();
     const newIds = s.archivedTaskIds.filter(x => x !== id);
-    saveArchived({ projectIds: s.archivedProjectIds, taskIds: newIds });
     set({ archivedTaskIds: newIds });
+    saveArchived({ projectIds: s.archivedProjectIds, taskIds: newIds });
   },
 
   // ── Project ordering ──
   setProjectOrder: (ids) => {
-    saveProjectOrder(ids);
     set({ projectOrder: ids });
+    saveProjectOrder(ids);
   },
 
   setAreaFilter: (area) => {
