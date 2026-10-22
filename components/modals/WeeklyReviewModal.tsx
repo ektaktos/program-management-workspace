@@ -19,9 +19,10 @@ export default function WeeklyReviewModal({ weekKey, weekLabel, onClose }: Weekl
   const {
     tasks, projects, plannerEvents, plannerWeekly,
     archivedTaskIds, archivedProjectIds,
-    updateTask, updatePlannerEvent, updatePlannerWeekly, addToast,
+    updateTask, updatePlannerEvent, updatePlannerWeekly, addToast, downloadWeeklyReport,
   } = useAppStore();
   const [nextGoal, setNextGoal] = useState('');
+  const [downloading, setDownloading] = useState(false);
 
   const weekIsos = Array.from({ length: 7 }, (_, i) => addDaysIso(weekKey, i));
   const inWeek = (iso?: string) => !!iso && weekIsos.includes(iso);
@@ -156,7 +157,15 @@ export default function WeeklyReviewModal({ weekKey, weekLabel, onClose }: Weekl
           </div>
         </div>
 
-        <div className="modal-footer">
+        <div className="modal-footer" style={{ justifyContent: 'space-between' }}>
+          <button
+            className="btn btn-outline"
+            disabled={downloading}
+            title="Patterns, completion rates and what stood out this week, as a PDF"
+            onClick={async () => { setDownloading(true); try { await downloadWeeklyReport(weekKey); } finally { setDownloading(false); } }}
+          >
+            {downloading ? 'Preparing PDF…' : 'Download report (PDF)'}
+          </button>
           <button className="btn btn-primary" onClick={onClose}>Done</button>
         </div>
       </div>

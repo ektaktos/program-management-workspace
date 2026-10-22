@@ -4,9 +4,10 @@
 export type NotifKind = 'task' | 'meeting' | 'calendar' | 'digest' | 'info';
 
 export interface NotifTarget {
-  view: string;
+  view: string;          // 'report' = download that week's PDF report instead of navigating
   projectId?: string;
   taskId?: string;
+  week?: string;         // Monday (YYYY-MM-DD) for report notifications
 }
 
 export interface NotifItem {

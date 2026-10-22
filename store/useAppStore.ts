@@ -213,6 +213,7 @@ interface Store extends AppState, UIState, PlannerState {
   markAllNotifsRead: () => void;
   clearNotifications: () => void;
   snoozeNotification: (id: string, minutes: number) => void;
+  downloadWeeklyReport: (weekStart: string) => Promise<void>;
 
   addTodo: (text: string) => void;
   updateTodo: (id: string, text: string) => void;
@@ -744,6 +745,7 @@ export const useAppStore = create<Store>((set, get) => ({
     set(s => ({ toasts: s.toasts.filter(t => t.notifId !== id) }));
     const t = n?.target;
     if (!t) return;
+    if (t.view === 'report') { get().downloadWeeklyReport(t.week ?? addDaysIso(mondayOf(todayIso()), -7)); return; }
     if (t.taskId && t.projectId && get().tasks.some(x => x.id === t.taskId)) get().navigateToTask(t.taskId, t.projectId);
     else get().setView(t.view, t.projectId);
   },
@@ -774,6 +776,30 @@ export const useAppStore = create<Store>((set, get) => ({
     get().markNotifRead(id);
     set(s => ({ toasts: s.toasts.filter(t => t.notifId !== id) }));
     get().addToast({ title: 'Snoozed', message: `We'll remind you again in ${minutes < 60 ? `${minutes} min` : `${minutes / 60} hr`}.`, type: 'info' });
+  },
+
+  // Build a week's report (with calendar meetings) and download it as a PDF
+  downloadWeeklyReport: async (weekStart) => {
+    const s = get();
+    const enabled = new Set(s.calendarSources.filter(c => c.enabled).map(c => c.id));
+    let cal: CalendarEvent[] = [];
+    if (enabled.size) {
+      try {
+        const res = await api(`/api/calendars/events?from=${addDaysIso(weekStart, -49)}&to=${addDaysIso(weekStart, 6)}`) as { events?: CalendarEvent[] };
+        cal = (res.events ?? []).filter(e => enabled.has(e.sourceId));
+      } catch { /* the report still works without calendar meetings */ }
+    }
+    const live = s.projects.filter(p => !s.archivedProjectIds.includes(p.id));
+    const liveIds = new Set(live.map(p => p.id));
+    const report = buildWeeklyReport({
+      tasks: s.tasks.filter(t => !s.archivedTaskIds.includes(t.id) && liveIds.has(t.projectId)),
+      projects: live, plannerEvents: s.plannerEvents, plannerAppointments: s.plannerAppointments,
+      plannerWeekly: s.plannerWeekly, calendarEvents: cal, today: todayIso(),
+    }, weekStart);
+    const { buildReportPdf, saveBytes } = await import('@/lib/reportPdf');
+    let accent = '';
+    try { accent = getComputedStyle(document.documentElement).getPropertyValue('--primary-dark'); } catch {}
+    saveBytes(buildReportPdf(report, { accentHex: accent }), `Weekly report ${report.start}.pdf`);
   },
 
   setNotifPrefs: (patch) => {
@@ -897,7 +923,7 @@ export const useAppStore = create<Store>((set, get) => ({
         }, lastWeek);
         if (r.done > 0 || r.planned > 0) {
           const parts = [`${r.done} finished`, r.rate !== null ? `${r.rate}% of plan` : '', r.overdueNow ? `${r.overdueNow} overdue` : ''].filter(Boolean);
-          notify({ kind: 'digest', title: 'Your weekly report is ready', message: `${weekLabel(lastWeek)}: ${parts.join(' · ')}`, target: { view: 'report' } });
+          notify({ kind: 'digest', title: 'Your weekly report is ready', message: `${weekLabel(lastWeek)}: ${parts.join(' · ')}`, target: { view: 'report', week: lastWeek } });
         }
       }
 
