@@ -118,7 +118,7 @@ export default function Today() {
       {/* Summary */}
       <div className="card today-summary">
         <div>
-          <div style={{ fontFamily: 'Georgia, "Times New Roman", serif', fontSize: 26, color: 'var(--text)', lineHeight: 1.15 }}>{dateLabel}</div>
+          <div style={{ fontFamily: 'var(--font-display)', fontSize: 26, color: 'var(--text)', lineHeight: 1.15 }}>{dateLabel}</div>
           <div style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 4 }}>
             {openCount} to do{isToday ? ` · ${doneToday} done today` : ` · ${items.length - openCount} done`}
             {overdueCount > 0 && <span style={{ color: 'var(--danger)' }}> · {overdueCount} overdue</span>}

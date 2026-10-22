@@ -5,6 +5,7 @@ import { AppState, Project, Task, Milestone, Phase, Note, Todo, PlannerEvent, Pl
 import { uid, autoMarkOverdue, addDaysIso, todayIso } from '@/lib/utils';
 import { DAILY_CAPACITY_MIN } from '@/lib/constants';
 import { DEFAULT_THEME, applyTheme, isThemeId } from '@/lib/themes';
+import { StyleTheme, DEFAULT_STYLE, STYLE_CACHE_KEY, applyStyle, normalizeStyle } from '@/lib/styleThemes';
 import { NotifItem, NotifKind, NotifPrefs, NotifTarget, DEFAULT_NOTIF_PREFS, normalizeNotifPrefs, inQuietHours, playSound } from '@/lib/notifications';
 
 const NOTIFIED_KEY  = 'pm_oyint_notified';
@@ -257,6 +258,10 @@ interface Store extends AppState, UIState, PlannerState {
   theme:    string;
   setTheme: (id: string) => void;
 
+  // ── Font / card / background style (synced via settings) ──
+  styleTheme:    StyleTheme;
+  setStyleTheme: (patch: Partial<StyleTheme>) => void;
+
   // ── Calendar events marked done in the workspace (synced; the calendar itself is untouched) ──
   doneCalendarEvents:      string[];
   toggleCalendarEventDone: (id: string) => void;
@@ -321,6 +326,7 @@ export const useAppStore = create<Store>((set, get) => ({
   theme: DEFAULT_THEME,
   navOrder: [],
   doneCalendarEvents: [],
+  styleTheme: DEFAULT_STYLE,
 
   calendarSources: [],
   calendarEvents:  [],
@@ -363,6 +369,17 @@ export const useAppStore = create<Store>((set, get) => ({
 
       if (settingsRes?.notifPrefs) set({ notifPrefs: normalizeNotifPrefs(settingsRes.notifPrefs) });
       set({ notifications: loadJson<NotifItem[]>(NOTIFS_KEY, []).slice(0, NOTIFS_MAX) });
+
+      // Style: DB first; otherwise keep what the boot script applied from the local cache
+      if (settingsRes?.styleTheme) {
+        const st = normalizeStyle(settingsRes.styleTheme);
+        set({ styleTheme: st });
+        applyStyle(st);
+      } else {
+        let cached: unknown = null;
+        try { cached = JSON.parse(localStorage.getItem(STYLE_CACHE_KEY) ?? 'null'); } catch {}
+        if (cached) set({ styleTheme: normalizeStyle(cached) });
+      }
 
       if (Array.isArray(settingsRes?.doneCalendarEvents)) {
         set({ doneCalendarEvents: (settingsRes!.doneCalendarEvents as unknown[]).filter((x): x is string => typeof x === 'string') });
@@ -894,6 +911,13 @@ export const useAppStore = create<Store>((set, get) => ({
   },
 
   setQuickAddOpen: (open) => set({ quickAddOpen: open }),
+
+  setStyleTheme: (patch) => {
+    const st = normalizeStyle({ ...get().styleTheme, ...patch });
+    set({ styleTheme: st });
+    applyStyle(st);
+    api('/api/settings/styleTheme', 'PUT', { value: st }).catch(console.error);
+  },
 
   toggleCalendarEventDone: (id) => {
     const cur = get().doneCalendarEvents;

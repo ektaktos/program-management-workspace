@@ -67,7 +67,7 @@ export default function ProjectDetail() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6, flexWrap: 'wrap' }}>
               <span style={{ width: 14, height: 14, borderRadius: '50%', background: project.color, flexShrink: 0, display: 'inline-block' }} />
               <div style={{
-                fontFamily: 'Georgia, "Times New Roman", serif',
+                fontFamily: 'var(--font-display)',
                 fontSize: 32, fontWeight: 400,
                 color: 'var(--text)', letterSpacing: '-0.015em', lineHeight: 1.1,
               }}>{project.name}</div>
@@ -87,7 +87,7 @@ export default function ProjectDetail() {
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, flexShrink: 0 }}>
             <div className="project-header-pct" style={{ textAlign: 'right', minWidth: 90 }}>
               <div className="pct-number" style={{
-                fontFamily: 'Georgia, "Times New Roman", serif',
+                fontFamily: 'var(--font-display)',
                 fontSize: 44, fontWeight: 400,
                 color: project.color, lineHeight: 1, letterSpacing: '-0.02em',
               }}>{pct}<span style={{ fontSize: 24, color: 'var(--text-muted)' }}>%</span></div>

@@ -95,18 +95,20 @@ export default function Dashboard() {
           <div
             key={c.label}
             onClick={c.onClick}
+            className="stat-card"
             style={{
-              background: 'var(--surface)',
-              borderRadius: 'var(--radius-lg)',
+              background: 'var(--card-bg)',
+              borderRadius: 'var(--card-radius)',
               padding: '20px 22px',
-              border: '1px solid var(--border)',
+              border: 'var(--card-border-w) solid var(--card-border-c)',
+              boxShadow: 'var(--card-shadow)',
               cursor: c.onClick ? 'pointer' : 'default',
               transition: 'all 0.18s ease',
               position: 'relative',
               overflow: 'hidden',
             }}
             onMouseOver={e => { if (c.onClick) { (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--primary)'; (e.currentTarget as HTMLDivElement).style.boxShadow = 'var(--shadow)'; (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-1px)'; } }}
-            onMouseOut={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLDivElement).style.boxShadow = 'none'; (e.currentTarget as HTMLDivElement).style.transform = 'none'; }}
+            onMouseOut={e => { (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--card-border-c)'; (e.currentTarget as HTMLDivElement).style.boxShadow = 'var(--card-shadow)'; (e.currentTarget as HTMLDivElement).style.transform = 'none'; }}
           >
             {c.pct && (
               // Completion steeps like tea: the liquid rises to the completion level with a slow wave on top
@@ -122,7 +124,7 @@ export default function Dashboard() {
             <div className="stat-value" style={{
               position: 'relative',
               fontSize: 44, fontWeight: 700,
-              fontFamily: 'Georgia, "Times New Roman", serif',
+              fontFamily: 'var(--font-display)',
               letterSpacing: '-0.025em', lineHeight: 1,
               color: c.danger ? 'var(--danger)' : 'var(--text)',
             }}>

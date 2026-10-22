@@ -310,7 +310,7 @@ export default function SectionsTab({ projectId, highlightedTaskId }: SectionsTa
         )}
 
         <div className="ic-title" style={{ display: 'flex', alignItems: 'center', gap: 8, paddingRight: 56 }}>
-          <div style={{ fontFamily: 'Georgia, "Times New Roman", serif', fontSize: 17, fontWeight: 400, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontSize: 17, fontWeight: 400, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {sec.name}
           </div>
           <span className="badge badge-gray" style={{ flexShrink: 0 }}>{sec.tasks.length}</span>

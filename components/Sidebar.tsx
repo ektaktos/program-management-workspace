@@ -168,7 +168,7 @@ export default function Sidebar() {
           {open ? (
             <>
               <div>
-                <div style={{ fontFamily: 'Georgia, "Times New Roman", serif', fontSize: 22, fontWeight: 400, color: 'var(--text)', letterSpacing: '-0.01em' }}>
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 400, color: 'var(--text)', letterSpacing: '-0.01em' }}>
                   Workspace
                 </div>
                 <div style={{ fontSize: 12, color: 'var(--sidebar-text)', marginTop: 2 }}>

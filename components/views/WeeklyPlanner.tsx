@@ -619,7 +619,7 @@ export default function WeeklyPlanner() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, justifySelf: 'center' }}>
           <button className="pweek-btn" onClick={() => setPlannerWeekOffset(plannerWeekOffset - 1)} title="Previous week">&#8249;</button>
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontFamily: 'Georgia, "Times New Roman", serif', fontSize: 15, fontWeight: 400, color: 'var(--text)', letterSpacing: '-0.01em' }}>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 400, color: 'var(--text)', letterSpacing: '-0.01em' }}>
               {plannerWeekOffset === 0 ? 'This week' : plannerWeekOffset === 1 ? 'Next week' : plannerWeekOffset === -1 ? 'Last week' : weekLabel}
             </div>
             <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 1 }}>{weekLabel}</div>

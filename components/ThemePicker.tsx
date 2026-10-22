@@ -3,9 +3,24 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { THEMES } from '@/lib/themes';
+import { BG_OPTIONS, CARD_OPTIONS, FONT_OPTIONS, StyleOption, StyleTheme } from '@/lib/styleThemes';
+
+const FONT_SAMPLE: Record<string, string> = {
+  classic: 'Georgia, "Times New Roman", serif',
+  modern: "'Inter', -apple-system, 'Segoe UI', sans-serif",
+  rounded: "'Nunito', ui-rounded, sans-serif",
+  editorial: "'Playfair Display', Georgia, serif",
+  handwritten: "'Kalam', 'Comic Sans MS', cursive",
+};
+
+type Tab = 'colour' | 'font' | 'cards' | 'bg';
+const TABS: { id: Tab; label: string }[] = [
+  { id: 'colour', label: 'Colour' }, { id: 'font', label: 'Font' }, { id: 'cards', label: 'Cards' }, { id: 'bg', label: 'Background' },
+];
 
 export default function ThemePicker() {
-  const { theme, setTheme } = useAppStore();
+  const { theme, setTheme, styleTheme, setStyleTheme } = useAppStore();
+  const [tab, setTab] = useState<Tab>('colour');
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -37,8 +52,15 @@ export default function ThemePicker() {
 
       {open && (
         <div className="theme-popover" role="menu">
-          <div className="theme-popover-head">Theme</div>
-          {THEMES.map(t => {
+          <div className="theme-tabs" role="tablist" aria-label="Theme settings">
+            {TABS.map(t => (
+              <button key={t.id} role="tab" aria-selected={tab === t.id} className={tab === t.id ? 'on' : ''} onClick={() => setTab(t.id)}>{t.label}</button>
+            ))}
+          </div>
+          {tab === 'font' && <StyleList options={FONT_OPTIONS} kind="font" value={styleTheme.font} onPick={id => setStyleTheme({ font: id })} />}
+          {tab === 'cards' && <StyleList options={CARD_OPTIONS} kind="cards" value={styleTheme.cards} onPick={id => setStyleTheme({ cards: id })} />}
+          {tab === 'bg' && <StyleList options={BG_OPTIONS} kind="bg" value={styleTheme.bg} onPick={id => setStyleTheme({ bg: id })} />}
+          {tab === 'colour' && THEMES.map(t => {
             const active = t.id === theme;
             return (
               <button
@@ -71,3 +93,36 @@ export default function ThemePicker() {
     </div>
   );
 }
+
+function Check() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14, flexShrink: 0 }}>
+      <polyline points="20 6 9 17 4 12"/>
+    </svg>
+  );
+}
+
+// One list for font, card and background styles; each option shows a tiny live preview
+function StyleList({ options, kind, value, onPick }: { options: StyleOption[]; kind: keyof StyleTheme; value: string; onPick: (id: string) => void }) {
+  return (
+    <>
+      {options.map(o => {
+        const active = o.id === value;
+        return (
+          <button key={o.id} role="menuitemradio" aria-checked={active} className={`theme-option${active ? ' active' : ''}`} onClick={() => onPick(o.id)}>
+            <span className={`style-swatch style-swatch-${kind}`} data-v={o.id} aria-hidden>
+              {kind === 'font' && <span style={{ fontFamily: FONT_SAMPLE[o.id] }}>Aa</span>}
+              {kind === 'cards' && <span className="style-mini-card" />}
+            </span>
+            <span style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
+              <span className="theme-name" style={kind === 'font' ? { fontFamily: FONT_SAMPLE[o.id] } : undefined}>{o.name}</span>
+              <span className="theme-desc">{o.hint}</span>
+            </span>
+            {active && <Check />}
+          </button>
+        );
+      })}
+    </>
+  );
+}
+
