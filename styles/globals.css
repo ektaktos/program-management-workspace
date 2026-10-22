@@ -1689,3 +1689,8 @@ tr:hover .q-due.empty, .oc-row:hover .q-due.empty, .q-due.empty:focus-visible { 
 .todo-item.dragging { opacity: 0.45; }
 .todo-item.drop-before { box-shadow: 0 -2px 0 var(--primary-dark); }
 .today-item[draggable="true"] { cursor: grab; }
+/* Let the move-to-day menu escape the journal spread; the pages carry the rounded corners instead */
+.jspread { overflow: visible; }
+.jpage-left { border-radius: 16px 0 0 16px; }
+.jpage-right { border-radius: 0 16px 16px 0; }
+@media (max-width: 900px) { .jpage-left { border-radius: 16px 16px 0 0; } .jpage-right { border-radius: 0 0 16px 16px; } }
