@@ -11,6 +11,7 @@ import Upcoming from '@/components/views/Upcoming';
 import ProjectDetail from '@/components/views/ProjectDetail';
 import WeeklyPlanner from '@/components/views/WeeklyPlanner';
 import NotesView from '@/components/views/NotesView';
+import ReportView from '@/components/views/ReportView';
 import ArchiveView from '@/components/views/ArchiveView';
 import Today from '@/components/views/Today';
 import ToastContainer from '@/components/ui/Toast';
@@ -88,6 +89,7 @@ export default function Home() {
           {currentView === 'project'   && <ProjectDetail />}
           {currentView === 'planner'   && <WeeklyPlanner />}
           {currentView === 'notes'     && <NotesView />}
+          {currentView === 'report'    && <ReportView />}
           {currentView === 'archive'   && <ArchiveView />}
         </main>
       </div>

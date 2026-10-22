@@ -35,6 +35,7 @@ export interface NotifPrefs {
   calendarLead: number;     // minutes before a calendar event starts
   digest: boolean;          // one morning summary per day
   digestTime: string;       // HH:MM
+  weeklyReport: boolean;    // a nudge each new week that last week's report is ready
   sound: boolean;
   soundId: SoundId;
   volume: number;           // 0–1
@@ -51,6 +52,7 @@ export const DEFAULT_NOTIF_PREFS: NotifPrefs = {
   calendarLead: 10,
   digest: true,
   digestTime: '08:00',
+  weeklyReport: true,
   sound: true,
   soundId: 'chime',
   volume: 0.6,
@@ -65,7 +67,7 @@ const HM = /^([01]\d|2[0-3]):[0-5]\d$/;
 export function isNotifPrefs(v: unknown): v is NotifPrefs {
   if (!v || typeof v !== 'object' || Array.isArray(v)) return false;
   const p = v as Record<string, unknown>;
-  const bools = ['taskAlerts', 'meetingAlerts', 'calendarAlerts', 'digest', 'sound', 'desktop', 'quiet'];
+  const bools = ['taskAlerts', 'meetingAlerts', 'calendarAlerts', 'digest', 'weeklyReport', 'sound', 'desktop', 'quiet'];
   if (!bools.every(k => typeof p[k] === 'boolean')) return false;
   if (!CAL_LEAD_OPTIONS.includes(p.calendarLead as number)) return false;
   if (!(SOUND_IDS as readonly string[]).includes(p.soundId as string)) return false;

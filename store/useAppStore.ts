@@ -7,6 +7,7 @@ import { DAILY_CAPACITY_MIN } from '@/lib/constants';
 import { DEFAULT_THEME, applyTheme, isThemeId } from '@/lib/themes';
 import { StyleTheme, DEFAULT_STYLE, STYLE_CACHE_KEY, applyStyle, normalizeStyle } from '@/lib/styleThemes';
 import { DayOrder, isDayOrder, pruneDayOrder } from '@/lib/dayOrder';
+import { buildWeeklyReport, mondayOf, weekLabel } from '@/lib/report';
 import { NotifItem, NotifKind, NotifPrefs, NotifTarget, DEFAULT_NOTIF_PREFS, normalizeNotifPrefs, inQuietHours, playSound } from '@/lib/notifications';
 
 const NOTIFIED_KEY  = 'pm_oyint_notified';
@@ -18,6 +19,7 @@ const CAPACITY_KEY  = 'pm_oyint_daily_capacity'; // legacy per-browser value, mi
 const NOTIFS_KEY    = 'pm_oyint_notifications';  // notification history (per device)
 const SNOOZE_KEY    = 'pm_oyint_snoozed';
 const DIGEST_KEY    = 'pm_oyint_digest_day';
+const REPORT_KEY    = 'pm_oyint_report_week';   // last week whose report we announced
 const NOTIFS_MAX    = 100;
 const NOTIFIED_MAX  = 400;
 
@@ -636,7 +638,13 @@ export const useAppStore = create<Store>((set, get) => ({
     api('/api/planner/events', 'POST', event).catch(console.error);
   },
   updatePlannerEvent: (id, data) => {
-    set(s => ({ plannerEvents: s.plannerEvents.map(e => e.id === id ? { ...e, ...data } : e) }));
+    set(s => ({ plannerEvents: s.plannerEvents.map(e => {
+      if (e.id !== id) return e;
+      const next = { ...e, ...data };
+      // Remember when it was ticked off (cleared if unticked) for the weekly report
+      if (data.done !== undefined && data.done !== e.done) next.completedAt = data.done ? Date.now() : undefined;
+      return next;
+    }) }));
     const updated = get().plannerEvents.find(e => e.id === id);
     api(`/api/planner/events/${id}`, 'PUT', updated).catch(console.error);
   },
@@ -859,6 +867,22 @@ export const useAppStore = create<Store>((set, get) => ({
           meetings && `${meetings} meeting${meetings !== 1 ? 's' : ''}`,
         ].filter(Boolean);
         if (parts.length) notify({ kind: 'digest', title: 'Your day', message: parts.join(' · '), target: { view: 'today' } });
+      }
+
+      // Weekly report: once per new week, after the summary time, announce last week's report
+      const lastWeek = addDaysIso(mondayOf(today), -7);
+      if (p.weeklyReport && hm >= p.digestTime && loadJson<string>(REPORT_KEY, '') !== lastWeek) {
+        saveJson(REPORT_KEY, lastWeek);
+        const live = s.projects.filter(pr => !s.archivedProjectIds.includes(pr.id));
+        const r = buildWeeklyReport({
+          tasks: s.tasks.filter(t => !s.archivedTaskIds.includes(t.id) && liveProjects.has(t.projectId)),
+          projects: live, plannerEvents: s.plannerEvents, plannerAppointments: s.plannerAppointments,
+          plannerWeekly: s.plannerWeekly, calendarEvents: [], today,
+        }, lastWeek);
+        if (r.done > 0 || r.planned > 0) {
+          const parts = [`${r.done} finished`, r.rate !== null ? `${r.rate}% of plan` : '', r.overdueNow ? `${r.overdueNow} overdue` : ''].filter(Boolean);
+          notify({ kind: 'digest', title: 'Your weekly report is ready', message: `${weekLabel(lastWeek)}: ${parts.join(' · ')}`, target: { view: 'report' } });
+        }
       }
 
       if (changed2) {

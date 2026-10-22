@@ -154,6 +154,11 @@ function Settings() {
         </span>
       </div>
 
+      <div className="notif-set-row">
+        <span>Weekly report<small>Each new week, once your summary time has passed</small></span>
+        <Toggle label="Weekly report" checked={p.weeklyReport} onChange={v => setNotifPrefs({ weeklyReport: v })} />
+      </div>
+
       <div className="notif-set-head">Sound</div>
       <div className="notif-set-row"><span>Play a sound</span><Toggle label="Play a sound" checked={p.sound} onChange={v => setNotifPrefs({ sound: v })} /></div>
       <div className={`notif-sounds${p.sound ? '' : ' off'}`}>

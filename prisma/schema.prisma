@@ -91,6 +91,7 @@ model PlannerEvent {
   time      String?
   projectId String?
   estimate  Int?
+  completedAt DateTime? // when it was ticked off; empty for older tasks
   createdAt DateTime @default(now())
 }
 

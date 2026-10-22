@@ -86,6 +86,7 @@ export interface PlannerEvent {
   time?: string;
   projectId?: string; // optional link to a project — shown with the project's colour
   estimate?: number;  // minutes
+  completedAt?: number; // ms epoch when ticked off (recorded from Oct 2026 on)
 }
 
 export interface PlannerAppointment {
