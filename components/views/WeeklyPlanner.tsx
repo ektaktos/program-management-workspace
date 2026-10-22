@@ -9,6 +9,8 @@ import { uid, fmtMins, fmtDate, projectInArea, calendarEventsOn, localTimeOf, pa
 import { ESTIMATE_OPTIONS } from '@/lib/constants';
 import CapacitySelect from '../ui/CapacitySelect';
 import { useEscape } from '../ui/useEscape';
+import { MoveDayButton, RankSelect } from '../ui/DayOrderControls';
+import { applyDayOrder, eventKey, placeAt, taskKey } from '@/lib/dayOrder';
 
 // ── Week helpers ──────────────────────────────────────────────────────────────
 
@@ -274,6 +276,7 @@ export default function WeeklyPlanner() {
     plannerWeekOffset, setPlannerWeekOffset,
     plannerModalTrigger, setPlannerModalTrigger,
     sidebarOpen,
+    dayOrder, setDayOrder,
   } = useAppStore();
 
   const [layout, setLayoutState] = useState<'journal' | 'blocks' | 'agenda'>('journal');
@@ -466,6 +469,27 @@ export default function WeeklyPlanner() {
     if (!d) return;
     if (d.kind === 'task') updateTask(d.id, { plannedDate: iso });
     else updatePlannerEvent(d.id, { date: iso });
+  }
+  // Dropped onto a task card: place it just before that card (moving it to this day first if needed)
+  function dropOnItem(e: React.DragEvent, iso: string, targetKey: string, openKeys: string[]) {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOverDay(null);
+    const d = readDrag(e);
+    if (!d) return;
+    const key = d.kind === 'task' ? taskKey(d.id) : eventKey(d.id);
+    if (key === targetKey) return;
+    const rank = openKeys.indexOf(targetKey);
+    if (rank < 0) { dropOnDay(e, iso); return; }
+    const sameDay = d.kind === 'task'
+      ? tasks.find(t => t.id === d.id)?.plannedDate === iso
+      : plannerEvents.find(x => x.id === d.id)?.date === iso;
+    if (!sameDay) {
+      if (d.kind === 'task') updateTask(d.id, { plannedDate: iso });
+      else updatePlannerEvent(d.id, { date: iso });
+    }
+    const from = openKeys.indexOf(key);
+    setDayOrder(iso, placeAt(openKeys, key, from >= 0 && from < rank ? rank - 1 : rank));
   }
   function dropOnTray(e: React.DragEvent) {
     e.preventDefault();
@@ -940,23 +964,37 @@ export default function WeeklyPlanner() {
                         </>}
                       </div>
 
-                      {/* Tasks */}
+                      {/* Tasks: one list in your order. Pick a number, drop a card onto another to place it, or move it to another day */}
                       <div className="pday-events">
-                        {dayEvents.length === 0 && plannedTasksOn(iso).length === 0 && (
-                          <div className="pday-empty">No tasks</div>
-                        )}
-                        {plannedTasksOn(iso).map(t => {
-                          const proj = projectOf(t.projectId);
-                          const tDone = t.status === 'done';
-                          return (
+                        {(() => {
+                          type DayItem = { kind: 'task'; t: Task } | { kind: 'event'; ev: PlannerEvent };
+                          const merged: DayItem[] = [
+                            ...plannedTasksOn(iso).map(t => ({ kind: 'task' as const, t })),
+                            ...dayEvents.map(ev => ({ kind: 'event' as const, ev })),
+                          ];
+                          const keyOfItem = (d: DayItem) => (d.kind === 'task' ? taskKey(d.t.id) : eventKey(d.ev.id));
+                          const doneOf = (d: DayItem) => (d.kind === 'task' ? d.t.status === 'done' : d.ev.done);
+                          const list = applyDayOrder(merged, keyOfItem, doneOf, dayOrder[iso]);
+                          const open = list.filter(d => !doneOf(d)).map(keyOfItem);
+                          if (list.length === 0) return <div className="pday-empty">No tasks</div>;
+                          return list.map(d => {
+                            const key = keyOfItem(d);
+                            const rank = open.indexOf(key);
+                            if (d.kind === 'task') {
+                              const t = d.t;
+                              const proj = projectOf(t.projectId);
+                              const tDone = t.status === 'done';
+                              return (
                             <div
                               key={t.id}
                               className={`pevent pevent-ptask${tDone ? ' done' : ''}`}
                               style={{ borderLeftColor: proj?.color }}
                               draggable
+                              onDragOver={e => { e.preventDefault(); e.stopPropagation(); if (dragOverDay !== iso) setDragOverDay(iso); }}
+                              onDrop={e => dropOnItem(e, iso, key, open)}
                               onDragStart={e => startDrag(e, 'task', t.id)}
                               onClick={() => setEditTask(t)}
-                              title="Project task — drag to another day"
+                              title="Project task: drag onto another task or day"
                             >
                               <button
                                 type="button"
@@ -971,6 +1009,7 @@ export default function WeeklyPlanner() {
                                   </svg>
                                 )}
                               </button>
+                              {!tDone && <RankSelect rank={rank + 1} total={open.length} title={t.title} onPick={idx => setDayOrder(iso, placeAt(open, key, idx))} />}
                               <div className="pevent-title">{t.title}</div>
                               {proj && (
                                 <div className="pevent-proj" title={proj.name}>
@@ -978,15 +1017,19 @@ export default function WeeklyPlanner() {
                                   <span className="pevent-proj-name">{proj.name}{t.estimate ? ` · ${fmtMins(t.estimate)}` : ''}</span>
                                 </div>
                               )}
+                              {!tDone && <MoveDayButton date={iso} title={t.title} align={i >= 5 ? 'right' : 'left'} onMove={to => updateTask(t.id, { plannedDate: to })} />}
                             </div>
-                          );
-                        })}
-                        {dayEvents.map(ev => (
+                              );
+                            }
+                            const ev = d.ev;
+                            return (
                           <div
                             key={ev.id}
                             className={`pevent cat-${ev.category}${ev.done ? ' done' : ''}`}
                             style={projectOf(ev.projectId) ? { borderLeftColor: projectOf(ev.projectId)!.color } : undefined}
                             draggable
+                            onDragOver={e => { e.preventDefault(); e.stopPropagation(); if (dragOverDay !== iso) setDragOverDay(iso); }}
+                            onDrop={e => dropOnItem(e, iso, key, open)}
                             onDragStart={e => startDrag(e, 'event', ev.id)}
                             onClick={() => setEditEventModal({ open: true, event: ev })}
                           >
@@ -1003,6 +1046,7 @@ export default function WeeklyPlanner() {
                                 </svg>
                               )}
                             </button>
+                            {!ev.done && <RankSelect rank={rank + 1} total={open.length} title={ev.title} onPick={idx => setDayOrder(iso, placeAt(open, key, idx))} />}
                             <div className="pevent-title">{ev.title}</div>
                             {projectOf(ev.projectId) && (
                               <div className="pevent-proj" title={projectOf(ev.projectId)!.name}>
@@ -1013,8 +1057,11 @@ export default function WeeklyPlanner() {
                             {!projectOf(ev.projectId) && !!ev.estimate && (
                               <div className="pevent-proj"><span className="pevent-proj-name">{fmtMins(ev.estimate)}</span></div>
                             )}
+                            {!ev.done && <MoveDayButton date={iso} title={ev.title} align={i >= 5 ? 'right' : 'left'} onMove={to => updatePlannerEvent(ev.id, { date: to })} />}
                           </div>
-                        ))}
+                            );
+                          });
+                        })()}
                       </div>
 
                       <div className="pday-add" onClick={() => setNewEventModal({ open: true, presetDate: iso })}>

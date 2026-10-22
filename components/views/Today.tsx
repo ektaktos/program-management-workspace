@@ -7,6 +7,8 @@ import CapacitySelect from '../ui/CapacitySelect';
 import { Task } from '@/lib/types';
 import TaskModal from '../modals/TaskModal';
 import TodayMeetingsCard from '../ui/TodayMeetings';
+import { MoveDayButton, RankSelect } from '../ui/DayOrderControls';
+import { applyDayOrder, eventKey, placeAt, taskKey } from '@/lib/dayOrder';
 
 function fmt12(time: string): string {
   const [h, m] = time.split(':').map(Number);
@@ -30,7 +32,7 @@ export default function Today() {
   const {
     projects, tasks, todos, plannerEvents, plannerAppointments, calendarSources, calendarEvents, ensureCalendarRange,
     archivedTaskIds, archivedProjectIds, areaFilter, dailyCapacity,
-    toggleTaskDone, updateTask, updatePlannerEvent,
+    toggleTaskDone, updateTask, updatePlannerEvent, dayOrder, setDayOrder,
     addPlannerEvent, addTodo, toggleTodo, navigateToTask, setView, setQuickAddOpen,
   } = useAppStore();
   const [planInput, setPlanInput] = useState('');
@@ -74,7 +76,17 @@ export default function Today() {
     if (a.done !== b.done) return a.done ? 1 : -1;
     return (a.time ?? '99:99').localeCompare(b.time ?? '99:99');
   });
-  const items = planFor(focus);
+  // Your order for the day (numbers / drag), then the usual time order for anything not yet placed
+  const keyOf = (i: PlanItem) => (i.kind === 'planner' ? eventKey(i.id) : taskKey(i.id));
+  const items = applyDayOrder(planFor(focus), keyOf, i => i.done, dayOrder[focus]);
+  const openKeys = items.filter(i => !i.done).map(keyOf);
+  const [dragKey, setDragKey] = useState<string | null>(null);
+  const [overKey, setOverKey] = useState<string | null>(null);
+  function placeItem(key: string, index: number) { setDayOrder(focus, placeAt(openKeys, key, index)); }
+  function moveItem(i: PlanItem, iso: string) {
+    if (i.kind === 'planner') updatePlannerEvent(i.id, { date: iso });
+    else updateTask(i.id, { plannedDate: iso });
+  }
 
   // Strip data: tasks done/total and meetings per day of this week
   const enabledCal = calendarEvents.filter(e => calendarSources.find(c => c.id === e.sourceId)?.enabled);
@@ -181,8 +193,29 @@ export default function Today() {
               </div>
             )}
             <div className="todo-list">
-              {items.map(i => (
-                <div key={`${i.kind}-${i.id}`} className={`todo-item today-item${i.done ? ' done' : ''}`} style={{ borderLeftColor: i.color ?? 'transparent' }}>
+              {items.map(i => {
+                const key = keyOf(i);
+                const rank = openKeys.indexOf(key);
+                return (
+                <div
+                  key={`${i.kind}-${i.id}`}
+                  className={`todo-item today-item${i.done ? ' done' : ''}${overKey === key && dragKey !== key ? ' drop-before' : ''}${dragKey === key ? ' dragging' : ''}`}
+                  style={{ borderLeftColor: i.color ?? 'transparent' }}
+                  draggable={!i.done}
+                  onDragStart={e => { setDragKey(key); e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', key); }}
+                  onDragEnd={() => { setDragKey(null); setOverKey(null); }}
+                  onDragOver={e => { if (dragKey && !i.done) { e.preventDefault(); if (overKey !== key) setOverKey(key); } }}
+                  onDrop={e => {
+                    e.preventDefault();
+                    if (dragKey && dragKey !== key && rank >= 0) {
+                      // Land just before the card it was dropped on (its slot shifts up once the dragged one leaves)
+                      const from = openKeys.indexOf(dragKey);
+                      placeItem(dragKey, from >= 0 && from < rank ? rank - 1 : rank);
+                    }
+                    setDragKey(null); setOverKey(null);
+                  }}
+                >
+                  {!i.done && <RankSelect rank={rank + 1} total={openKeys.length} title={i.title} onPick={idx => placeItem(key, idx)} />}
                   <span className={`todo-check${i.done ? ' checked' : ''}`} onClick={() => toggleItem(i)}>
                     {i.done && <CheckIcon />}
                   </span>
@@ -198,13 +231,10 @@ export default function Today() {
                       {i.estimate ? <span>· {fmtMins(i.estimate)}</span> : null}
                     </div>
                   </div>
-                  {i.kind === 'task' && !i.done && (
-                    <button className="todo-del" title="Move to tomorrow" style={{ opacity: 1, fontSize: 12 }}
-                      onClick={() => updateTask(i.id, { plannedDate: addDaysIso(focus, 1) })}
-                    >→</button>
-                  )}
+                  {!i.done && <MoveDayButton date={focus} title={i.title} onMove={iso => moveItem(i, iso)} />}
                 </div>
-              ))}
+                );
+              })}
             </div>
             <div className="todo-input-row">
               <input

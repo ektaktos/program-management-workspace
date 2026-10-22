@@ -1658,3 +1658,34 @@ tr:hover .q-due.empty, .oc-row:hover .q-due.empty, .q-due.empty:focus-visible { 
 .style-swatch-bg[data-v="linen"] { background-image: repeating-linear-gradient(45deg, color-mix(in srgb, var(--text) 10%, transparent) 0 1px, transparent 1px 4px), repeating-linear-gradient(-45deg, color-mix(in srgb, var(--text) 8%, transparent) 0 1px, transparent 1px 4px); }
 .style-swatch-bg[data-v="dots"] { background-image: radial-gradient(color-mix(in srgb, var(--text) 35%, transparent) 1px, transparent 1.3px); background-size: 7px 7px; }
 .style-swatch-bg[data-v="ruled"] { background-image: repeating-linear-gradient(transparent 0 6px, color-mix(in srgb, var(--primary-dark) 35%, transparent) 6px 7px); }
+
+/* ── Day order: priority numbers, move-to-day menu, drop targets ── */
+.rank-badge { position: relative; display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px; background: var(--accent-soft); color: var(--primary-dark); font-size: 11px; font-weight: 700; flex-shrink: 0; cursor: pointer; font-variant-numeric: tabular-nums; }
+.rank-badge:hover { background: var(--primary-light); }
+.rank-badge select { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; padding: 0; border: none; appearance: none; -webkit-appearance: none; font-size: 16px; }
+.rank-badge:focus-within { outline: 2px solid var(--primary-dark); outline-offset: 1px; }
+.pevent .rank-badge { float: left; min-width: 16px; height: 16px; font-size: 10.5px; margin: 0 6px 2px 0; padding: 0 4px; }
+
+.move-day { position: relative; display: inline-flex; flex-shrink: 0; }
+.move-day-btn { width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid transparent; background: none; border-radius: 8px; color: var(--text-faint); cursor: pointer; padding: 0; }
+.move-day-btn svg { width: 13px; height: 13px; }
+.move-day-btn:hover, .move-day-btn[aria-expanded="true"] { color: var(--text); background: var(--accent-soft); border-color: var(--border); }
+.move-day-menu { position: absolute; top: calc(100% + 4px); z-index: 150; width: 190px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow-md); padding: 5px; display: flex; flex-direction: column; gap: 1px; cursor: default; }
+.move-day-menu.right { right: 0; }
+.move-day-menu.left { left: 0; }
+.move-day-opt { text-align: left; border: none; background: none; font-family: inherit; font-size: 12.5px; color: var(--text); padding: 6px 8px; border-radius: 6px; cursor: pointer; }
+.move-day-opt:hover { background: var(--accent-soft); }
+.move-day-opt.strong { font-weight: 600; }
+.move-day-pick { display: flex; flex-direction: column; gap: 4px; padding: 6px 8px 4px; margin-top: 2px; border-top: 1px solid var(--border); font-size: 11px; color: var(--text-muted); text-transform: none; letter-spacing: 0; font-weight: 400; }
+.move-day-pick input { padding: 4px 6px; font-size: 12px; }
+/* In the planner the move button sits in the card's bottom-right corner, shown on hover */
+.pevent .move-day { position: absolute; right: 3px; bottom: 3px; }
+.pevent .move-day-btn { width: 20px; height: 20px; opacity: 0; }
+.pevent:hover .move-day-btn, .pevent .move-day-btn[aria-expanded="true"], .pevent .move-day-btn:focus-visible { opacity: 1; }
+@media (hover: none) { .pevent .move-day-btn { opacity: 0.7; } }
+.pevent .move-day-menu { top: auto; bottom: calc(100% + 2px); }
+
+.today-item .rank-badge { margin-right: 2px; }
+.todo-item.dragging { opacity: 0.45; }
+.todo-item.drop-before { box-shadow: 0 -2px 0 var(--primary-dark); }
+.today-item[draggable="true"] { cursor: grab; }

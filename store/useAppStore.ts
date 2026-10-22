@@ -6,6 +6,7 @@ import { uid, autoMarkOverdue, addDaysIso, todayIso } from '@/lib/utils';
 import { DAILY_CAPACITY_MIN } from '@/lib/constants';
 import { DEFAULT_THEME, applyTheme, isThemeId } from '@/lib/themes';
 import { StyleTheme, DEFAULT_STYLE, STYLE_CACHE_KEY, applyStyle, normalizeStyle } from '@/lib/styleThemes';
+import { DayOrder, isDayOrder, pruneDayOrder } from '@/lib/dayOrder';
 import { NotifItem, NotifKind, NotifPrefs, NotifTarget, DEFAULT_NOTIF_PREFS, normalizeNotifPrefs, inQuietHours, playSound } from '@/lib/notifications';
 
 const NOTIFIED_KEY  = 'pm_oyint_notified';
@@ -258,6 +259,10 @@ interface Store extends AppState, UIState, PlannerState {
   theme:    string;
   setTheme: (id: string) => void;
 
+  // ── Your order for each day's tasks (synced; see lib/dayOrder) ──
+  dayOrder:    DayOrder;
+  setDayOrder: (date: string, keys: string[]) => void;
+
   // ── Font / card / background style (synced via settings) ──
   styleTheme:    StyleTheme;
   setStyleTheme: (patch: Partial<StyleTheme>) => void;
@@ -327,6 +332,7 @@ export const useAppStore = create<Store>((set, get) => ({
   navOrder: [],
   doneCalendarEvents: [],
   styleTheme: DEFAULT_STYLE,
+  dayOrder: {},
 
   calendarSources: [],
   calendarEvents:  [],
@@ -380,6 +386,8 @@ export const useAppStore = create<Store>((set, get) => ({
         try { cached = JSON.parse(localStorage.getItem(STYLE_CACHE_KEY) ?? 'null'); } catch {}
         if (cached) set({ styleTheme: normalizeStyle(cached) });
       }
+
+      if (isDayOrder(settingsRes?.dayOrder)) set({ dayOrder: settingsRes!.dayOrder as DayOrder });
 
       if (Array.isArray(settingsRes?.doneCalendarEvents)) {
         set({ doneCalendarEvents: (settingsRes!.doneCalendarEvents as unknown[]).filter((x): x is string => typeof x === 'string') });
@@ -911,6 +919,12 @@ export const useAppStore = create<Store>((set, get) => ({
   },
 
   setQuickAddOpen: (open) => set({ quickAddOpen: open }),
+
+  setDayOrder: (date, keys) => {
+    const dayOrder = pruneDayOrder({ ...get().dayOrder, [date]: keys.slice(0, 200) }, todayIso());
+    set({ dayOrder });
+    api('/api/settings/dayOrder', 'PUT', { value: dayOrder }).catch(console.error);
+  },
 
   setStyleTheme: (patch) => {
     const st = normalizeStyle({ ...get().styleTheme, ...patch });
