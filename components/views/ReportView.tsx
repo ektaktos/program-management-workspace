@@ -37,8 +37,20 @@ export default function ReportView() {
   const { tasks, projects, plannerEvents, plannerAppointments, plannerWeekly, calendarSources, archivedProjectIds, archivedTaskIds, setView } = useAppStore();
   const today = todayIso();
   const thisWeek = mondayOf(today);
-  // Default to the last full week; this week is one step forward
+  // Default to the last full week, unless it had no activity at all and this week does
   const [start, setStart] = useState(addDaysIso(thisWeek, -7));
+  const [picked, setPicked] = useState(false);
+  useEffect(() => {
+    if (picked) return;
+    const last = addDaysIso(thisWeek, -7);
+    const has = (a: string) => {
+      const b = addDaysIso(a, 6);
+      return plannerEvents.some(e => e.date >= a && e.date <= b)
+        || tasks.some(t => (t.plannedDate && t.plannedDate >= a && t.plannedDate <= b) || (t.completedAt && new Date(t.completedAt) >= new Date(a + 'T00:00:00') && new Date(t.completedAt) <= new Date(b + 'T23:59:59')));
+    };
+    setStart(!has(last) && has(thisWeek) ? thisWeek : last);
+  }, [picked, thisWeek, plannerEvents, tasks]);
+  const go = (s: string) => { setPicked(true); setStart(s); };
   const [cal, setCal] = useState<CalendarEvent[]>([]);
   const [tip, setTip] = useState<Tip>(null);
 
@@ -95,12 +107,12 @@ export default function ReportView() {
       {/* Week picker */}
       <div className="rp-head">
         <div className="rp-week">
-          <button className="pweek-btn" onClick={() => setStart(addDaysIso(start, -7))} aria-label="Previous week">&#8249;</button>
+          <button className="pweek-btn" onClick={() => go(addDaysIso(start, -7))} aria-label="Previous week">&#8249;</button>
           <div>
             <div className="rp-week-label">{isThisWeek ? 'This week so far' : start === addDaysIso(thisWeek, -7) ? 'Last week' : `Week of ${weekLabel(start)}`}</div>
             <div className="rp-week-sub">{weekLabel(start)}{r.partial ? ' · in progress' : ''}</div>
           </div>
-          <button className="pweek-btn" onClick={() => setStart(addDaysIso(start, 7))} disabled={isThisWeek} aria-label="Next week">&#8250;</button>
+          <button className="pweek-btn" onClick={() => go(addDaysIso(start, 7))} disabled={isThisWeek} aria-label="Next week">&#8250;</button>
         </div>
         <button className="btn btn-outline btn-sm rp-print" onClick={() => window.print()}>Print or save as PDF</button>
       </div>

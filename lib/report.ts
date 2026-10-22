@@ -20,7 +20,7 @@ export interface ProjectRow { id: string; name: string; color: string; done: num
 export interface Insight { tone: 'good' | 'watch' | 'info'; text: string }
 
 export interface WeeklyReport {
-  start: string; end: string; label: string; partial: boolean;
+  start: string; end: string; label: string; partial: boolean; today: string;
   done: number; planned: number; donePlanned: number; extraDone: number;
   rate: number | null; prevDone: number; prevRate: number | null; avgDone: number;
   dueInWeek: number; onTime: number; late: number; missed: number; onTimeRate: number | null;
@@ -199,7 +199,7 @@ export function buildWeeklyReport(inp: ReportInput, start: string): WeeklyReport
   const rate = pct(core.donePlanned, core.planned);
   const prevRate = pct(prev.donePlanned, prev.planned);
   const report: WeeklyReport = {
-    start, end, label: weekLabel(start), partial,
+    start, end, label: weekLabel(start), partial, today: inp.today,
     done: core.done, planned: core.planned, donePlanned: core.donePlanned, extraDone: core.extraDone,
     rate, prevDone: prev.done, prevRate, avgDone,
     dueInWeek: dueTasks.length, onTime, late, missed, onTimeRate: pct(onTime, onTime + late + missed),
@@ -223,9 +223,12 @@ function buildInsights(r: WeeklyReport): Insight[] {
   }
 
   // Output vs last week and the 8-week norm
-  if (r.prevDone > 0 || r.done > 0) {
+  if (r.prevDone > 0) {
     const vs = diff === 0 ? 'the same as last week' : `${Math.abs(diff)} ${diff > 0 ? 'more' : 'fewer'} than last week`;
     out.push({ tone: diff >= 0 ? 'good' : 'watch', text: `You finished ${plural(r.done, 'task')}${r.partial ? ' so far' : ''}, ${vs}.` });
+  } else if (r.done > 0) {
+    // Nothing to compare against (an empty week before), so just say what happened
+    out.push({ tone: 'good', text: `You finished ${plural(r.done, 'task')}${r.partial ? ' so far this week' : ''}.` });
   }
   if (!r.partial && r.avgDone > 0 && Math.abs(r.done - r.avgDone) >= Math.max(3, r.avgDone * 0.25)) {
     out.push({ tone: r.done > r.avgDone ? 'good' : 'watch', text: `That's ${r.done > r.avgDone ? 'above' : 'below'} your recent norm of about ${r.avgDone} a week.` });
@@ -245,8 +248,9 @@ function buildInsights(r: WeeklyReport): Insight[] {
   if (worked.length >= 3) {
     const best = [...r.days].sort((a, b) => b.done - a.done)[0];
     if (best.done > 0) out.push({ tone: 'good', text: `${best.label.split(' ')[0]} was your most productive day, with ${plural(best.done, 'task')} done.` });
-    const heavy = [...r.days].sort((a, b) => b.meetings - a.meetings)[0];
-    if (heavy.meetings >= 4) {
+    // Only judge days that are over (not today or later in an unfinished week)
+    const heavy = [...r.days].filter(d => !r.partial || d.iso < r.today).sort((a, b) => b.meetings - a.meetings)[0];
+    if (heavy && heavy.meetings >= 4) {
       const hr = heavy.planned ? Math.round((Math.min(heavy.done, heavy.planned) / heavy.planned) * 100) : null;
       out.push({
         tone: hr !== null && hr < 50 ? 'watch' : 'info',
