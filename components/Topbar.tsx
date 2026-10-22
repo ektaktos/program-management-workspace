@@ -14,6 +14,7 @@ const VIEW_META: Record<string, { title: string; subtitle: string }> = {
   tasks:     { title: 'All Tasks',          subtitle: 'Every task across every project' },
   upcoming:  { title: 'Upcoming Deadlines',  subtitle: 'What is on the horizon' },
   planner:   { title: 'Weekly Planner',     subtitle: 'Plan your week, day by day' },
+  notes:     { title: 'Notes',              subtitle: 'Every note, filed by project' },
   archive:   { title: 'Archive',            subtitle: 'Projects and tasks set aside for later' },
 };
 

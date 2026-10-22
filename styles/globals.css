@@ -1546,3 +1546,53 @@ tr:hover .q-due.empty, .oc-row:hover .q-due.empty, .q-due.empty:focus-visible { 
 .dash-note-free { font-style: italic; color: var(--text-faint); }
 /* A calendar meeting that simply finished: ticked, but not clickable */
 .todo-check.auto { cursor: default; opacity: 0.6; }
+
+/* ── Notes: card catalog (drawers + rolodex), wood tinted by the theme accent ── */
+:root {
+  --nv-wood: color-mix(in srgb, var(--primary-dark) 40%, #8a6a48);
+  --nv-drawer: color-mix(in srgb, var(--primary) 35%, #c9a77c);
+  --nv-drawer-open: color-mix(in srgb, var(--primary) 25%, #ddbd92);
+  --nv-plate: color-mix(in srgb, var(--surface) 88%, #c9a77c);
+}
+.nv-toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 6px; }
+.nv-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 14px; }
+.nv-cabinet { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; background: var(--nv-wood); padding: 8px; border-radius: 10px; }
+.nv-drawer { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 10px 9px; border-radius: 5px; border: 1px solid color-mix(in srgb, var(--nv-wood) 80%, #000); background: var(--nv-drawer); color: #2b2016; cursor: pointer; font-family: inherit; transition: transform 0.2s ease, background 0.2s; min-width: 0; }
+.nv-drawer:hover { transform: translateY(-2px); }
+.nv-drawer.open { background: var(--nv-drawer-open); transform: translateY(5px); box-shadow: inset 0 -3px 0 color-mix(in srgb, var(--nv-wood) 70%, #000); }
+.nv-drawer.empty { opacity: 0.7; }
+.nv-drawer:focus-visible { outline: 2px solid var(--surface); outline-offset: 2px; }
+.nv-plate { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; background: var(--nv-plate); color: var(--text); border: 1px solid color-mix(in srgb, var(--nv-wood) 70%, #000); border-radius: 3px; padding: 4px 8px; font-family: Georgia, 'Times New Roman', serif; font-size: 12.5px; }
+.nv-plate-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.nv-count { font-size: 11px; color: #3a2a1a; }
+.nv-knob { width: 24px; height: 7px; border-radius: 999px; background: color-mix(in srgb, var(--nv-wood) 70%, #000); }
+.nv-rolo { margin-top: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 18px; min-height: 260px; }
+.nv-empty { grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; font-size: 13px; color: var(--text-muted); padding: 30px 10px; }
+.nv-tabs { display: flex; flex-direction: column; gap: 4px; max-height: 420px; overflow-y: auto; padding-right: 2px; }
+.nv-tab { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; text-align: left; border: 1px solid var(--border); background: var(--bg); border-radius: 8px 0 0 8px; padding: 7px 10px; font-family: inherit; font-size: 12.5px; color: var(--text-muted); cursor: pointer; min-width: 0; transition: margin 0.15s, background 0.15s; }
+.nv-tab:hover { color: var(--text); }
+.nv-tab.on { background: var(--note-paper); border-color: color-mix(in srgb, var(--primary-dark) 30%, var(--border)); color: var(--text); margin-right: -19px; border-right-color: transparent; }
+.nv-tab-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.nv-tab-date { font-size: 11px; color: var(--text-faint); flex-shrink: 0; }
+.nv-reader { min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+.nv-card { position: relative; background-color: var(--note-paper); border: 1px solid color-mix(in srgb, var(--primary-dark) 22%, var(--border)); border-radius: 6px; padding: 18px 20px 20px; min-height: 220px; background-image: repeating-linear-gradient(transparent 0 25px, var(--note-line) 25px 26px); background-position: 0 70px; animation: nv-flip 0.28s ease; transform-origin: 50% 0; outline: none; }
+.nv-card:focus-visible { box-shadow: 0 0 0 2px var(--primary-dark); }
+@keyframes nv-flip { from { transform: perspective(700px) rotateX(-70deg); opacity: 0.2; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .nv-card { animation: none; } .nv-drawer { transition: none; } }
+.nv-card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.nv-card-title { font-family: Georgia, 'Times New Roman', serif; font-size: 20px; line-height: 1.3; color: var(--text); overflow-wrap: anywhere; }
+.nv-card-actions { display: flex; gap: 2px; flex-shrink: 0; }
+.nv-card-meta { font-size: 11.5px; color: var(--text-muted); margin: 4px 0 12px; padding-bottom: 8px; border-bottom: 1.5px solid var(--note-rule); }
+.nv-card-body { font-size: 13.5px; line-height: 26px; color: var(--text); white-space: pre-wrap; overflow-wrap: anywhere; }
+.nv-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.nv-pos { font-size: 12px; color: var(--text-muted); min-width: 56px; text-align: center; }
+.nv-file { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); text-transform: none; letter-spacing: 0; font-weight: 400; }
+.nv-file select { width: auto; max-width: 200px; padding: 4px 8px; font-size: 12px; }
+@media (max-width: 700px) {
+  .nv-rolo { grid-template-columns: minmax(0, 1fr); padding: 12px; }
+  .nv-tabs { flex-direction: row; overflow-x: auto; max-height: none; padding-bottom: 4px; }
+  .nv-tab { border-radius: 8px; flex-direction: column; align-items: flex-start; gap: 1px; max-width: 160px; flex-shrink: 0; }
+  .nv-tab.on { margin-right: 0; border-right-color: inherit; }
+  .nv-file { margin-left: 0; width: 100%; }
+  .nv-file select { flex: 1; max-width: none; }
+}

@@ -48,4 +48,4 @@ export const DAILY_CAPACITY_MIN = 6 * 60;
 export const CAPACITY_OPTIONS = Array.from({ length: 23 }, (_, i) => 60 + i * 30);
 
 // Sidebar menu entries, in their default order (the user can drag to reorder; order syncs via settings)
-export const NAV_IDS = ['dashboard', 'today', 'projects', 'tasks', 'upcoming', 'planner', 'archive'];
+export const NAV_IDS = ['dashboard', 'today', 'projects', 'tasks', 'upcoming', 'planner', 'notes', 'archive'];
