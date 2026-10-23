@@ -55,7 +55,7 @@ interface EventModalProps {
 }
 
 // Same layout, order and buttons as the project task form (TaskModal), limited to the fields planner tasks store
-function EventModal({ presetDate, event, onClose }: EventModalProps) {
+export function EventModal({ presetDate, event, onClose }: EventModalProps) {
   useEscape(onClose);
   const fid = useId(); // links each label to its field
   const { addPlannerEvent, updatePlannerEvent, deletePlannerEvent, projects, archivedProjectIds } = useAppStore();

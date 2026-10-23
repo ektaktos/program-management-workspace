@@ -4,8 +4,9 @@ import { useEffect, useState } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { addDaysIso, calendarEventsOn, fmtDate, fmtMins, projectInArea, todayIso } from '@/lib/utils';
 import CapacitySelect from '../ui/CapacitySelect';
-import { Task } from '@/lib/types';
+import { PlannerEvent, Task } from '@/lib/types';
 import TaskModal from '../modals/TaskModal';
+import { EventModal } from './WeeklyPlanner';
 import TodayMeetingsCard from '../ui/TodayMeetings';
 import { MoveDayButton, RankSelect } from '../ui/DayOrderControls';
 import { applyDayOrder, eventKey, placeAt, taskKey } from '@/lib/dayOrder';
@@ -33,11 +34,12 @@ export default function Today() {
     projects, tasks, todos, plannerEvents, plannerAppointments, calendarSources, calendarEvents, ensureCalendarRange,
     archivedTaskIds, archivedProjectIds, areaFilter, dailyCapacity,
     toggleTaskDone, updateTask, updatePlannerEvent, dayOrder, setDayOrder,
-    addPlannerEvent, addTodo, toggleTodo, navigateToTask, setView, setQuickAddOpen,
+    addPlannerEvent, addTodo, toggleTodo, setView, setQuickAddOpen,
   } = useAppStore();
   const [planInput, setPlanInput] = useState('');
   const [todoInput, setTodoInput] = useState('');
   const [editTask, setEditTask] = useState<Task | null>(null);
+  const [editEvent, setEditEvent] = useState<PlannerEvent | null>(null);
 
   const today = todayIso();
 
@@ -222,7 +224,11 @@ export default function Today() {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div
                       className="today-item-title"
-                      onClick={() => { if (i.kind === 'task') setEditTask(i.task); else setView('planner'); }}
+                      // Edit right here: project tasks in the task form, planner tasks in the planner's form
+                      onClick={() => {
+                        if (i.kind === 'task') setEditTask(i.task);
+                        else { const ev = plannerEvents.find(e => e.id === i.id); if (ev) setEditEvent(ev); }
+                      }}
                     >{i.title}</div>
                     <div className="today-item-meta">
                       {i.time && <span>{fmt12(i.time)}</span>}
@@ -263,7 +269,7 @@ export default function Today() {
                   <div key={t.id} className="todo-item today-item" style={{ borderLeftColor: p?.color ?? 'transparent' }}>
                     <span className="todo-check" onClick={() => toggleTaskDone(t.id)} />
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div className="today-item-title" onClick={() => navigateToTask(t.id, t.projectId)}>{t.title}</div>
+                      <div className="today-item-title" onClick={() => setEditTask(t)} title="Edit task">{t.title}</div>
                       <div className="today-item-meta">
                         <span style={{ color: late ? 'var(--danger)' : undefined, fontWeight: late ? 600 : 400 }}>
                           {late ? `Overdue · ${fmtDate(t.due!).replace(/ \d{4}$/, '')}` : 'Due today'}
@@ -318,6 +324,7 @@ export default function Today() {
       </div>
 
       {editTask && <TaskModal task={editTask} onClose={() => setEditTask(null)} />}
+      {editEvent && <EventModal event={editEvent} onClose={() => setEditEvent(null)} />}
     </div>
   );
 }
