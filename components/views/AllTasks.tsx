@@ -96,6 +96,7 @@ export default function AllTasks() {
         />
         <select
           className="toolbar-input"
+          aria-label="Filter by status"
           value={statusFilter}
           onChange={e => setStatusFilter(e.target.value)}
           style={{ width: 'auto', minWidth: 140 }}
@@ -110,6 +111,7 @@ export default function AllTasks() {
         </select>
         <select
           className="toolbar-input"
+          aria-label="Filter by priority"
           value={priorityFilter}
           onChange={e => setPriorityFilter(e.target.value)}
           style={{ width: 'auto', minWidth: 130 }}

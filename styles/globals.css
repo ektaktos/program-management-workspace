@@ -1014,7 +1014,7 @@ button.pday-appts-label:focus-visible { outline: 2px solid var(--primary-dark); 
 .stat-meetings:focus-visible { outline: 2px solid var(--primary-dark); outline-offset: -4px; }
 .stat-meetings-num { font-family: var(--font-display); font-size: 24px; line-height: 1; }
 .stat-meetings-lbl { font-size: 10.5px; color: var(--text-muted); letter-spacing: 0.3px; }
-@media (max-width: 768px) { .stat-meetings { width: 72px; height: 72px; padding: 0 0 16px 16px; } .stat-meetings-num { font-size: 18px; } .stat-meetings-lbl { font-size: 10px; } }
+@media (max-width: 768px) { .stat-meetings { width: 72px; height: 72px; padding: 0 0 16px 16px; } .stat-meetings-num { font-size: 18px; } .stat-meetings-lbl { font-size: 10.5px; } }
 
 /* ── Reorderable sidebar menu ── */
 .nav-item-wrap { position: relative; border-radius: 10px; }
@@ -1220,7 +1220,7 @@ button.pday-appts-label:focus-visible { outline: 2px solid var(--primary-dark); 
 .today-quad .today-item .btn { flex-shrink: 0; }
 /* One column on narrow screens, in reading order: plan, meetings, due, to-dos */
 @media (max-width: 900px) {
-  .today-quad { display: flex; flex-direction: column; }
+  .today-quad { display: flex; flex-direction: column; align-items: stretch; }
   .today-col { display: contents; }
   .tq-plan { order: 1; } .tq-meet { order: 2; } .tq-due { order: 3; } .tq-todos { order: 4; }
 }
@@ -1257,7 +1257,7 @@ button.pday-appts-label:focus-visible { outline: 2px solid var(--primary-dark); 
 @media (prefers-reduced-motion: reduce) { .bc-book { transition: none; } .bc-pop { animation: none; } }
 
 /* ── Notifications: bell, centre, toasts ── */
-.bell-badge { position: absolute; top: -3px; right: -3px; min-width: 18px; height: 18px; padding: 0 4px; background: var(--danger); border-radius: 999px; font-size: 10px; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; border: 2px solid var(--bg); box-sizing: content-box; }
+.bell-badge { position: absolute; top: -3px; right: -3px; min-width: 18px; height: 18px; padding: 0 4px; background: var(--danger); border-radius: 999px; font-size: 10.5px; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; border: 2px solid var(--bg); box-sizing: content-box; }
 .notif-popover { position: absolute; top: calc(100% + 8px); right: 0; z-index: 120; width: 360px; max-width: calc(100vw - 24px); max-height: min(78vh, 620px); display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-lg); overflow: hidden; }
 .notif-head { padding: 8px 8px 0; border-bottom: 1px solid var(--border); flex-shrink: 0; }
 .notif-tabs { display: flex; gap: 2px; }
@@ -1695,3 +1695,5 @@ tr:hover .q-due.empty, .oc-row:hover .q-due.empty, .q-due.empty:focus-visible { 
 .jpage-right { border-radius: 0 16px 16px 0; }
 @media (max-width: 900px) { .jpage-left { border-radius: 16px 16px 0 0; } .jpage-right { border-radius: 0 0 16px 16px; } }
 
+/* Long task titles truncate instead of widening Today's cards */
+.today-col .card .todo-list, .today-col .card .todo-item { min-width: 0; max-width: 100%; }

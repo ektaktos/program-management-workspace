@@ -89,7 +89,8 @@ export default function ProjectDetail() {
               <div className="pct-number" style={{
                 fontFamily: 'var(--font-display)',
                 fontSize: 44, fontWeight: 400,
-                color: project.color, lineHeight: 1, letterSpacing: '-0.02em',
+                // Project colours can be very pale; darken toward the text colour so the number stays readable
+                color: `color-mix(in srgb, ${project.color} 50%, var(--text))`, lineHeight: 1, letterSpacing: '-0.02em',
               }}>{pct}<span style={{ fontSize: 24, color: 'var(--text-muted)' }}>%</span></div>
               <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>{doneTasks}/{projectTasks.length} tasks</div>
             </div>

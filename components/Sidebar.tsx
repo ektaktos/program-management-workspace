@@ -226,7 +226,7 @@ export default function Sidebar() {
         {/* Nav */}
         <div style={{ padding: open ? '14px 10px' : '14px 8px' }}>
           {open && (
-            <div style={{ color: 'var(--text-faint)', fontSize: 10, fontWeight: 600, letterSpacing: 1, textTransform: 'uppercase', padding: '6px 10px 10px' }}>
+            <div style={{ color: 'var(--text-faint)', fontSize: 10.5, fontWeight: 600, letterSpacing: 1, textTransform: 'uppercase', padding: '6px 10px 10px' }}>
               Menu
             </div>
           )}
@@ -281,7 +281,7 @@ export default function Sidebar() {
         {/* Projects section */}
         <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
           <div style={{
-            color: 'var(--text-faint)', fontSize: 10, fontWeight: 600,
+            color: 'var(--text-faint)', fontSize: 10.5, fontWeight: 600,
             letterSpacing: 1, textTransform: 'uppercase',
             padding: open ? '14px 20px 8px' : '14px 0 8px',
             display: 'flex', alignItems: 'center',

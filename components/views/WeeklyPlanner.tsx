@@ -108,21 +108,21 @@ function EventModal({ presetDate, event, onClose }: EventModalProps) {
 
         <div className="form-row">
           <div className="form-group">
-            <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <label htmlFor={`${fid}-project`} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               Project
               {selectedProject && <span style={{ width: 8, height: 8, borderRadius: '50%', background: selectedProject.color, display: 'inline-block' }} />}
             </label>
-            <select value={form.projectId} onChange={e => setF('projectId', e.target.value)}>
+            <select id={`${fid}-project`} value={form.projectId} onChange={e => setF('projectId', e.target.value)}>
               <option value="">No project</option>
               {projectOptions.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
           </div>
           <div className="form-group">
-            <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <label htmlFor={`${fid}-category`} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               Category
               {!selectedProject && <span style={{ width: 8, height: 8, borderRadius: '50%', background: `var(--cat-${form.category})`, display: 'inline-block' }} />}
             </label>
-            <select value={form.category} onChange={e => setF('category', e.target.value)} title={selectedProject ? 'Colour comes from the project while one is selected' : undefined}>
+            <select id={`${fid}-category`} value={form.category} onChange={e => setF('category', e.target.value)} title={selectedProject ? 'Colour comes from the project while one is selected' : undefined}>
               {CATEGORIES.map(c => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
             </select>
           </div>
@@ -829,7 +829,7 @@ export default function WeeklyPlanner() {
                 <span className="badge badge-gray">{trayTasks.length}</span>
               </button>
               {trayOpen && (
-                <select value={trayProject} onChange={e => setTrayProject(e.target.value)} style={{ width: 'auto', fontSize: 12, padding: '4px 8px' }}>
+                <select value={trayProject} aria-label="Filter project tasks by project" onChange={e => setTrayProject(e.target.value)} style={{ width: 'auto', fontSize: 12, padding: '4px 8px' }}>
                   <option value="">All projects</option>
                   {trayProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                 </select>
