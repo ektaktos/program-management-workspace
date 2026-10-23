@@ -181,8 +181,9 @@ export default function Upcoming() {
             {it.date === today ? 'Today' : `${WEEKDAYS[d.getDay()]} ${d.getDate()}`}
             {it.time && <span>{fmt12hr(it.time)}</span>}
           </span>
-        ) : it.time && (
-          <span className="rail-item-time">{fmt12hr(it.time)}{it.endTime ? <span>{fmt12hr(it.endTime)}</span> : null}</span>
+        ) : (
+          // Kept even when empty so every title in a day starts at the same place
+          <span className="rail-item-time" aria-hidden={!it.time}>{it.time ? <>{fmt12hr(it.time)}{it.endTime ? <span>{fmt12hr(it.endTime)}</span> : null}</> : null}</span>
         )}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div className="rail-item-title" onClick={() => open(it)} title={readOnly ? it.title : 'Open'} style={readOnly ? { cursor: 'default' } : undefined}>{it.title}</div>

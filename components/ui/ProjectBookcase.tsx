@@ -103,7 +103,7 @@ export default function ProjectBookcase({ projects, tasks, phases, onOpen, onNew
                 key={b.p.id}
                 type="button"
                 className={`bc-book${b.overdue > 0 ? ' lean' : ''}${hover?.id === b.p.id ? ' out' : ''}`}
-                style={{ height: 130 + 120 * (b.total / maxTasks), background: b.p.color, color: inkFor(b.p.color) }}
+                style={{ height: 160 + 100 * (b.total / maxTasks), background: b.p.color, color: inkFor(b.p.color) }}
                 onMouseEnter={e => show(e, b.p.id, si)}
                 onMouseLeave={() => setHover(h => (h?.id === b.p.id ? null : h))}
                 onFocus={e => show(e, b.p.id, si)}

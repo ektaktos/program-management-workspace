@@ -1660,11 +1660,11 @@ tr:hover .q-due.empty, .oc-row:hover .q-due.empty, .q-due.empty:focus-visible { 
 .style-swatch-bg[data-v="ruled"] { background-image: repeating-linear-gradient(transparent 0 6px, color-mix(in srgb, var(--primary-dark) 35%, transparent) 6px 7px); }
 
 /* ── Day order: priority numbers, move-to-day menu, drop targets ── */
-.rank-badge { position: relative; display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px; background: var(--accent-soft); color: var(--primary-dark); font-size: 11px; font-weight: 700; flex-shrink: 0; cursor: pointer; font-variant-numeric: tabular-nums; }
-.rank-badge:hover { background: var(--primary-light); }
+.rank-badge { position: relative; display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 20px; padding: 0 3px; border-radius: 5px; background: transparent; color: var(--text-faint); font-family: var(--font-display); font-size: 12px; font-weight: 600; flex-shrink: 0; cursor: pointer; font-variant-numeric: tabular-nums lining-nums; transition: background 0.12s, color 0.12s; }
+.rank-badge:hover, .rank-badge:focus-within { background: var(--accent-soft); color: var(--primary-dark); }
 .rank-badge select { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; padding: 0; border: none; appearance: none; -webkit-appearance: none; font-size: 16px; }
 .rank-badge:focus-within { outline: 2px solid var(--primary-dark); outline-offset: 1px; }
-.pevent .rank-badge { float: left; min-width: 16px; height: 16px; font-size: 10.5px; margin: 0 6px 2px 0; padding: 0 4px; }
+.pevent .rank-badge { float: left; min-width: 14px; height: 15px; font-size: 11px; margin: 0 4px 0 -2px; padding: 0 2px; }
 
 .move-day { position: relative; display: inline-flex; flex-shrink: 0; }
 .move-day-btn { width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid transparent; background: none; border-radius: 8px; color: var(--text-faint); cursor: pointer; padding: 0; }
@@ -1697,3 +1697,28 @@ tr:hover .q-due.empty, .oc-row:hover .q-due.empty, .q-due.empty:focus-visible { 
 
 /* Long task titles truncate instead of widening Today's cards */
 .today-col .card .todo-list, .today-col .card .todo-item { min-width: 0; max-width: 100%; }
+
+
+/* ── Look-and-feel pass ── */
+/* Segmented switches never wrap their labels ("Time blocks") */
+.seg-btn { white-space: nowrap; }
+
+/* Notes: the open tab is marked with an accent edge (no overhang, so no stray scrollbar) */
+.nv-tab.on { margin-right: 0; border-right-color: color-mix(in srgb, var(--primary-dark) 30%, var(--border)); box-shadow: inset 3px 0 0 var(--primary-dark); }
+.nv-tab-title { max-width: 100%; }
+/* Ruled lines only behind the note's text, aligned to its 26px lines, never through the title */
+.nv-card { background-image: none; }
+.nv-card-body { background-image: repeating-linear-gradient(transparent 0 25px, var(--note-line) 25px 26px); min-height: 130px; }
+@media (max-width: 700px) {
+  /* Drawers as one swipeable row instead of a tall grid */
+  .nv-cabinet { display: flex; overflow-x: auto; scroll-snap-type: x proximity; padding-bottom: 10px; }
+  .nv-drawer { flex: 0 0 150px; scroll-snap-align: start; }
+  .nv-tab { max-width: 180px; }
+}
+
+/* Phones: Quick add is a round icon button like its neighbours */
+@media (max-width: 768px) {
+  .quickadd-btn { width: 38px; height: 38px; padding: 0 !important; border-radius: 50% !important; justify-content: center; }
+  .quickadd-btn .quickadd-kbd { display: none; }
+  .quickadd-btn svg { width: 15px !important; height: 15px !important; }
+}

@@ -12,7 +12,7 @@ const VIEW_META: Record<string, { title: string; subtitle: string }> = {
   today:     { title: 'Today',              subtitle: 'Everything that needs you today' },
   projects:  { title: 'All Projects',       subtitle: 'Browse and manage all your projects' },
   tasks:     { title: 'All Tasks',          subtitle: 'Every task across every project' },
-  upcoming:  { title: 'Upcoming Deadlines',  subtitle: 'What is on the horizon' },
+  upcoming:  { title: 'Upcoming',            subtitle: 'Deadlines, plans and meetings ahead' },
   planner:   { title: 'Weekly Planner',     subtitle: 'Plan your week, day by day' },
   notes:     { title: 'Notes',              subtitle: 'Every note, filed by project' },
   archive:   { title: 'Archive',            subtitle: 'Projects and tasks set aside for later' },

@@ -37,12 +37,10 @@ export default function ArchiveView() {
 
   return (
     <div>
-      <div style={{ marginBottom: 28 }}>
-        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 400, margin: 0, color: 'var(--text)' }}>Archive</h1>
-        <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 6 }}>
-          Projects and tasks you've set aside. Restore them any time.
-        </p>
-      </div>
+      {/* The top bar already names the page; this line just explains it */}
+      <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: '0 0 22px' }}>
+        Projects and tasks you&rsquo;ve set aside. Restore them any time.
+      </p>
 
       {isEmpty && (
         <div className="empty-state">
@@ -78,7 +76,18 @@ export default function ArchiveView() {
                       <div style={{ fontFamily: 'var(--font-display)', fontSize: 17, fontWeight: 400, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
                       <div style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 3, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{p.type}</div>
                     </div>
-                    <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+                  </div>
+                  {p.description && (
+                    <div style={{ fontSize: 12.5, color: 'var(--text-muted)', marginBottom: 10, lineHeight: 1.5 }}>
+                      {p.description.slice(0, 80)}{p.description.length > 80 ? '…' : ''}
+                    </div>
+                  )}
+                  <div style={{ height: 5, background: 'var(--track)', borderRadius: 999, overflow: 'hidden', marginBottom: 6 }}>
+                    <div style={{ height: '100%', background: p.color, borderRadius: 999, width: `${pct}%` }} />
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginTop: 4 }}>
+                    <div style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>{done}/{pt.length} tasks · {pct}%</div>
+                    <div style={{ display: 'flex', gap: 4, flexShrink: 0, alignItems: 'center' }}>
                       <button
                         className="btn btn-outline btn-sm"
                         style={{ fontSize: 12 }}
@@ -103,15 +112,6 @@ export default function ArchiveView() {
                       </button>
                     </div>
                   </div>
-                  {p.description && (
-                    <div style={{ fontSize: 12.5, color: 'var(--text-muted)', marginBottom: 10, lineHeight: 1.5 }}>
-                      {p.description.slice(0, 80)}{p.description.length > 80 ? '…' : ''}
-                    </div>
-                  )}
-                  <div style={{ height: 5, background: 'var(--track)', borderRadius: 999, overflow: 'hidden', marginBottom: 6 }}>
-                    <div style={{ height: '100%', background: p.color, borderRadius: 999, width: `${pct}%` }} />
-                  </div>
-                  <div style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>{done}/{pt.length} tasks · {pct}%</div>
                 </div>
               );
             })}

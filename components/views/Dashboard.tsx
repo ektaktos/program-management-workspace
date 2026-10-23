@@ -90,7 +90,7 @@ export default function Dashboard() {
   return (
     <div>
       {/* Stat cards */}
-      <div className="stat-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 }}>
+      <div className="stat-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 16 }}>
         {statCards.map(c => (
           <div
             key={c.label}
@@ -151,10 +151,10 @@ export default function Dashboard() {
       </div>
 
       {/* Bottom grid */}
-      <div className="dashboard-bottom" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+      <div className="dashboard-bottom" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
 
         {/* Left column: Active Projects + To-Do List */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
           {/* Active Projects */}
           <div className="card">
@@ -250,7 +250,7 @@ export default function Dashboard() {
         </div>
 
         {/* Right column: Upcoming Deadlines + Recent Notes */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
           {/* Upcoming deadlines */}
           <div className="card">
