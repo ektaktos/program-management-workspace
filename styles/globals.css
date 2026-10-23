@@ -1732,3 +1732,5 @@ tr:hover .q-due.empty, .oc-row:hover .q-due.empty, .q-due.empty:focus-visible { 
 .oc-row:hover > span:last-child { background: var(--accent-softer); }
 .oc-row-add > span:last-child, .oc-row-empty > span:last-child { position: static; background: none; }
 .row-delete { opacity: 0.65; color: var(--text-muted); }
+/* Coming up: the calendar icon and the tick box take the same width, so titles line up exactly */
+.rail-item > .today-cal-icon, .rail-item > .section-task-check { width: 16px; flex: 0 0 16px; display: inline-flex; justify-content: center; }
