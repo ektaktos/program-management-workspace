@@ -6,6 +6,7 @@ import { useAppStore } from '@/store/useAppStore';
 import { STATUS_ORDER, STATUS_META, ESTIMATE_OPTIONS } from '@/lib/constants';
 import { fmtMins } from '@/lib/utils';
 import { useEscape } from '../ui/useEscape';
+import ConfirmModal from './ConfirmModal';
 
 interface TaskModalProps {
   task?: Task;
@@ -17,7 +18,8 @@ interface TaskModalProps {
 export default function TaskModal({ task, defaultProjectId, defaultPhaseId, onClose }: TaskModalProps) {
   useEscape(onClose);
   const fid = useId(); // links each label to its field
-  const { projects, phases, addTask, updateTask } = useAppStore();
+  const { projects, phases, addTask, updateTask, deleteTask } = useAppStore();
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [form, setForm] = useState({
     title: task?.title ?? '',
     description: task?.description ?? '',
@@ -82,6 +84,7 @@ export default function TaskModal({ task, defaultProjectId, defaultPhaseId, onCl
   }
 
   return (
+    <>
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-panel" onClick={e => e.stopPropagation()}>
         <div className="modal-title">{task ? 'Edit Task' : 'New Task'}</div>
@@ -230,10 +233,24 @@ export default function TaskModal({ task, defaultProjectId, defaultPhaseId, onCl
         </div>
 
         <div className="modal-footer">
+          {task && (
+            <button className="btn btn-ghost" style={{ color: 'var(--danger-text)', marginRight: 'auto' }} onClick={() => setConfirmDelete(true)}>
+              Delete task
+            </button>
+          )}
           <button className="btn btn-outline" onClick={onClose}>Cancel</button>
           <button className="btn btn-primary" onClick={save}>{task ? 'Save Changes' : 'Create Task'}</button>
         </div>
       </div>
     </div>
+    {/* Outside the form's backdrop so clicks in the confirm box don't close the form */}
+    {task && confirmDelete && (
+      <ConfirmModal
+        message={`Delete "${task.title}"? This can't be undone.`}
+        onConfirm={() => { deleteTask(task.id); setConfirmDelete(false); onClose(); }}
+        onCancel={() => setConfirmDelete(false)}
+      />
+    )}
+    </>
   );
 }

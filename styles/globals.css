@@ -1722,3 +1722,13 @@ tr:hover .q-due.empty, .oc-row:hover .q-due.empty, .q-due.empty:focus-visible { 
   .quickadd-btn .quickadd-kbd { display: none; }
   .quickadd-btn svg { width: 15px !important; height: 15px !important; }
 }
+
+/* Task delete stays reachable: the bin column is pinned to the right edge of scrolling ledgers,
+   and the button is clearly visible rather than nearly hidden until hover */
+.lg-table th.lg-c-del, .lg-table td.lg-c-del { position: sticky; right: 0; z-index: 2; background: var(--card-bg); box-shadow: -1px 0 0 var(--border); }
+.lg-table thead th.lg-c-del { background: var(--accent-softer); }
+.lg-table tbody tr:hover td.lg-c-del { background: var(--accent-softer); }
+.oc-row > span:last-child { position: sticky; right: 0; background: var(--surface); display: flex; justify-content: center; }
+.oc-row:hover > span:last-child { background: var(--accent-softer); }
+.oc-row-add > span:last-child, .oc-row-empty > span:last-child { position: static; background: none; }
+.row-delete { opacity: 0.65; color: var(--text-muted); }
