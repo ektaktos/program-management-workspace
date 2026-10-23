@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { occurrencesInRange } from '@/lib/ics';
+import { requireUserId } from '@/lib/auth';
 
 // Diagnostic: expand pasted iCal text for a date range without saving anything.
 // Body: { ics: string, from: 'YYYY-MM-DD', to: 'YYYY-MM-DD' }
 export async function POST(req: NextRequest) {
+  const userId = await requireUserId();
+  if (userId instanceof NextResponse) return userId;
+
   const body = await req.json().catch(() => null);
   if (!body || typeof body.ics !== 'string' || body.ics.length > 1024 * 1024) return NextResponse.json({ error: 'Send { ics, from, to } (max 1 MB)' }, { status: 400 });
   const fromMs = Date.parse(`${body.from}T00:00:00Z`);

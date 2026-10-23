@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { toTask } from '@/lib/apiHelpers';
+import { notFound, ownsProject, requireUserId } from '@/lib/auth';
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+  const userId = await requireUserId();
+  if (userId instanceof NextResponse) return userId;
+
   const body = await req.json();
-  const task = await prisma.task.update({
-    where: { id: params.id },
+  if (!(await ownsProject(userId, body.projectId))) return notFound();
+
+  const { count } = await prisma.task.updateMany({
+    where: { id: params.id, project: { userId } },
     data: {
       projectId:   body.projectId,
       phaseId:     body.phaseId   ?? null,
@@ -24,10 +30,17 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       plannedDate: body.plannedDate ?? null,
     },
   });
+  if (!count) return notFound();
+
+  const task = await prisma.task.findUnique({ where: { id: params.id } });
   return NextResponse.json(toTask(task as Record<string, unknown>));
 }
 
 export async function DELETE(_: NextRequest, { params }: { params: { id: string } }) {
-  await prisma.task.delete({ where: { id: params.id } });
+  const userId = await requireUserId();
+  if (userId instanceof NextResponse) return userId;
+
+  const { count } = await prisma.task.deleteMany({ where: { id: params.id, project: { userId } } });
+  if (!count) return notFound();
   return NextResponse.json({ ok: true });
 }

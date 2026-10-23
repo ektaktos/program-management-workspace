@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { signOut, useSession } from 'next-auth/react';
 import { useAppStore } from '@/store/useAppStore';
 import ProjectModal from './modals/ProjectModal';
 import ConfirmModal from './modals/ConfirmModal';
@@ -22,6 +23,7 @@ export default function Topbar() {
   const { currentView, activeProjectId, projects, sidebarOpen, setSidebarOpen, setView, deleteProject, setPlannerModalTrigger, setQuickAddOpen } = useAppStore();
   const [editProject, setEditProject] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const { data: session } = useSession();
 
   const project = projects.find(p => p.id === activeProjectId);
   const isProject = currentView === 'project';
@@ -134,6 +136,20 @@ export default function Topbar() {
           <ThemePicker />
 
           <NotificationCenter />
+
+          {session?.user && (
+            <button
+              className="btn btn-ghost btn-sm"
+              onClick={() => signOut({ callbackUrl: '/login' })}
+              title={`Signed in as ${session.user.email ?? session.user.name ?? ''}`}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
+                <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+                <polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+              </svg>
+              <span className="btn-label">Sign out</span>
+            </button>
+          )}
         </div>
       </header>
 

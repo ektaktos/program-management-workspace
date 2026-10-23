@@ -1,16 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { toTask } from '@/lib/apiHelpers';
+import { notFound, ownsProject, requireUserId } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const tasks = await prisma.task.findMany();
+  const userId = await requireUserId();
+  if (userId instanceof NextResponse) return userId;
+
+  const tasks = await prisma.task.findMany({ where: { project: { userId } } });
   return NextResponse.json(tasks.map(t => toTask(t as Record<string, unknown>)));
 }
 
 export async function POST(req: NextRequest) {
+  const userId = await requireUserId();
+  if (userId instanceof NextResponse) return userId;
+
   const body = await req.json();
+  if (!(await ownsProject(userId, body.projectId))) return notFound();
+
   const task = await prisma.task.create({
     data: {
       id:          body.id,

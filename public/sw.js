@@ -3,7 +3,7 @@
 // It does NOT cache API responses, so task/project data is always fresh;
 // it only provides an offline fallback for the app shell itself.
 
-const CACHE_NAME = 'oyint-workspace-v1';
+const CACHE_NAME = 'oyint-workspace-v2';
 const SHELL_URL = '/';
 
 self.addEventListener('install', (event) => {

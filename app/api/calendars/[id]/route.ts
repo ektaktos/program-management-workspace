@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { notFound, requireUserId } from '@/lib/auth';
 import { fetchCalendarText, forgetCalendar, normalizeCalendarUrl } from '@/lib/calendarFetch';
 
 // Body: any of { name, color, enabled, url }
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+  const userId = await requireUserId();
+  if (userId instanceof NextResponse) return userId;
+
   const body = await req.json().catch(() => null);
   if (!body) return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
   const data: { name?: string; color?: string; enabled?: boolean; url?: string } = {};
@@ -17,12 +21,19 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     catch (e) { return NextResponse.json({ error: `Couldn't load that calendar: ${(e as Error).message}.` }, { status: 400 }); }
     data.url = url;
   }
-  const s = await prisma.calendarSource.update({ where: { id: params.id }, data });
+  const { count } = await prisma.calendarSource.updateMany({ where: { id: params.id, userId }, data });
+  if (!count) return notFound();
+  const s = (await prisma.calendarSource.findUnique({ where: { id: params.id } }))!;
   return NextResponse.json({ id: s.id, name: s.name, url: s.url, color: s.color, enabled: s.enabled });
 }
 
 export async function DELETE(_: NextRequest, { params }: { params: { id: string } }) {
-  const s = await prisma.calendarSource.delete({ where: { id: params.id } }).catch(() => null);
-  if (s) forgetCalendar(s.url);
+  const userId = await requireUserId();
+  if (userId instanceof NextResponse) return userId;
+
+  const s = await prisma.calendarSource.findFirst({ where: { id: params.id, userId } });
+  if (!s) return notFound();
+  await prisma.calendarSource.delete({ where: { id: s.id } });
+  forgetCalendar(s.url);
   return NextResponse.json({ ok: true });
 }

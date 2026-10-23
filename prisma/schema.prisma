@@ -7,8 +7,67 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id                  String               @id @default(cuid())
+  name                String?
+  email               String?              @unique
+  emailVerified       DateTime?
+  image               String?              @db.Text
+  passwordHash        String?
+  createdAt           DateTime             @default(now())
+  accounts            Account[]
+  sessions            Session[]
+  projects            Project[]
+  plannerTodos        PlannerTodo[]
+  plannerEvents       PlannerEvent[]
+  plannerAppointments PlannerAppointment[]
+  plannerWeeklies     PlannerWeekly[]
+  notes               Note[]
+  settings            Setting[]
+  calendarSources     CalendarSource[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
 model Project {
   id          String      @id
+  userId      String?
+  user        User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
   name        String
   type        String
   description String      @db.Text
@@ -21,26 +80,28 @@ model Project {
   milestones  Milestone[]
   phases      Phase[]
   notes       Note[]
+
+  @@index([userId])
 }
 
 model Task {
-  id          String   @id
+  id          String    @id
   projectId   String
   phaseId     String?
   title       String
-  description String   @db.Text
+  description String    @db.Text
   status      String
   priority    String
   due         String?
   dueTime     String?
   assignee    String?
-  alerts      Json     @default("[]")
+  alerts      Json      @default("[]")
   recurring   String?
-  subtasks    Json     @default("[]")
+  subtasks    Json      @default("[]")
   completedAt DateTime?
   estimate    Int?
   plannedDate String?
-  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
 model Milestone {
@@ -66,23 +127,33 @@ model Phase {
 
 model Note {
   id        String   @id
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   projectId String?  // optional: notes don't have to belong to a project
   title     String
   body      String   @db.Text
   tags      Json     @default("[]")
   createdAt DateTime @default(now())
   project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model PlannerTodo {
   id        String   @id
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   text      String
   done      Boolean  @default(false)
   createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 model PlannerEvent {
   id        String   @id
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   title     String
   date      String
   category  String
@@ -93,38 +164,58 @@ model PlannerEvent {
   estimate  Int?
   completedAt DateTime? // when it was ticked off; empty for older tasks
   createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 model PlannerAppointment {
   id        String   @id
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   title     String
   date      String
   time      String
   notes     String   @db.Text
   done      Boolean  @default(false)
   createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 model PlannerWeekly {
-  weekKey    String @id
-  goals      Json   @default("[]")
-  notes      String @db.Text
-  focus      String @default("")
-  focusItems Json   @default("[]")
+  id         String  @id @default(cuid())
+  userId     String?
+  user       User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  weekKey    String
+  goals      Json    @default("[]")
+  notes      String  @db.Text
+  focus      String  @default("")
+  focusItems Json    @default("[]")
+
+  @@unique([userId, weekKey])
 }
 
 // Workspace-wide preferences that should sync across devices (key → JSON-encoded value)
 model Setting {
-  key   String @id
-  value String @db.Text
+  id     String  @id @default(cuid())
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  key    String
+  value  String  @db.Text
+
+  @@unique([userId, key])
 }
 
 // External calendars subscribed by their private iCal/ICS address (read-only)
 model CalendarSource {
   id        String   @id
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   name      String
   url       String   @db.Text
   color     String
   enabled   Boolean  @default(true)
   createdAt DateTime @default(now())
+
+  @@index([userId])
 }

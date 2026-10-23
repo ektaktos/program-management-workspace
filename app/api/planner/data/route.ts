@@ -1,15 +1,19 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { toTodo, toPlannerEvent, toPlannerAppointment, toPlannerWeekly } from '@/lib/apiHelpers';
+import { requireUserId } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
+  const userId = await requireUserId();
+  if (userId instanceof NextResponse) return userId;
+
   const [todos, events, appointments, weeklies] = await Promise.all([
-    prisma.plannerTodo.findMany({ orderBy: { createdAt: 'desc' } }),
-    prisma.plannerEvent.findMany({ orderBy: { createdAt: 'asc' } }),
-    prisma.plannerAppointment.findMany({ orderBy: { createdAt: 'asc' } }),
-    prisma.plannerWeekly.findMany(),
+    prisma.plannerTodo.findMany({ where: { userId }, orderBy: { createdAt: 'desc' } }),
+    prisma.plannerEvent.findMany({ where: { userId }, orderBy: { createdAt: 'asc' } }),
+    prisma.plannerAppointment.findMany({ where: { userId }, orderBy: { createdAt: 'asc' } }),
+    prisma.plannerWeekly.findMany({ where: { userId } }),
   ]);
 
   const plannerWeekly: Record<string, unknown> = {};

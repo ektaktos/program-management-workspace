@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { toTask, toNote } from '@/lib/apiHelpers';
+import { requireUserId } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,12 +13,16 @@ export async function GET() {
     );
   }
 
+  const userId = await requireUserId();
+  if (userId instanceof NextResponse) return userId;
+  const owned = { project: { userId } };
+
   const [projects, tasks, milestones, phases, notes] = await Promise.all([
-    prisma.project.findMany(),
-    prisma.task.findMany(),
-    prisma.milestone.findMany(),
-    prisma.phase.findMany(),
-    prisma.note.findMany({ orderBy: { createdAt: 'desc' } }),
+    prisma.project.findMany({ where: { userId } }),
+    prisma.task.findMany({ where: owned }),
+    prisma.milestone.findMany({ where: owned }),
+    prisma.phase.findMany({ where: owned }),
+    prisma.note.findMany({ where: { userId }, orderBy: { createdAt: 'desc' } }),
   ]);
 
   return NextResponse.json({

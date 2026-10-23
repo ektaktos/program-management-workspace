@@ -23,13 +23,27 @@ const REPORT_KEY    = 'pm_oyint_report_week';   // last week whose report we ann
 const NOTIFS_MAX    = 100;
 const NOTIFIED_MAX  = 400;
 
+// Per-browser UI state is namespaced by the signed-in user's id (set in loadAll).
+let storageUserId = '';
+function userKey(base: string): string {
+  if (!storageUserId) return base;
+  const key = `${base}:${storageUserId}`;
+  // Move pre-auth values over to the first user who signs in on this browser.
+  const legacy = localStorage.getItem(base);
+  if (legacy !== null) {
+    if (localStorage.getItem(key) === null) localStorage.setItem(key, legacy);
+    localStorage.removeItem(base);
+  }
+  return key;
+}
+
 function loadNotified(): string[] {
   if (typeof window === 'undefined') return [];
-  try { return JSON.parse(localStorage.getItem(NOTIFIED_KEY) ?? '[]'); } catch { return []; }
+  try { return JSON.parse(localStorage.getItem(userKey(NOTIFIED_KEY)) ?? '[]'); } catch { return []; }
 }
 function saveNotified(ids: string[]) {
   if (typeof window === 'undefined') return;
-  try { localStorage.setItem(NOTIFIED_KEY, JSON.stringify(ids.slice(-NOTIFIED_MAX))); } catch {}
+  try { localStorage.setItem(userKey(NOTIFIED_KEY), JSON.stringify(ids.slice(-NOTIFIED_MAX))); } catch {}
 }
 
 function loadJson<T>(key: string, fallback: T): T {
@@ -79,7 +93,7 @@ let reminderFetching = false;
 
 function loadArchived(): { projectIds: string[]; taskIds: string[] } {
   if (typeof window === 'undefined') return { projectIds: [], taskIds: [] };
-  try { return JSON.parse(localStorage.getItem(ARCHIVED_KEY) ?? '{"projectIds":[],"taskIds":[]}'); }
+  try { return JSON.parse(localStorage.getItem(userKey(ARCHIVED_KEY)) ?? '{"projectIds":[],"taskIds":[]}'); }
   catch { return { projectIds: [], taskIds: [] }; }
 }
 // Archive and project order are saved to the DB; the localStorage readers above remain only
@@ -90,7 +104,7 @@ function saveArchived(data: { projectIds: string[]; taskIds: string[] }) {
 
 function loadProjectOrder(): string[] {
   if (typeof window === 'undefined') return [];
-  try { return JSON.parse(localStorage.getItem(ORDER_KEY) ?? '[]'); }
+  try { return JSON.parse(localStorage.getItem(userKey(ORDER_KEY)) ?? '[]'); }
   catch { return []; }
 }
 function saveProjectOrder(order: string[]) {
@@ -137,6 +151,9 @@ async function api(path: string, method = 'GET', body?: unknown) {
     headers: body ? { 'Content-Type': 'application/json' } : undefined,
     body: body ? JSON.stringify(body) : undefined,
   });
+  if (res.status === 401 && typeof window !== 'undefined') {
+    window.location.href = '/login';
+  }
   if (!res.ok) throw new Error(`API ${method} ${path} → ${res.status}`);
   return res.json();
 }
@@ -346,6 +363,9 @@ export const useAppStore = create<Store>((set, get) => ({
   // ── Bootstrap ──
   loadAll: async () => {
     try {
+      const session = await fetch('/api/auth/session').then(r => r.json()).catch(() => null);
+      storageUserId = session?.user?.id ?? '';
+
       // Synced settings load alongside the data; a settings failure (null) must not block loading.
       const [data, plannerData, settingsRes, calendarsRes]: [AppState, {
         todos: Todo[];
@@ -376,7 +396,7 @@ export const useAppStore = create<Store>((set, get) => ({
         const archChanged = archived.projectIds.length !== strList(dbArch?.projectIds).length || archived.taskIds.length !== strList(dbArch?.taskIds).length;
         if (archChanged) api('/api/settings/archive', 'PUT', { value: archived }).catch(console.error);
         if (!dbOrder.length && order.length) api('/api/settings/projectOrder', 'PUT', { value: order }).catch(console.error);
-        try { localStorage.removeItem(ARCHIVED_KEY); localStorage.removeItem(ORDER_KEY); } catch {}
+        try { localStorage.removeItem(userKey(ARCHIVED_KEY)); localStorage.removeItem(userKey(ORDER_KEY)); } catch {}
       }
       let areaFilter = '';
       try { areaFilter = localStorage.getItem(AREA_KEY) ?? ''; } catch {}
@@ -432,13 +452,7 @@ export const useAppStore = create<Store>((set, get) => ({
         }
       }
 
-      if (data.projects.length === 0) {
-        await api('/api/seed', 'POST');
-        const seeded: AppState = await api('/api/data');
-        set({ ...seeded, notifiedAlerts: loadNotified(), ...plannerData, isLoaded: true, archivedProjectIds: archived.projectIds, archivedTaskIds: archived.taskIds, projectOrder: order });
-      } else {
-        set({ ...data, notifiedAlerts: loadNotified(), ...plannerData, isLoaded: true, archivedProjectIds: archived.projectIds, archivedTaskIds: archived.taskIds, projectOrder: order });
-      }
+      set({ ...data, notifiedAlerts: loadNotified(), ...plannerData, isLoaded: true, archivedProjectIds: archived.projectIds, archivedTaskIds: archived.taskIds, projectOrder: order });
 
       // One-time migration: if DB planner is empty but localStorage has data, migrate it
       const legacy = readLegacyPlannerData();

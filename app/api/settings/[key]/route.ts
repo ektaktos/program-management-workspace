@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
+import { requireUserId } from '@/lib/auth';
 import { isThemeId } from '@/lib/themes';
 import { NAV_IDS } from '@/lib/constants';
 import { isNotifPrefs } from '@/lib/notifications';
@@ -25,6 +26,9 @@ const VALIDATORS: Record<string, (v: unknown) => boolean> = {
 
 // Body: { value: <JSON> }
 export async function PUT(req: NextRequest, { params }: { params: { key: string } }) {
+  const userId = await requireUserId();
+  if (userId instanceof NextResponse) return userId;
+
   const validate = VALIDATORS[params.key];
   if (!validate) return NextResponse.json({ error: 'Unknown setting' }, { status: 404 });
 
@@ -33,8 +37,8 @@ export async function PUT(req: NextRequest, { params }: { params: { key: string 
 
   const value = JSON.stringify(body.value);
   await prisma.setting.upsert({
-    where:  { key: params.key },
-    create: { key: params.key, value },
+    where:  { userId_key: { userId, key: params.key } },
+    create: { userId, key: params.key, value },
     update: { value },
   });
   return NextResponse.json({ key: params.key, value: body.value });
