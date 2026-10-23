@@ -28,8 +28,9 @@ export function buildReportPdf(r: WeeklyReport, opts: { accentHex?: string; gene
 
   const newPage = () => { doc.addPage(); y = M; };
   const ensure = (h: number) => { if (y + h > BOTTOM) newPage(); };
-  const heading = (t: string, sub?: string) => {
-    ensure(sub ? 48 : 34);
+  // `need` = room for the first block of content, so a heading never sits alone at a page end
+  const heading = (t: string, sub?: string, need = 60) => {
+    ensure((sub ? 48 : 34) + need);
     y += 10;
     doc.text(M, y + 12, t, { size: 13, bold: true, color: INK });
     y += 18;
@@ -51,12 +52,12 @@ export function buildReportPdf(r: WeeklyReport, opts: { accentHex?: string; gene
   // ── Headline numbers: 3 x 2 tiles ──
   const tiles: { label: string; value: string; sub: string; delta?: { text: string; good: boolean | null } }[] = [
     { label: 'FINISHED', value: String(r.done), sub: r.extraDone ? `${r.donePlanned} planned + ${r.extraDone} unplanned` : 'tasks done',
-      delta: r.prevDone || r.done ? { text: r.done === r.prevDone ? 'same as last week' : `${r.done > r.prevDone ? '+' : '−'}${Math.abs(r.done - r.prevDone)} vs last week`, good: r.done === r.prevDone ? null : r.done > r.prevDone } : undefined },
+      delta: r.prevDone > 0 ? { text: r.done === r.prevDone ? 'same as last week' : `${r.done > r.prevDone ? '+' : '−'}${Math.abs(r.done - r.prevDone)} vs last week`, good: r.done === r.prevDone ? null : r.done > r.prevDone } : undefined },
     { label: 'PLAN COMPLETED', value: r.rate === null ? '—' : `${r.rate}%`, sub: r.planned ? `${r.donePlanned} of ${r.planned} planned` : 'nothing planned',
       delta: r.rate !== null && r.prevRate !== null ? { text: r.rate === r.prevRate ? 'same as last week' : `${r.rate > r.prevRate ? '+' : '−'}${Math.abs(r.rate - r.prevRate)} pts vs last week`, good: r.rate === r.prevRate ? null : r.rate > r.prevRate } : undefined },
     { label: 'DEADLINES ON TIME', value: r.onTimeRate === null ? '—' : `${r.onTimeRate}%`, sub: r.dueInWeek ? `${r.onTime} on time · ${r.late} late · ${r.missed} missed` : 'no deadlines this week' },
     { label: 'MEETINGS', value: String(r.meetings), sub: r.meetingMins ? `${fmtHours(r.meetingMins)} in calendar meetings` : 'meetings this week',
-      delta: r.prevMeetings || r.meetings ? { text: r.meetings === r.prevMeetings ? 'same as last week' : `${r.meetings > r.prevMeetings ? '+' : '−'}${Math.abs(r.meetings - r.prevMeetings)} vs last week`, good: r.meetings === r.prevMeetings ? null : r.meetings < r.prevMeetings } : undefined },
+      delta: r.prevMeetings > 0 ? { text: r.meetings === r.prevMeetings ? 'same as last week' : `${r.meetings > r.prevMeetings ? '+' : '−'}${Math.abs(r.meetings - r.prevMeetings)} vs last week`, good: r.meetings === r.prevMeetings ? null : r.meetings < r.prevMeetings } : undefined },
     { label: 'OVERDUE NOW', value: String(r.overdueNow), sub: r.overdueNow ? `${r.highOverdue} high priority${r.oldestOverdueDays ? ` · oldest ${r.oldestOverdueDays} days` : ''}` : 'all on track' },
     { label: 'WEEKLY PRIORITIES', value: r.goalsTotal ? `${r.goalsDone}/${r.goalsTotal}` : '—', sub: r.goalsTotal ? 'set in the planner' : 'none set in the planner' },
   ];
@@ -106,6 +107,7 @@ export function buildReportPdf(r: WeeklyReport, opts: { accentHex?: string; gene
     y = base + (items.some(i => i.sub) ? 30 : 20);
   };
   const legend = (entries: { label: string; color: RGB }[]) => {
+    y += 4;
     let x = M;
     entries.forEach(e => {
       doc.roundRect(x, y - 7, 8, 8, e.color, 2);
@@ -116,18 +118,18 @@ export function buildReportPdf(r: WeeklyReport, opts: { accentHex?: string; gene
   };
 
   // ── Day by day ──
-  heading('Day by day', 'Tasks done against the day’s plan, with meetings underneath');
+  heading('Day by day', 'Tasks done against the day’s plan, with meetings underneath', 170);
   legend([{ label: 'Done', color: accent }, { label: 'Planned', color: TRACK }]);
   const best = r.days.reduce((b, d, i) => (d.done > r.days[b].done ? i : b), 0);
   columns(r.days.map(d => ({ label: d.label, sub: d.meetings ? `${d.meetings} mtg` : '', value: d.done, track: d.planned })), 110, { showValue: i => i === best });
 
   // ── 8 weeks ──
-  heading('Last 8 weeks', `Tasks finished per week${r.avgDone ? `; your recent average is ${r.avgDone}` : ''}`);
+  heading('Last 8 weeks', `Tasks finished per week${r.avgDone ? `; your recent average is ${r.avgDone}` : ''}`, 140);
   columns(r.trend.map((w, i) => ({ label: w.label.split(/[– ]/).slice(0, 2).join(' '), sub: w.rate !== null ? `${w.rate}%` : '', value: w.done, highlight: i === r.trend.length - 1 })), 90, { showValue: i => i === r.trend.length - 1 });
 
   // ── Projects table ──
   heading('Projects', 'What moved this week, and what has gone quiet');
-  const cols = [{ t: 'Project', x: 0 }, { t: 'Done', x: 250 }, { t: 'Open', x: 300 }, { t: 'Overdue', x: 345 }, { t: 'Last activity', x: 400 }];
+  const cols = [{ t: 'Project', x: 0 }, { t: 'Done', x: 225 }, { t: 'Open', x: 270 }, { t: 'Overdue', x: 312 }, { t: 'Last activity', x: 365 }];
   ensure(30);
   cols.forEach(c => doc.text(M + c.x, y + 8, c.t.toUpperCase(), { size: 7, bold: true, color: MUTED }));
   y += 13;
@@ -136,14 +138,14 @@ export function buildReportPdf(r: WeeklyReport, opts: { accentHex?: string; gene
     ensure(18);
     y += 15;
     doc.circle(M + 4, y - 3, 3.2, hexToRgb(p.color, accent));
-    doc.text(M + 12, y, doc.fit(p.name, 230, 9), { size: 9, color: INK });
-    doc.text(M + 250, y, String(p.done), { size: 9, bold: p.done > 0, color: INK });
-    doc.text(M + 300, y, String(p.open), { size: 9, color: INK });
-    doc.text(M + 345, y, String(p.overdue), { size: 9, bold: p.overdue > 0, color: p.overdue ? BAD : INK });
+    doc.text(M + 12, y, doc.fit(p.name, 205, 9), { size: 9, color: INK });
+    doc.text(M + 225, y, String(p.done), { size: 9, bold: p.done > 0, color: INK });
+    doc.text(M + 270, y, String(p.open), { size: 9, color: INK });
+    doc.text(M + 312, y, String(p.overdue), { size: 9, bold: p.overdue > 0, color: p.overdue ? BAD : INK });
     const last = p.daysSince === null ? 'no completions yet' : p.daysSince === 0 ? 'today' : `${p.daysSince} day${p.daysSince !== 1 ? 's' : ''} ago`;
-    doc.text(M + 400, y, last, { size: 9, color: p.daysSince === null ? FAINT : INK });
+    doc.text(M + 365, y, last, { size: 9, color: p.daysSince === null ? FAINT : INK });
     if (p.stalled) {
-      const lx = M + 400 + doc.textWidth(last, 9) + 8;
+      const lx = Math.min(M + 365 + doc.textWidth(last, 9) + 8, M + W - 40);
       doc.roundRect(lx, y - 9, 40, 12, mix(WATCH, WHITE, 0.84), 6);
       doc.text(lx + 20, y - 0.5, 'STALLED', { size: 6.5, bold: true, color: WATCH, align: 'center' });
     }
@@ -155,7 +157,7 @@ export function buildReportPdf(r: WeeklyReport, opts: { accentHex?: string; gene
   // ── Horizontal bar list helper ──
   const hbars = (rows: { label: string; value: number; track?: number; note: string }[]) => {
     const max = Math.max(1, ...rows.map(r2 => Math.max(r2.value, r2.track ?? 0)));
-    const barW = W - 190;
+    const barW = W - 250;
     rows.forEach(row => {
       ensure(18);
       doc.text(M, y + 9, doc.fit(cap(row.label), 110, 9), { size: 9, color: INK });
@@ -166,17 +168,19 @@ export function buildReportPdf(r: WeeklyReport, opts: { accentHex?: string; gene
     });
   };
 
-  heading('By priority', 'Project tasks finished this week, and still open');
+  heading('By priority', 'Project tasks finished this week, and still open', 80);
   hbars(r.byPriority.map(p => ({ label: p.priority, value: p.done, track: p.open, note: `${p.done} finished / ${p.open} open` })));
+  y += 10;
   legend([{ label: 'Finished', color: accent }, { label: 'Open', color: TRACK }]);
 
   heading('Where your effort went', 'Finished this week, by planner category');
   if (r.byCategory.length) hbars(r.byCategory.map(c => ({ label: c.name, value: c.done, note: String(c.done) })));
   else { doc.text(M, y + 9, 'Nothing finished this week.', { size: 9, color: MUTED }); y += 18; }
 
-  heading('When you get things done', 'Tasks ticked off by time of day, last 8 weeks');
+  heading('When you get things done', 'Tasks ticked off by time of day, last 8 weeks', r.hoursSample >= 10 ? 120 : 20);
   if (r.hoursSample >= 10) {
     columns(r.hours.map(h => ({ label: h.label.split('–')[0], value: h.count })), 70);
+    y += 6;
     doc.text(M, y, `${r.hoursSample} timed completions`, { size: 8, color: FAINT });
     y += 10;
   } else {
