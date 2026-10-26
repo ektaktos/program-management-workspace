@@ -62,6 +62,7 @@ export interface Phase {
 export interface Note {
   id: string;
   projectId?: string;   // unset = an independent note
+  pinned?: boolean;     // kept at the top of the Dashboard's Recent Notes
   title: string;
   body: string;
   tags: string[];

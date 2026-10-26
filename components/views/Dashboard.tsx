@@ -26,7 +26,7 @@ function CheckIcon() {
 }
 
 export default function Dashboard() {
-  const { projects: allProjects, tasks: allTasks, notes, todos, addTodo, updateTodo, toggleTodo, deleteTodo, setView, navigateToTask, archivedProjectIds, archivedTaskIds, areaFilter } = useAppStore();
+  const { projects: allProjects, tasks: allTasks, notes, todos, addTodo, updateTodo, toggleTodo, deleteTodo, updateNote, setView, navigateToTask, archivedProjectIds, archivedTaskIds, areaFilter } = useAppStore();
   const meetingsToday = useTodayMeetings();
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [newNoteOpen, setNewNoteOpen] = useState(false);
@@ -73,7 +73,10 @@ export default function Dashboard() {
     .slice(0, 6);
 
   // Latest notes: independent ones plus those from projects in view (respects the area filter and archive)
-  const recentNotes = notes.filter(n => !n.projectId || visibleProjectIds.has(n.projectId)).sort((a, b) => b.createdAt - a.createdAt).slice(0, 4);
+  // Pinned notes always show first; the newest of the rest fill up to four cards
+  const shownNotes = notes.filter(n => !n.projectId || visibleProjectIds.has(n.projectId)).sort((a, b) => b.createdAt - a.createdAt);
+  const pinnedNotes = shownNotes.filter(n => n.pinned);
+  const recentNotes = [...pinnedNotes, ...shownNotes.filter(n => !n.pinned).slice(0, Math.max(0, 4 - pinnedNotes.length))];
 
   const statCards = [
     { label: 'Completion', value: completionPct,     pct: true, sub: 'across all projects',   onClick: undefined },
@@ -301,8 +304,27 @@ export default function Dashboard() {
                 {recentNotes.map(n => {
                   const proj = projects.find(p => p.id === n.projectId);
                   return (
-                    <button key={n.id} type="button" className="dash-note" onClick={() => setEditingNote(n)} title="Open note">
+                    <div
+                      key={n.id}
+                      role="button"
+                      tabIndex={0}
+                      className={`dash-note${n.pinned ? ' pinned' : ''}`}
+                      onClick={() => setEditingNote(n)}
+                      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setEditingNote(n); } }}
+                      title="Open note"
+                    >
                       <span className="note-tape" aria-hidden />
+                      <button
+                        type="button"
+                        className={`dash-note-pin${n.pinned ? ' on' : ''}`}
+                        aria-pressed={!!n.pinned}
+                        aria-label={n.pinned ? `Unpin "${n.title}"` : `Pin "${n.title}" to Recent Notes`}
+                        title={n.pinned ? 'Unpin' : 'Pin to Recent Notes'}
+                        onClick={e => { e.stopPropagation(); updateNote(n.id, { pinned: !n.pinned }); }}
+                        onKeyDown={e => e.stopPropagation()}
+                      >
+                        <svg viewBox="0 0 24 24" fill={n.pinned ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M9 4h6l-1 6 4 3v2H6v-2l4-3-1-6z"/><line x1="12" y1="15" x2="12" y2="21"/></svg>
+                      </button>
                       <span className="dash-note-title">{n.title || 'Untitled note'}</span>
                       {n.body && <span className="dash-note-body">{n.body}</span>}
                       <span className="dash-note-foot">
@@ -311,7 +333,7 @@ export default function Dashboard() {
                           : <span className="dash-note-proj dash-note-free">No project</span>}
                         <span style={{ flexShrink: 0 }}>{new Date(n.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>
                       </span>
-                    </button>
+                    </div>
                   );
                 })}
               </div>

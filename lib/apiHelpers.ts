@@ -35,6 +35,7 @@ export function toNote(n: Record<string, unknown>): Note {
     title:     n.title as string,
     body:      n.body as string,
     tags:      (n.tags as string[]) ?? [],
+    pinned:    Boolean(n.pinned),
     createdAt: n.createdAt instanceof Date
       ? n.createdAt.getTime()
       : typeof n.createdAt === 'string'

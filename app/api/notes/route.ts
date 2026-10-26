@@ -29,6 +29,7 @@ export async function POST(req: NextRequest) {
       title:     body.title,
       body:      body.body  ?? '',
       tags:      body.tags  ?? [],
+      pinned:    body.pinned === true,
       createdAt: body.createdAt ? new Date(body.createdAt) : new Date(),
     },
   });

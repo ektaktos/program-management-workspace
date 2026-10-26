@@ -161,6 +161,15 @@ export default function NotesView() {
                 <div className="nv-card-head">
                   <div className="nv-card-title">{card.title || 'Untitled note'}</div>
                   <div className="nv-card-actions">
+                    <button
+                      className={`btn-icon nv-pin${card.pinned ? ' on' : ''}`}
+                      aria-pressed={!!card.pinned}
+                      aria-label={card.pinned ? 'Unpin from the Dashboard' : 'Pin to the Dashboard'}
+                      title={card.pinned ? 'Pinned to Recent Notes on the Dashboard — click to unpin' : 'Pin to Recent Notes on the Dashboard'}
+                      onClick={() => updateNote(card.id, { pinned: !card.pinned })}
+                    >
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill={card.pinned ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M9 4h6l-1 6 4 3v2H6v-2l4-3-1-6z"/><line x1="12" y1="15" x2="12" y2="21"/></svg>
+                    </button>
                     <button className="btn-icon" title="Edit note" aria-label="Edit note" onClick={() => setEditing(card)}>
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                     </button>

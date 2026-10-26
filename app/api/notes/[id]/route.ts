@@ -17,6 +17,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       title:     body.title,
       body:      body.body ?? '',
       tags:      body.tags ?? [],
+      pinned:    body.pinned === true,
     },
   });
   if (!count) return notFound();

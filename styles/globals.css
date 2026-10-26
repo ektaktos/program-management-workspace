@@ -1734,3 +1734,14 @@ tr:hover .q-due.empty, .oc-row:hover .q-due.empty, .q-due.empty:focus-visible { 
 .row-delete { opacity: 0.65; color: var(--text-muted); }
 /* Coming up: the calendar icon and the tick box take the same width, so titles line up exactly */
 .rail-item > .today-cal-icon, .rail-item > .section-task-check { width: 16px; flex: 0 0 16px; display: inline-flex; justify-content: center; }
+
+/* ── Pinned notes ── */
+.dash-note-pin { position: absolute; top: 8px; right: 6px; width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; border: none; border-radius: 7px; background: transparent; color: var(--text-faint); cursor: pointer; padding: 0; opacity: 0; transition: opacity 0.15s, background 0.15s, color 0.15s; }
+.dash-note-pin svg { width: 13px; height: 13px; }
+.dash-note:hover .dash-note-pin, .dash-note:focus-within .dash-note-pin, .dash-note-pin.on { opacity: 1; }
+.dash-note-pin:hover { background: color-mix(in srgb, var(--primary-dark) 14%, transparent); color: var(--text); }
+.dash-note-pin.on { color: var(--primary-dark); }
+@media (hover: none) { .dash-note-pin { opacity: 0.8; } }
+.dash-note .dash-note-title { padding-right: 24px; }
+.dash-note.pinned { border-color: color-mix(in srgb, var(--primary-dark) 45%, var(--border)); }
+.nv-pin.on { color: var(--primary-dark); }

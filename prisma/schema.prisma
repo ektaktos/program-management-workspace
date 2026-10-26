@@ -133,6 +133,7 @@ model Note {
   title     String
   body      String   @db.Text
   tags      Json     @default("[]")
+  pinned    Boolean  @default(false) // stays at the top of Recent Notes on the Dashboard
   createdAt DateTime @default(now())
   project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
