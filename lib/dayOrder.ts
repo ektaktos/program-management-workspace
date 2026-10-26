@@ -22,6 +22,20 @@ export function applyDayOrder<T>(items: T[], keyOf: (t: T) => string, isDone: (t
   return [...open, ...items.filter(isDone)];
 }
 
+// The order a day's tasks take before you've placed them, shared by Today and the planner so their
+// numbers always agree: by time (untimed last), then title, then id
+export interface DayEntry { key: string; time?: string; title: string; done: boolean }
+export function defaultDayCompare(a: { key: string; time?: string; title: string }, b: { key: string; time?: string; title: string }): number {
+  return (a.time || '99:99').localeCompare(b.time || '99:99')
+    || a.title.localeCompare(b.title)
+    || a.key.localeCompare(b.key);
+}
+
+// A day's full ordered list (every task on that day, whatever a view hides), done ones last
+export function orderDay(entries: DayEntry[], saved?: string[]): DayEntry[] {
+  return applyDayOrder([...entries].sort(defaultDayCompare), e => e.key, e => e.done, saved);
+}
+
 // New order for a day after putting `key` at `index` among the open items (`openKeys` in current order)
 export function placeAt(openKeys: string[], key: string, index: number): string[] {
   const rest = openKeys.filter(k => k !== key);

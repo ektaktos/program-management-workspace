@@ -10,7 +10,7 @@ import { ESTIMATE_OPTIONS } from '@/lib/constants';
 import CapacitySelect from '../ui/CapacitySelect';
 import { useEscape } from '../ui/useEscape';
 import { MoveDayButton, RankSelect } from '../ui/DayOrderControls';
-import { applyDayOrder, eventKey, placeAt, taskKey } from '@/lib/dayOrder';
+import { applyDayOrder, defaultDayCompare, eventKey, placeAt, taskKey } from '@/lib/dayOrder';
 
 // ── Week helpers ──────────────────────────────────────────────────────────────
 
@@ -974,6 +974,11 @@ export default function WeeklyPlanner() {
                           ];
                           const keyOfItem = (d: DayItem) => (d.kind === 'task' ? taskKey(d.t.id) : eventKey(d.ev.id));
                           const doneOf = (d: DayItem) => (d.kind === 'task' ? d.t.status === 'done' : d.ev.done);
+                          // Same default order as Today (time, then title), so both show the same numbers
+                          const entryOf = (d: DayItem) => (d.kind === 'task'
+                            ? { key: keyOfItem(d), time: d.t.dueTime, title: d.t.title }
+                            : { key: keyOfItem(d), time: d.ev.time, title: d.ev.title });
+                          merged.sort((a, b) => defaultDayCompare(entryOf(a), entryOf(b)));
                           const list = applyDayOrder(merged, keyOfItem, doneOf, dayOrder[iso]);
                           const open = list.filter(d => !doneOf(d)).map(keyOfItem);
                           if (list.length === 0) return <div className="pday-empty">No tasks</div>;

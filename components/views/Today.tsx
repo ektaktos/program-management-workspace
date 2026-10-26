@@ -9,7 +9,7 @@ import TaskModal from '../modals/TaskModal';
 import { EventModal } from './WeeklyPlanner';
 import TodayMeetingsCard from '../ui/TodayMeetings';
 import { MoveDayButton, RankSelect } from '../ui/DayOrderControls';
-import { applyDayOrder, eventKey, placeAt, taskKey } from '@/lib/dayOrder';
+import { eventKey, orderDay, placeAt, taskKey } from '@/lib/dayOrder';
 
 function fmt12(time: string): string {
   const [h, m] = time.split(':').map(Number);
@@ -78,10 +78,17 @@ export default function Today() {
     if (a.done !== b.done) return a.done ? 1 : -1;
     return (a.time ?? '99:99').localeCompare(b.time ?? '99:99');
   });
-  // Your order for the day (numbers / drag), then the usual time order for anything not yet placed
+  // Your order for the day (numbers / drag). Numbers come from the day's FULL list (the same list the
+  // planner shows, ignoring the area filter) so Today and the planner always show the same numbers.
   const keyOf = (i: PlanItem) => (i.kind === 'planner' ? eventKey(i.id) : taskKey(i.id));
-  const items = applyDayOrder(planFor(focus), keyOf, i => i.done, dayOrder[focus]);
-  const openKeys = items.filter(i => !i.done).map(keyOf);
+  const unarchived = tasks.filter(t => !archivedTaskIds.includes(t.id) && !archivedProjectIds.includes(t.projectId));
+  const fullDay = orderDay([
+    ...plannerEvents.filter(e => e.date === focus).map(e => ({ key: eventKey(e.id), time: e.time, title: e.title, done: e.done })),
+    ...unarchived.filter(t => t.plannedDate === focus).map(t => ({ key: taskKey(t.id), time: t.dueTime, title: t.title, done: t.status === 'done' })),
+  ], dayOrder[focus]);
+  const position = new Map(fullDay.map((e, i) => [e.key, i] as [string, number]));
+  const items = planFor(focus).sort((a, b) => (position.get(keyOf(a)) ?? 1e6) - (position.get(keyOf(b)) ?? 1e6));
+  const openKeys = fullDay.filter(e => !e.done).map(e => e.key);
   const [dragKey, setDragKey] = useState<string | null>(null);
   const [overKey, setOverKey] = useState<string | null>(null);
   function placeItem(key: string, index: number) { setDayOrder(focus, placeAt(openKeys, key, index)); }
