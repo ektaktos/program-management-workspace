@@ -1,4 +1,4 @@
-// Each user's workspace is named after them ("Alex's Workspace") unless they rename it.
+// Each user's workspace is named after them ("Alex's workspace") unless they rename it.
 // The custom name is the `workspaceName` setting; '' means "use the default".
 
 export const WORKSPACE_NAME_MAX = 60;
@@ -13,7 +13,7 @@ export function firstName(user: { name?: string | null; email?: string | null } 
 
 export function defaultWorkspaceName(user: { name?: string | null; email?: string | null } | null | undefined): string {
   const first = firstName(user);
-  return first ? `${first}’s Workspace` : 'My Workspace';
+  return first ? `${first}’s workspace` : 'My workspace';
 }
 
 /** Trims and collapses whitespace; returns '' for blank input. */

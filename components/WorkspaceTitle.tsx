@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useAppStore, selectWorkspaceName } from '@/store/useAppStore';
 import { WORKSPACE_NAME_MAX } from '@/lib/workspaceName';
 
-// Sidebar header: the workspace name (click to rename) and who is signed in.
+// Sidebar header: "Workspace", with the user's workspace name (click to rename) underneath.
 export default function WorkspaceTitle() {
   const name             = useAppStore(selectWorkspaceName);
   const user             = useAppStore(s => s.user);
@@ -31,13 +31,18 @@ export default function WorkspaceTitle() {
     setEditing(false);
   }
 
-  const titleStyle: React.CSSProperties = {
-    fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 400,
-    color: 'var(--text)', letterSpacing: '-0.01em', lineHeight: 1.2,
+  const nameStyle: React.CSSProperties = {
+    fontSize: 12, color: 'var(--sidebar-text)', lineHeight: 1.4,
   };
 
   return (
     <div style={{ minWidth: 0, flex: 1 }}>
+      <div style={{
+        fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 400,
+        color: 'var(--text)', letterSpacing: '-0.01em', lineHeight: 1.2,
+      }}>
+        Workspace
+      </div>
       {editing ? (
         <input
           ref={inputRef}
@@ -51,30 +56,22 @@ export default function WorkspaceTitle() {
             if (e.key === 'Enter') { e.preventDefault(); commit(); }
             if (e.key === 'Escape') setEditing(false);
           }}
-          style={{ ...titleStyle, width: '100%', padding: '2px 6px', margin: '-3px -7px' }}
+          style={{ ...nameStyle, width: '100%', padding: '2px 6px', margin: '0 -7px', marginTop: 1 }}
         />
-      ) : (
+      ) : user && (
         <button
           type="button"
           onClick={start}
           title="Rename workspace"
           className="workspace-title"
           style={{
-            ...titleStyle, display: 'block', maxWidth: '100%', padding: 0,
+            font: 'inherit', ...nameStyle, display: 'block', maxWidth: '100%', padding: 0, marginTop: 2,
             background: 'none', border: 'none', cursor: 'text', textAlign: 'left',
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
           }}
         >
           {name}
         </button>
-      )}
-      {user && (
-        <div style={{
-          fontSize: 12, color: 'var(--sidebar-text)', marginTop: 2,
-          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-        }}>
-          {user.name || user.email}
-        </div>
       )}
     </div>
   );

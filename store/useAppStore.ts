@@ -1177,7 +1177,7 @@ export const useAppStore = create<Store>((set, get) => ({
   },
 }));
 
-/** The name to show: the user's custom name, or "{First name}'s Workspace". */
+/** The name to show: the user's custom name, or "{First name}'s workspace". */
 export function selectWorkspaceName(s: { workspaceName: string; user: { name: string; email: string } | null }): string {
   return s.workspaceName || defaultWorkspaceName(s.user);
 }
