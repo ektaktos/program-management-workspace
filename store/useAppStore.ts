@@ -3,6 +3,7 @@
 import { create } from 'zustand';
 import { AppState, Project, Task, Milestone, Phase, Note, Todo, PlannerEvent, PlannerAppointment, PlannerWeekData, CalendarSource, CalendarEvent } from '@/lib/types';
 import { uid, autoMarkOverdue, addDaysIso, todayIso } from '@/lib/utils';
+import { cleanWorkspaceName, defaultWorkspaceName, isWorkspaceName } from '@/lib/workspaceName';
 import { DAILY_CAPACITY_MIN } from '@/lib/constants';
 import { DEFAULT_THEME, applyTheme, isThemeId } from '@/lib/themes';
 import { StyleTheme, DEFAULT_STYLE, STYLE_CACHE_KEY, applyStyle, normalizeStyle } from '@/lib/styleThemes';
@@ -295,6 +296,11 @@ interface Store extends AppState, UIState, PlannerState {
   navOrder:    string[];
   setNavOrder: (ids: string[]) => void;
 
+  // ── Signed-in user and their workspace name (custom name synced via settings; '' = default) ──
+  user:             { name: string; email: string } | null;
+  workspaceName:    string;
+  setWorkspaceName: (name: string) => void;
+
   // ── Subscribed calendars (read-only) ──
   calendarSources: CalendarSource[];
   calendarEvents:  CalendarEvent[];
@@ -350,6 +356,8 @@ export const useAppStore = create<Store>((set, get) => ({
   dailyCapacity: DAILY_CAPACITY_MIN,
   theme: DEFAULT_THEME,
   navOrder: [],
+  user: null,
+  workspaceName: '',
   doneCalendarEvents: [],
   styleTheme: DEFAULT_STYLE,
   dayOrder: {},
@@ -365,6 +373,7 @@ export const useAppStore = create<Store>((set, get) => ({
     try {
       const session = await fetch('/api/auth/session').then(r => r.json()).catch(() => null);
       storageUserId = session?.user?.id ?? '';
+      if (session?.user) set({ user: { name: session.user.name ?? '', email: session.user.email ?? '' } });
 
       // Synced settings load alongside the data; a settings failure (null) must not block loading.
       const [data, plannerData, settingsRes, calendarsRes]: [AppState, {
@@ -432,6 +441,7 @@ export const useAppStore = create<Store>((set, get) => ({
         set({ doneCalendarEvents: (settingsRes!.doneCalendarEvents as unknown[]).filter((x): x is string => typeof x === 'string') });
       }
 
+      if (isWorkspaceName(settingsRes?.workspaceName)) set({ workspaceName: settingsRes!.workspaceName as string });
       if (Array.isArray(settingsRes?.navOrder)) {
         set({ navOrder: (settingsRes!.navOrder as unknown[]).filter((x): x is string => typeof x === 'string') });
       }
@@ -813,7 +823,7 @@ export const useAppStore = create<Store>((set, get) => ({
     const { buildReportPdf, saveBytes } = await import('@/lib/reportPdf');
     let accent = '';
     try { accent = getComputedStyle(document.documentElement).getPropertyValue('--primary-dark'); } catch {}
-    saveBytes(buildReportPdf(report, { accentHex: accent }), `Weekly report ${report.start}.pdf`);
+    saveBytes(buildReportPdf(report, { accentHex: accent, workspace: selectWorkspaceName(s) }), `Weekly report ${report.start}.pdf`);
   },
 
   setNotifPrefs: (patch) => {
@@ -1027,6 +1037,14 @@ export const useAppStore = create<Store>((set, get) => ({
     api('/api/settings/navOrder', 'PUT', { value: ids }).catch(console.error);
   },
 
+  setWorkspaceName: (name) => {
+    const value = cleanWorkspaceName(name);
+    // Typing the default back in is the same as resetting it
+    const stored = value === defaultWorkspaceName(get().user) ? '' : value;
+    set({ workspaceName: stored });
+    api('/api/settings/workspaceName', 'PUT', { value: stored }).catch(console.error);
+  },
+
   setTheme: (id) => {
     if (!isThemeId(id)) return;
     set({ theme: id });
@@ -1108,3 +1126,8 @@ export const useAppStore = create<Store>((set, get) => ({
     api('/api/settings/dailyCapacity', 'PUT', { value: mins }).catch(console.error);
   },
 }));
+
+/** The name to show: the user's custom name, or "{First name}'s Workspace". */
+export function selectWorkspaceName(s: { workspaceName: string; user: { name: string; email: string } | null }): string {
+  return s.workspaceName || defaultWorkspaceName(s.user);
+}

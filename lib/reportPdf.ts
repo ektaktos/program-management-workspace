@@ -41,7 +41,7 @@ export function buildReportPdf(r: WeeklyReport, opts: { accentHex?: string; gene
   // ── Title ──
   doc.rect(M, y, W, 3, accent);
   y += 22;
-  doc.text(M, y, `${opts.workspace ?? "OyinT's Workspace"} · Weekly report`, { size: 9, bold: true, color: accent });
+  doc.text(M, y, `${opts.workspace ?? 'Workspace'} · Weekly report`, { size: 9, bold: true, color: accent });
   doc.text(M + W, y, `Generated ${generated}`, { size: 8.5, color: MUTED, align: 'right' });
   y += 28;
   doc.text(M, y, `Week of ${r.label}`, { size: 24, bold: true, color: INK });

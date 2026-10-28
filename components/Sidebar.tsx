@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { projectInArea } from '@/lib/utils';
 import ProjectModal from './modals/ProjectModal';
+import WorkspaceTitle from './WorkspaceTitle';
 
 const NAV = [
   {
@@ -163,18 +164,12 @@ export default function Sidebar() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: open ? 'space-between' : 'center',
+          gap: 10,
           transition: 'padding 0.25s',
         }}>
           {open ? (
             <>
-              <div>
-                <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 400, color: 'var(--text)', letterSpacing: '-0.01em' }}>
-                  Workspace
-                </div>
-                <div style={{ fontSize: 12, color: 'var(--sidebar-text)', marginTop: 2 }}>
-                  OyinT&rsquo;s projects
-                </div>
-              </div>
+              <WorkspaceTitle />
               <button
                 onClick={() => setSidebarOpen(!open)}
                 title="Collapse sidebar"

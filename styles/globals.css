@@ -1745,3 +1745,10 @@ tr:hover .q-due.empty, .oc-row:hover .q-due.empty, .q-due.empty:focus-visible { 
 .dash-note .dash-note-title { padding-right: 24px; }
 .dash-note.pinned { border-color: color-mix(in srgb, var(--primary-dark) 45%, var(--border)); }
 .nv-pin.on { color: var(--primary-dark); }
+/* Visually hidden, still read by screen readers */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+.btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; box-shadow: none; }
+.workspace-title:hover { text-decoration: underline dotted var(--text-faint); text-underline-offset: 4px; }

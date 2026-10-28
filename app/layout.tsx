@@ -14,13 +14,13 @@ const styleBootScript = `(function(){try{var s=JSON.parse(localStorage.getItem('
 const FONTS_URL = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Kalam:wght@400;700&family=Nunito:wght@400;600;700&family=Playfair+Display:wght@400;500;600&display=swap';
 
 export const metadata: Metadata = {
-  title: "OyinT's Workspace",
-  description: "OyinT's personal program management workspace",
+  title: 'Workspace',
+  description: 'Your personal program management workspace',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: "OyinT's Workspace",
+    title: 'Workspace',
   },
   icons: {
     icon: [

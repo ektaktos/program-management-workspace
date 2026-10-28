@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { getProviders, signIn } from 'next-auth/react';
+import PasswordInput from '@/components/ui/PasswordInput';
+import { PASSWORD_RULES, validatePassword } from '@/lib/password';
 
 type Mode = 'login' | 'signup';
 
@@ -28,6 +30,10 @@ export default function AuthForm({ mode }: { mode: Mode }) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
+    if (mode === 'signup') {
+      const problem = validatePassword(password);
+      if (problem) { setError(problem); return; }
+    }
     setBusy(true);
     try {
       if (mode === 'signup') {
@@ -54,6 +60,7 @@ export default function AuthForm({ mode }: { mode: Mode }) {
   }
 
   const isSignup = mode === 'signup';
+  const passwordOk = !isSignup || validatePassword(password) === null;
 
   return (
     <div style={{
@@ -81,21 +88,40 @@ export default function AuthForm({ mode }: { mode: Mode }) {
           </div>
           <div className="form-group">
             <label htmlFor="password">Password</label>
-            <input
-              id="password" type="password" required minLength={isSignup ? 8 : undefined}
+            <PasswordInput
+              id="password" required
               value={password} onChange={e => setPassword(e.target.value)}
               autoComplete={isSignup ? 'new-password' : 'current-password'}
+              aria-describedby={isSignup ? 'password-rules' : undefined}
             />
+            {isSignup && (
+              <ul id="password-rules" aria-live="polite" style={{ listStyle: 'none', margin: '10px 0 0', padding: 0, display: 'grid', gap: 4 }}>
+                {PASSWORD_RULES.map(rule => {
+                  const met = rule.test(password);
+                  return (
+                    <li key={rule.id} style={{
+                      display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5,
+                      color: met ? 'var(--success-text)' : 'var(--text-muted)',
+                    }}>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 13, height: 13, flexShrink: 0 }}>
+                        {met ? <polyline points="20 6 9 17 4 12"/> : <circle cx="12" cy="12" r="8"/>}
+                      </svg>
+                      <span>{rule.label}<span className="sr-only">{met ? ' (met)' : ' (not met)'}</span></span>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </div>
 
           {error && (
             <div style={{
-              fontSize: 13, color: '#a35656', background: 'var(--danger-light)',
+              fontSize: 13, color: 'var(--danger-text)', background: 'var(--danger-light)',
               borderRadius: 'var(--radius-sm)', padding: '8px 12px', marginBottom: 16,
             }}>{error}</div>
           )}
 
-          <button type="submit" className="btn btn-primary" disabled={busy} style={{ width: '100%', justifyContent: 'center' }}>
+          <button type="submit" className="btn btn-primary" disabled={busy || !passwordOk} style={{ width: '100%', justifyContent: 'center' }}>
             {busy ? 'Please wait…' : isSignup ? 'Create account' : 'Sign in'}
           </button>
         </form>
