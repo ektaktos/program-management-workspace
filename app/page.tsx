@@ -30,6 +30,7 @@ export default function Home() {
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
     let calInterval: ReturnType<typeof setInterval>;
+    let syncInterval: ReturnType<typeof setInterval>;
     loadAll().then(() => {
       runAutoOverdue();
       runAlertCheck();
@@ -39,17 +40,27 @@ export default function Home() {
       }, 30_000);
       // Subscribed calendars: pick up new or moved events while the app stays open
       calInterval = setInterval(() => { refreshCalendars(); }, 10 * 60_000);
+      // Pick up changes made in another browser or device while this one stays open
+      syncInterval = setInterval(() => { if (document.visibilityState === 'visible') useAppStore.getState().refreshFromServer(); }, 90_000);
     });
     // Coming back to the tab: check straight away rather than waiting for the next tick
-    const onVisible = () => { if (document.visibilityState === 'visible' && useAppStore.getState().isLoaded) runAlertCheck(); };
+    // and pull in anything changed elsewhere while it was in the background
+    const onVisible = () => {
+      if (document.visibilityState !== 'visible' || !useAppStore.getState().isLoaded) return;
+      runAlertCheck();
+      useAppStore.getState().refreshFromServer();
+    };
+    const onFocus = () => { if (useAppStore.getState().isLoaded) useAppStore.getState().refreshFromServer(); };
     document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('focus', onFocus);
     // Sound needs a first interaction before the browser lets it play
     const unlock = () => { unlockAudio(); window.removeEventListener('pointerdown', unlock); window.removeEventListener('keydown', unlock); };
     window.addEventListener('pointerdown', unlock);
     window.addEventListener('keydown', unlock);
     return () => {
-      clearInterval(interval); clearInterval(calInterval);
+      clearInterval(interval); clearInterval(calInterval); clearInterval(syncInterval);
       document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', onFocus);
       window.removeEventListener('pointerdown', unlock); window.removeEventListener('keydown', unlock);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps

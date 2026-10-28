@@ -146,17 +146,28 @@ function calcNextDue(iso: string, pattern: string): string | null {
   return isoDate(d);
 }
 
+// Saves in flight and the time of the last one, so a background refresh never overwrites a change
+// that hasn't reached the server yet
+let pendingWrites = 0;
+let lastWriteAt = 0;
+
 async function api(path: string, method = 'GET', body?: unknown) {
-  const res = await fetch(path, {
-    method,
-    headers: body ? { 'Content-Type': 'application/json' } : undefined,
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  if (res.status === 401 && typeof window !== 'undefined') {
-    window.location.href = '/login';
+  const isWrite = method !== 'GET';
+  if (isWrite) { pendingWrites++; lastWriteAt = Date.now(); }
+  try {
+    const res = await fetch(path, {
+      method,
+      headers: body ? { 'Content-Type': 'application/json' } : undefined,
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    if (res.status === 401 && typeof window !== 'undefined') {
+      window.location.href = '/login';
+    }
+    if (!res.ok) throw new Error(`API ${method} ${path} → ${res.status}`);
+    return res.json();
+  } finally {
+    if (isWrite) { pendingWrites--; lastWriteAt = Date.now(); }
   }
-  if (!res.ok) throw new Error(`API ${method} ${path} → ${res.status}`);
-  return res.json();
 }
 
 export interface Toast {
@@ -188,6 +199,8 @@ interface PlannerState {
 
 interface Store extends AppState, UIState, PlannerState {
   loadAll: () => Promise<void>;
+  // Re-read data and synced settings from the server (other browsers' changes); safe to call often
+  refreshFromServer: () => Promise<void>;
 
   setView: (view: string, projectId?: string) => void;
   navigateToTask: (taskId: string, projectId: string) => void;
@@ -488,6 +501,43 @@ export const useAppStore = create<Store>((set, get) => ({
     } catch (err) {
       console.error('loadAll failed:', err);
       set({ isLoaded: true });
+    }
+  },
+
+  refreshFromServer: async () => {
+    if (!get().isLoaded || pendingWrites > 0 || Date.now() - lastWriteAt < 4000) return;
+    const startedAt = lastWriteAt;
+    try {
+      const [data, plannerData, settingsRes] = await Promise.all([
+        api('/api/data') as Promise<AppState>,
+        api('/api/planner/data') as Promise<{ todos: Todo[]; plannerEvents: PlannerEvent[]; plannerAppointments: PlannerAppointment[]; plannerWeekly: Record<string, PlannerWeekData> }>,
+        api('/api/settings').catch(() => null) as Promise<Record<string, unknown> | null>,
+      ]);
+      // A change was saved while we were fetching: our copy may predate it, so skip this round
+      if (pendingWrites > 0 || lastWriteAt !== startedAt) return;
+
+      const strList = (v: unknown) => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []);
+      const patch: Partial<Store> = { ...data, ...plannerData };
+      if (settingsRes) {
+        const arch = settingsRes.archive as { projectIds?: unknown; taskIds?: unknown } | undefined;
+        if (arch) { patch.archivedProjectIds = strList(arch.projectIds); patch.archivedTaskIds = strList(arch.taskIds); }
+        if (Array.isArray(settingsRes.projectOrder)) patch.projectOrder = strList(settingsRes.projectOrder);
+        if (Array.isArray(settingsRes.navOrder)) patch.navOrder = strList(settingsRes.navOrder);
+        if (Array.isArray(settingsRes.doneCalendarEvents)) patch.doneCalendarEvents = strList(settingsRes.doneCalendarEvents);
+        if (isDayOrder(settingsRes.dayOrder)) patch.dayOrder = settingsRes.dayOrder as DayOrder;
+        if (settingsRes.notifPrefs) patch.notifPrefs = normalizeNotifPrefs(settingsRes.notifPrefs);
+        if (isWorkspaceName(settingsRes.workspaceName)) patch.workspaceName = settingsRes.workspaceName as string;
+        if (Number(settingsRes.dailyCapacity) > 0) patch.dailyCapacity = Number(settingsRes.dailyCapacity);
+        if (isThemeId(settingsRes.theme) && settingsRes.theme !== get().theme) { patch.theme = settingsRes.theme as string; applyTheme(settingsRes.theme as string); }
+        if (settingsRes.styleTheme) {
+          const st = normalizeStyle(settingsRes.styleTheme);
+          const cur = get().styleTheme;
+          if (st.font !== cur.font || st.cards !== cur.cards || st.bg !== cur.bg) { patch.styleTheme = st; applyStyle(st); }
+        }
+      }
+      set(patch);
+    } catch (err) {
+      console.error('refresh failed', err);
     }
   },
 
