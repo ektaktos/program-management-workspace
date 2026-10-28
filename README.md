@@ -19,6 +19,11 @@ Open [http://localhost:3000](http://localhost:3000) and create an account.
 - Built on Auth.js (`next-auth` v4) with JWT sessions; users and linked accounts live in MySQL.
 - Every API route requires a session and filters by the signed-in user. Projects and planner rows carry a `userId`; tasks, phases, milestones and notes are owned through their project.
 - **Existing data:** rows created before auth was added have no owner. The first account created on the instance claims them. Later accounts start with an empty workspace.
+- **Forgot password:** `/forgot-password` emails a one-time link (valid 60 minutes; only its SHA-256 hash is stored) to `/reset-password`. The response is the same whether or not the email has an account, and a new link can be requested once a minute per account.
+
+## Email
+
+Transactional email goes through [Zoho CPaaS](https://www.zoho.com/zeptomail/help/api/email-sending.html) (formerly ZeptoMail) — see `lib/email.ts`. Set `ZOHO_CPAAS_TOKEN` (the agent's Send Mail token) and `EMAIL_FROM_ADDRESS` (an address on a domain verified in Zoho CPaaS). Without them, development builds print each email, including the reset link, to the server log; production refuses to send.
 
 ## Stack
 

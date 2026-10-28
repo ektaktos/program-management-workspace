@@ -18,5 +18,5 @@ export default withAuth(
 );
 
 export const config = {
-  matcher: ['/((?!login|signup|api/auth|_next|icons|manifest.json|sw.js|icon.svg|favicon.ico).*)'],
+  matcher: ['/((?!login|signup|forgot-password|reset-password|api/auth|_next|icons|manifest.json|sw.js|icon.svg|favicon.ico).*)'],
 };

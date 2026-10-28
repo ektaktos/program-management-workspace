@@ -24,6 +24,7 @@ model User {
   plannerWeeklies     PlannerWeekly[]
   notes               Note[]
   settings            Setting[]
+  passwordResetTokens PasswordResetToken[]
   calendarSources     CalendarSource[]
 }
 
@@ -52,6 +53,18 @@ model Session {
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// One-time links from the forgot-password email. Only a SHA-256 hash of the token is stored.
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String   @unique
+  expires   DateTime
+  createdAt DateTime @default(now())
 
   @@index([userId])
 }
