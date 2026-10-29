@@ -1,6 +1,6 @@
-# Program Management Workspace
+# Project Management Workspace
 
-A multi-user program management web app built with Next.js 14, Prisma (MySQL), Zustand, and Tailwind CSS. Each person signs in and sees only their own projects, tasks and planner.
+A multi-user project management web app built with Next.js 14, Prisma (MySQL), Zustand, and Tailwind CSS. Each person signs in and sees only their own projects, tasks and planner.
 
 ## Getting started
 

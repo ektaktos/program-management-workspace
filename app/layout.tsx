@@ -21,7 +21,7 @@ export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Workspace',
-  description: 'Your personal program management workspace',
+  description: 'Your personal project management workspace',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,

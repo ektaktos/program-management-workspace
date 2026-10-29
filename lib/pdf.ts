@@ -161,7 +161,7 @@ export class PdfDoc {
     objs[2] = `<< /Type /Pages /Kids [${pageIds.map(id => `${id} 0 R`).join(' ')}] /Count ${this.pages.length} >>`;
     objs[3] = `<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>`;
     objs[4] = `<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>`;
-    objs[5] = `<< /Title (${encode(title)}) /Producer (Program Management Workspace) >>`;
+    objs[5] = `<< /Title (${encode(title)}) /Producer (Project Management Workspace) >>`;
     this.pages.forEach((ops, i) => {
       const pid = firstPage + i * 2, cid = pid + 1;
       const stream = ops.join('\n');

@@ -11,7 +11,7 @@ export function passwordResetEmail(
   const text = [
     greeting,
     '',
-    'Someone asked to reset the password for your Program Management Workspace account.',
+    'Someone asked to reset the password for your Project Management Workspace account.',
     `Open this link to choose a new password (it expires in ${validMinutes} minutes):`,
     '',
     link,
@@ -26,7 +26,7 @@ export function passwordResetEmail(
       <tr><td>
         <p style="margin:0 0 16px;font-size:15px;">${escapeHtml(greeting)}</p>
         <p style="margin:0 0 24px;font-size:15px;line-height:1.5;">
-          Someone asked to reset the password for your Program Management Workspace account.
+          Someone asked to reset the password for your Project Management Workspace account.
           Choose a new one with the button below. The link expires in ${validMinutes} minutes.
         </p>
         <p style="margin:0 0 24px;">

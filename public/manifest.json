@@ -1,7 +1,7 @@
 {
-  "name": "Program Management Workspace",
+  "name": "Project Management Workspace",
   "short_name": "Workspace",
-  "description": "Program management workspace — projects, tasks, phases, and weekly planning.",
+  "description": "Project management workspace — projects, tasks, phases, and weekly planning.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
