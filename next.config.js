@@ -18,5 +18,7 @@ const BUILD_ID = buildId();
 const nextConfig = {
   generateBuildId: () => BUILD_ID,
   env: { BUILD_ID },
+  // Lets instrumentation.ts run the one-time encryption backfill at server start (Next 14)
+  experimental: { instrumentationHook: true },
 };
 module.exports = nextConfig;

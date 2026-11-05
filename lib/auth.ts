@@ -4,13 +4,14 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import GoogleProvider from 'next-auth/providers/google';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import bcrypt from 'bcryptjs';
-import { prisma } from './db';
+import { prisma, prismaBase } from './db';
 import { claimOrphanData } from './claimOrphanData';
 
 export const googleEnabled = Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
+  // Accounts and sessions aren't field-encrypted, so the adapter uses the plain client
+  adapter: PrismaAdapter(prismaBase),
   // Credentials sign-in only works with JWT sessions.
   session: { strategy: 'jwt' },
   pages:   { signIn: '/login' },

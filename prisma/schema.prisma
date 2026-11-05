@@ -81,14 +81,14 @@ model Project {
   id          String      @id
   userId      String?
   user        User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name        String
+  name        String @db.Text
   type        String
   description String      @db.Text
   status      String
   color       String
   start       String?
   end         String?
-  area        String?
+  area        String? @db.Text
   tasks       Task[]
   milestones  Milestone[]
   phases      Phase[]
@@ -101,13 +101,13 @@ model Task {
   id          String    @id
   projectId   String
   phaseId     String?
-  title       String
+  title       String @db.Text
   description String    @db.Text
   status      String
   priority    String
   due         String?
   dueTime     String?
-  assignee    String?
+  assignee    String? @db.Text
   alerts      Json      @default("[]")
   recurring   String?
   subtasks    Json      @default("[]")
@@ -120,7 +120,7 @@ model Task {
 model Milestone {
   id        String  @id
   projectId String
-  title     String
+  title     String @db.Text
   desc      String  @db.Text
   date      String?
   status    String
@@ -130,7 +130,7 @@ model Milestone {
 model Phase {
   id        String  @id
   projectId String
-  name      String
+  name      String @db.Text
   notes     String  @db.Text
   start     String?
   end       String?
@@ -143,7 +143,7 @@ model Note {
   userId    String?
   user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   projectId String?  // optional: notes don't have to belong to a project
-  title     String
+  title     String @db.Text
   body      String   @db.Text
   tags      Json     @default("[]")
   pinned    Boolean  @default(false) // stays at the top of Recent Notes on the Dashboard
@@ -157,7 +157,7 @@ model PlannerTodo {
   id        String   @id
   userId    String?
   user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  text      String
+  text      String @db.Text
   done      Boolean  @default(false)
   createdAt DateTime @default(now())
 
@@ -168,7 +168,7 @@ model PlannerEvent {
   id        String   @id
   userId    String?
   user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  title     String
+  title     String @db.Text
   date      String
   category  String
   notes     String   @db.Text
@@ -186,7 +186,7 @@ model PlannerAppointment {
   id        String   @id
   userId    String?
   user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  title     String
+  title     String @db.Text
   date      String
   time      String
   notes     String   @db.Text
@@ -225,7 +225,7 @@ model CalendarSource {
   id        String   @id
   userId    String?
   user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name      String
+  name      String @db.Text
   url       String   @db.Text
   color     String
   enabled   Boolean  @default(true)
