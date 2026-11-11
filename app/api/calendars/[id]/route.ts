@@ -4,7 +4,8 @@ import { notFound, requireUserId } from '@/lib/auth';
 import { fetchCalendarText, forgetCalendar, normalizeCalendarUrl } from '@/lib/calendarFetch';
 
 // Body: any of { name, color, enabled, url }
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+  const params = await ctx.params;
   const userId = await requireUserId();
   if (userId instanceof NextResponse) return userId;
 
@@ -27,7 +28,8 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   return NextResponse.json({ id: s.id, name: s.name, url: s.url, color: s.color, enabled: s.enabled });
 }
 
-export async function DELETE(_: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+  const params = await ctx.params;
   const userId = await requireUserId();
   if (userId instanceof NextResponse) return userId;
 

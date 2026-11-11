@@ -3,7 +3,8 @@ import { prisma } from '@/lib/db';
 import { toTodo } from '@/lib/apiHelpers';
 import { notFound, requireUserId } from '@/lib/auth';
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+  const params = await ctx.params;
   const userId = await requireUserId();
   if (userId instanceof NextResponse) return userId;
 
@@ -21,7 +22,8 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   return NextResponse.json(toTodo(todo as Record<string, unknown>));
 }
 
-export async function DELETE(_: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+  const params = await ctx.params;
   const userId = await requireUserId();
   if (userId instanceof NextResponse) return userId;
 

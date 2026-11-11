@@ -3,7 +3,8 @@ import { prisma } from '@/lib/db';
 import { toNote } from '@/lib/apiHelpers';
 import { notFound, ownsProject, requireUserId } from '@/lib/auth';
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+  const params = await ctx.params;
   const userId = await requireUserId();
   if (userId instanceof NextResponse) return userId;
 
@@ -26,7 +27,8 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   return NextResponse.json(toNote(note as Record<string, unknown>));
 }
 
-export async function DELETE(_: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+  const params = await ctx.params;
   const userId = await requireUserId();
   if (userId instanceof NextResponse) return userId;
 

@@ -3,7 +3,8 @@ import { prisma } from '@/lib/db';
 import { toPlannerWeekly } from '@/lib/apiHelpers';
 import { requireUserId } from '@/lib/auth';
 
-export async function PUT(req: NextRequest, { params }: { params: { weekKey: string } }) {
+export async function PUT(req: NextRequest, ctx: { params: Promise<{ weekKey: string }> }) {
+  const params = await ctx.params;
   const userId = await requireUserId();
   if (userId instanceof NextResponse) return userId;
 

@@ -28,7 +28,8 @@ const VALIDATORS: Record<string, (v: unknown) => boolean> = {
 };
 
 // Body: { value: <JSON> }
-export async function PUT(req: NextRequest, { params }: { params: { key: string } }) {
+export async function PUT(req: NextRequest, ctx: { params: Promise<{ key: string }> }) {
+  const params = await ctx.params;
   const userId = await requireUserId();
   if (userId instanceof NextResponse) return userId;
 
