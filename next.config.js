@@ -14,11 +14,26 @@ function buildId() {
 
 const BUILD_ID = buildId();
 
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  generateBuildId: () => BUILD_ID,
-  env: { BUILD_ID },
-  // Lets instrumentation.ts run the one-time encryption backfill at server start (Next 14)
-  experimental: { instrumentationHook: true },
+// The type check needs the generated Prisma client. Hosts that restore cached node_modules, skip
+// install scripts or run `next build` directly never run `prisma generate`, so do it here first.
+function generatePrismaClient() {
+  if (process.env.__PRISMA_CLIENT_GENERATED) return;   // the config loads more than once per build
+  process.env.__PRISMA_CLIENT_GENERATED = '1';
+  let cli;
+  try {
+    cli = require.resolve('prisma/build/index.js');
+  } catch {
+    throw new Error('The `prisma` CLI is missing, so the Prisma client cannot be generated. Install devDependencies during the build.');
+  }
+  execSync(`"${process.execPath}" "${cli}" generate`, { stdio: 'inherit' });
+}
+
+/** @type {(phase: string) => import('next').NextConfig} */
+module.exports = (phase) => {
+  if (phase === 'phase-production-build') generatePrismaClient();
+  // instrumentation.ts (the one-time encryption backfill) runs by default since Next 15.
+  return {
+    generateBuildId: () => BUILD_ID,
+    env: { BUILD_ID },
+  };
 };
-module.exports = nextConfig;
