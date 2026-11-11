@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter, Kalam, Nunito, Playfair_Display } from 'next/font/google';
+import localFont from 'next/font/local';
 import '@/styles/globals.css';
 import { THEMES, THEME_CACHE_KEY, DEFAULT_THEME } from '@/lib/themes';
 import { STYLE_CACHE_KEY, DEFAULT_STYLE } from '@/lib/styleThemes';
@@ -12,13 +12,22 @@ const themeBootScript = `(function(){try{var t=localStorage.getItem('${THEME_CAC
 // Also before paint: font / card / background style cached from the last visit
 const styleBootScript = `(function(){try{var s=JSON.parse(localStorage.getItem('${STYLE_CACHE_KEY}')||'null');if(!s)return;var d=${JSON.stringify(DEFAULT_STYLE)};['font','cards','bg'].forEach(function(k){if(typeof s[k]==='string'&&/^[a-z]+$/.test(s[k])&&s[k]!==d[k])document.documentElement.setAttribute('data-'+k,s[k]);});}catch(e){}})();`;
 
-// Web fonts offered by the font styles (Classic uses the system's Georgia). next/font downloads them
-// at build time and serves them from this site, so there's no Google Fonts <link> in the page for a
-// CDN (Brimble's Cloudflare) to rewrite into a <style>, which broke hydration (React error #418).
-const inter = Inter({ subsets: ['latin'], weight: ['400', '500', '600', '700'], variable: '--ff-inter', display: 'swap' });
-const nunito = Nunito({ subsets: ['latin'], weight: ['400', '600', '700'], variable: '--ff-nunito', display: 'swap' });
-const kalam = Kalam({ subsets: ['latin'], weight: ['400', '700'], variable: '--ff-kalam', display: 'swap' });
-const playfair = Playfair_Display({ subsets: ['latin'], weight: ['400', '500', '600'], variable: '--ff-playfair', display: 'swap' });
+// Web fonts offered by the font styles (Classic uses the system's Georgia). The files are committed in
+// app/fonts and served from this site, so there's no Google Fonts <link> for a CDN (Brimble's
+// Cloudflare) to rewrite into a <style>, which broke hydration (React error #418), and the build never
+// has to reach Google (next/font/google crashed there when the font CSS came back unexpected).
+// Latin subsets from Google Fonts; Inter, Nunito and Playfair Display are variable-weight files.
+const inter = localFont({ src: './fonts/inter.woff2', weight: '400 700', variable: '--ff-inter', display: 'swap' });
+const nunito = localFont({ src: './fonts/nunito.woff2', weight: '400 700', variable: '--ff-nunito', display: 'swap' });
+const kalam = localFont({
+  src: [
+    { path: './fonts/kalam-400.woff2', weight: '400' },
+    { path: './fonts/kalam-700.woff2', weight: '700' },
+  ],
+  variable: '--ff-kalam',
+  display: 'swap',
+});
+const playfair = localFont({ src: './fonts/playfair.woff2', weight: '400 600', variable: '--ff-playfair', display: 'swap' });
 const fontVars = [inter.variable, nunito.variable, kalam.variable, playfair.variable].join(' ');
 
 // Render pages per request. Prerendered pages are sent with a one-year shared-cache lifetime,
