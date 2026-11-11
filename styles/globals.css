@@ -1609,10 +1609,10 @@ tr:hover .q-due.empty, .oc-row:hover .q-due.empty, .q-due.empty:focus-visible { 
   --card-radius: var(--radius-lg);
   --card-shadow: none;
 }
-:root[data-font="modern"]      { --font-body: 'Inter', -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; --font-display: 'Inter', -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; }
-:root[data-font="rounded"]     { --font-body: 'Nunito', ui-rounded, 'SF Pro Rounded', -apple-system, sans-serif; --font-display: 'Nunito', ui-rounded, 'SF Pro Rounded', -apple-system, sans-serif; }
-:root[data-font="editorial"]   { --font-body: 'Inter', -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; --font-display: 'Playfair Display', Georgia, serif; }
-:root[data-font="handwritten"] { --font-body: 'Nunito', ui-rounded, -apple-system, sans-serif; --font-display: 'Kalam', 'Comic Sans MS', cursive; }
+:root[data-font="modern"]      { --font-body: var(--ff-inter, 'Inter'), -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; --font-display: var(--ff-inter, 'Inter'), -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; }
+:root[data-font="rounded"]     { --font-body: var(--ff-nunito, 'Nunito'), ui-rounded, 'SF Pro Rounded', -apple-system, sans-serif; --font-display: var(--ff-nunito, 'Nunito'), ui-rounded, 'SF Pro Rounded', -apple-system, sans-serif; }
+:root[data-font="editorial"]   { --font-body: var(--ff-inter, 'Inter'), -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; --font-display: var(--ff-playfair, 'Playfair Display'), Georgia, serif; }
+:root[data-font="handwritten"] { --font-body: var(--ff-nunito, 'Nunito'), ui-rounded, -apple-system, sans-serif; --font-display: var(--ff-kalam, 'Kalam'), 'Comic Sans MS', cursive; }
 /* Sans fonts read best a touch tighter and at their normal weight */
 :root[data-font="modern"] body, :root[data-font="editorial"] body { letter-spacing: -0.011em; }
 

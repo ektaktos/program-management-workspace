@@ -7,10 +7,10 @@ import { BG_OPTIONS, CARD_OPTIONS, FONT_OPTIONS, StyleOption, StyleTheme } from 
 
 const FONT_SAMPLE: Record<string, string> = {
   classic: 'Georgia, "Times New Roman", serif',
-  modern: "'Inter', -apple-system, 'Segoe UI', sans-serif",
-  rounded: "'Nunito', ui-rounded, sans-serif",
-  editorial: "'Playfair Display', Georgia, serif",
-  handwritten: "'Kalam', 'Comic Sans MS', cursive",
+  modern: "var(--ff-inter, 'Inter'), -apple-system, 'Segoe UI', sans-serif",
+  rounded: "var(--ff-nunito, 'Nunito'), ui-rounded, sans-serif",
+  editorial: "var(--ff-playfair, 'Playfair Display'), Georgia, serif",
+  handwritten: "var(--ff-kalam, 'Kalam'), 'Comic Sans MS', cursive",
 };
 
 type Tab = 'colour' | 'font' | 'cards' | 'bg';
