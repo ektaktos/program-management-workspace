@@ -158,6 +158,20 @@ function timeoutSignal(): AbortSignal | undefined {
   return typeof AbortSignal !== 'undefined' && 'timeout' in AbortSignal ? AbortSignal.timeout(REQUEST_TIMEOUT_MS) : undefined;
 }
 
+// Subscribed calendars load in the background once the workspace is showing, so a slow calendar
+// request never holds up startup. Setting calendarSources re-runs the views' ensureCalendarRange
+// effects, which then fetch the events; reminders pick them up on their next 30s check.
+function loadCalendarsLater(set: (partial: { calendarSources: CalendarSource[] }) => void) {
+  const run = () => {
+    api('/api/calendars')
+      .then((res: unknown) => { if (Array.isArray(res)) set({ calendarSources: res as CalendarSource[] }); })
+      .catch(err => console.error('calendar list failed', err));
+  };
+  // Wait until the browser is idle after the first render (at most 2s), so the workspace paints first
+  if (typeof window !== 'undefined' && 'requestIdleCallback' in window) window.requestIdleCallback(run, { timeout: 2000 });
+  else setTimeout(run, 500);
+}
+
 async function api(path: string, method = 'GET', body?: unknown) {
   const isWrite = method !== 'GET';
   if (isWrite) { pendingWrites++; lastWriteAt = Date.now(); }
@@ -400,18 +414,17 @@ export const useAppStore = create<Store>((set, get) => ({
       if (session?.user) set({ user: { name: session.user.name ?? '', email: session.user.email ?? '' } });
 
       // Synced settings load alongside the data; a settings failure (null) must not block loading.
-      const [data, plannerData, settingsRes, calendarsRes]: [AppState, {
+      // Calendars are not part of this: they load after the workspace is on screen (loadCalendarsLater).
+      const [data, plannerData, settingsRes]: [AppState, {
         todos: Todo[];
         plannerEvents: PlannerEvent[];
         plannerAppointments: PlannerAppointment[];
         plannerWeekly: Record<string, PlannerWeekData>;
-      }, Record<string, unknown> | null, CalendarSource[] | null] = await Promise.all([
+      }, Record<string, unknown> | null] = await Promise.all([
         api('/api/data'),
         api('/api/planner/data'),
         api('/api/settings').catch(() => null),
-        api('/api/calendars').catch(() => null),
       ]);
-      if (Array.isArray(calendarsRes)) set({ calendarSources: calendarsRes });
 
       // Archive and project order live in the DB (synced). Older versions kept them per browser:
       // the first load in each browser merges its local copy in, then clears it.
@@ -487,6 +500,7 @@ export const useAppStore = create<Store>((set, get) => ({
       }
 
       set({ ...data, notifiedAlerts: loadNotified(), ...plannerData, isLoaded: true, archivedProjectIds: archived.projectIds, archivedTaskIds: archived.taskIds, projectOrder: order });
+      loadCalendarsLater(set);
 
       // One-time migration: if DB planner is empty but localStorage has data, migrate it
       const legacy = readLegacyPlannerData();
