@@ -1,15 +1,10 @@
 // Minimal service worker — exists mainly to satisfy PWA installability
 // requirements (Chrome/Edge require a registered SW with a fetch handler).
-// It does NOT cache API responses, so task/project data is always fresh;
-// it only provides an offline fallback for the app shell itself.
+// It caches nothing: pages, scripts and API data always come from the network.
 
-const CACHE_NAME = 'oyint-workspace-v3';
-const SHELL_URL = '/';
+const CACHE_NAME = 'oyint-workspace-v4';   // bumped so 'activate' deletes the stale v3 shell
 
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.add(SHELL_URL))
-  );
+self.addEventListener('install', () => {
   self.skipWaiting();
 });
 
@@ -29,10 +24,11 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
   if (url.pathname.startsWith('/api/')) return; // never intercept API calls
 
+  // Pages always come from the network. The old offline fallback served a cached copy of '/'
+  // that pointed at an earlier build's scripts; once those were gone the page stuck on
+  // "Loading workspace..." forever (e.g. on a flaky or filtering office network).
   if (request.mode === 'navigate') {
-    event.respondWith(
-      fetch(request).catch(() => caches.match(SHELL_URL))
-    );
+    event.respondWith(fetch(request));
   }
 });
 

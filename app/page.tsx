@@ -22,6 +22,7 @@ import { unlockAudio } from '@/lib/notifications';
 export default function Home() {
   const currentView    = useAppStore(s => s.currentView);
   const isLoaded       = useAppStore(s => s.isLoaded);
+  const loadError      = useAppStore(s => s.loadError);
   const loadAll        = useAppStore(s => s.loadAll);
   const runAutoOverdue = useAppStore(s => s.runAutoOverdue);
   const runAlertCheck  = useAppStore(s => s.runAlertCheck);
@@ -66,6 +67,25 @@ export default function Home() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  if (loadError) {
+    return (
+      <div style={{
+        height: '100vh', display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center', background: 'var(--bg)',
+        gap: 12, padding: 24, textAlign: 'center',
+      }}>
+        <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--text)' }}>Couldn&apos;t reach your workspace</div>
+        <div style={{ fontSize: 14, color: 'var(--text-muted)', maxWidth: 360 }}>
+          The connection timed out or was blocked. If you&apos;re on a work or public network, it may be filtering this site.
+        </div>
+        <button onClick={() => window.location.reload()} style={{
+          marginTop: 8, padding: '8px 18px', borderRadius: 'var(--radius)', border: '1px solid var(--border)',
+          background: 'var(--surface)', color: 'var(--text)', cursor: 'pointer', fontSize: 14,
+        }}>Try again</button>
+      </div>
+    );
+  }
+
   if (!isLoaded) {
     return (
       <div style={{
@@ -80,7 +100,14 @@ export default function Home() {
           animation: 'spin 0.7s linear infinite',
         }} />
         <div style={{ fontSize: 14, color: 'var(--text-muted)' }}>Loading workspace...</div>
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        {/* Shown by CSS alone after 15s, so it still appears when the page's scripts never load
+            (the case where React never starts and no timeout of ours can run). */}
+        <a href="/" className="slow-load-hint" style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+          Taking too long? Reload
+        </a>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }
+          .slow-load-hint { visibility: hidden; animation: slow-load-show 0s linear 15s forwards; }
+          @keyframes slow-load-show { to { visibility: visible; } }`}</style>
       </div>
     );
   }

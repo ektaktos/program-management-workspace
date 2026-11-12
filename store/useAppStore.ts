@@ -151,6 +151,13 @@ function calcNextDue(iso: string, pattern: string): string | null {
 let pendingWrites = 0;
 let lastWriteAt = 0;
 
+// A request the network never answers (some office proxies and firewalls hold connections open)
+// must fail instead of leaving the app waiting forever.
+const REQUEST_TIMEOUT_MS = 20_000;
+function timeoutSignal(): AbortSignal | undefined {
+  return typeof AbortSignal !== 'undefined' && 'timeout' in AbortSignal ? AbortSignal.timeout(REQUEST_TIMEOUT_MS) : undefined;
+}
+
 async function api(path: string, method = 'GET', body?: unknown) {
   const isWrite = method !== 'GET';
   if (isWrite) { pendingWrites++; lastWriteAt = Date.now(); }
@@ -159,6 +166,7 @@ async function api(path: string, method = 'GET', body?: unknown) {
       method,
       headers: body ? { 'Content-Type': 'application/json' } : undefined,
       body: body ? JSON.stringify(body) : undefined,
+      signal: timeoutSignal(),
     });
     if (res.status === 401 && typeof window !== 'undefined') {
       window.location.href = '/login';
@@ -181,6 +189,8 @@ export interface Toast {
 
 interface UIState {
   isLoaded: boolean;
+  /** Set when the first load couldn't reach the server; the page offers a retry instead of an empty workspace. */
+  loadError: boolean;
   currentView: string;
   activeProjectId: string | null;
   highlightedTaskId: string | null;
@@ -347,6 +357,7 @@ export const useAppStore = create<Store>((set, get) => ({
 
   // ── UI ──
   isLoaded:        false,
+  loadError:       false,
   currentView:     'dashboard',
   activeProjectId: null,
   highlightedTaskId: null,
@@ -384,7 +395,7 @@ export const useAppStore = create<Store>((set, get) => ({
   // ── Bootstrap ──
   loadAll: async () => {
     try {
-      const session = await fetch('/api/auth/session').then(r => r.json()).catch(() => null);
+      const session = await fetch('/api/auth/session', { signal: timeoutSignal() }).then(r => r.json()).catch(() => null);
       storageUserId = session?.user?.id ?? '';
       if (session?.user) set({ user: { name: session.user.name ?? '', email: session.user.email ?? '' } });
 
@@ -500,7 +511,8 @@ export const useAppStore = create<Store>((set, get) => ({
       }
     } catch (err) {
       console.error('loadAll failed:', err);
-      set({ isLoaded: true });
+      // Don't show an empty workspace as if it were the user's data: say it failed and offer a retry.
+      if (!get().isLoaded) set({ loadError: true });
     }
   },
 
