@@ -240,6 +240,7 @@ export default function Sidebar() {
               >
               {open && <span className="nav-drag-handle" aria-hidden>⠿</span>}
               <button
+                data-tour={`nav-${item.id}`}
                 onClick={() => { setView(item.id); setSidebarOpen(window.innerWidth >= 768 ? open : false); }}
                 title={!open ? item.label : undefined}
                 style={{

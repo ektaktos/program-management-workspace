@@ -17,6 +17,7 @@ import ToastContainer from '@/components/ui/Toast';
 import PWAInit from '@/components/PWAInit';
 import QuickAdd from '@/components/QuickAdd';
 import CalendarsModal from '@/components/modals/CalendarsModal';
+import Guide from '@/components/guide/Guide';
 import { unlockAudio } from '@/lib/notifications';
 
 export default function Home() {
@@ -133,6 +134,7 @@ export default function Home() {
       <PWAInit />
       <QuickAdd />
       <CalendarsModal />
+      <Guide />
     </div>
   );
 }

@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { LATEST_RELEASE } from '@/lib/changelog';
+import GuideIcon from './guide/GuideIcon';
 
 // A tab left open keeps running the code it loaded. This notices a newer deploy and offers a reload.
 const RUNNING = process.env.BUILD_ID;
@@ -11,6 +13,12 @@ const CHUNK_RELOAD_KEY = 'pm_chunk_reload_at';
 const SEEN_KEY = 'pm_update_seen_build';
 // Cache-busting query param added by Reload, removed again once the page loads
 const BUST_PARAM = '_v';
+// "Later": don't show this build's card again in this tab
+const LATER_KEY = 'pm_update_later';
+
+function laterFor(): string {
+  try { return sessionStorage.getItem(LATER_KEY) ?? ''; } catch { return ''; }
+}
 
 function readSeen(): string {
   try { return localStorage.getItem(SEEN_KEY) ?? ''; } catch { return ''; }
@@ -30,6 +38,8 @@ function reloadFresh(deployed: string) {
 export default function UpdateBanner() {
   // Build id of the newer deploy, or '' when this tab is up to date
   const [deployed, setDeployed] = useState('');
+  // What the new build says it brings (newer servers send their latest release note)
+  const [summary, setSummary] = useState('');
 
   useEffect(() => {
     let stopped = false;
@@ -46,12 +56,14 @@ export default function UpdateBanner() {
       try {
         const res = await fetch('/api/version', { cache: 'no-store' });
         if (!res.ok) return;
-        const { buildId } = await res.json();
+        const { buildId, release } = await res.json();
         if (!buildId || !RUNNING) return;
         if (buildId === RUNNING) {
           writeSeen('');
           setDeployed('');
-        } else if (buildId !== readSeen()) {
+        } else if (buildId !== readSeen() && buildId !== laterFor()) {
+          const fresh = release && typeof release.summary === 'string' && release.id !== LATEST_RELEASE.id;
+          setSummary(fresh ? String(release.summary).slice(0, 120) : '');
           setDeployed(buildId);
         }
       } catch {
@@ -91,16 +103,20 @@ export default function UpdateBanner() {
 
   if (!deployed) return null;
 
+  function later() {
+    try { sessionStorage.setItem(LATER_KEY, deployed); } catch {}
+    setDeployed('');
+  }
+
   return (
-    <div role="status" style={{
-      position: 'fixed', left: '50%', bottom: 18, transform: 'translateX(-50%)', zIndex: 300,
-      display: 'flex', alignItems: 'center', gap: 12, maxWidth: 'calc(100vw - 32px)',
-      background: 'var(--surface)', border: '1px solid var(--border)',
-      borderRadius: 'var(--radius)', boxShadow: 'var(--shadow-md)', padding: '10px 12px 10px 16px',
-      fontSize: 13, color: 'var(--text)',
-    }}>
-      <span>A new version of the workspace is available.</span>
-      <button className="btn btn-primary btn-sm" onClick={() => reloadFresh(deployed)}>Reload</button>
+    <div className="g-update" role="status">
+      <span className="g-update-spark" aria-hidden><GuideIcon name="sparkles" size={17} /></span>
+      <span className="g-update-text">
+        <b>A new version is ready</b>
+        <span>{summary || 'Fixes and improvements'}</span>
+      </span>
+      <button className="g-link" onClick={later}>Later</button>
+      <button className="g-btn g-btn-primary" onClick={() => reloadFresh(deployed)}>Update now</button>
     </div>
   );
 }

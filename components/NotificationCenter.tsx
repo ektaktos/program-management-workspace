@@ -269,6 +269,7 @@ export default function NotificationCenter() {
     <div ref={ref} style={{ position: 'relative' }}>
       <button
         className="bell-btn"
+        data-tour="bell"
         title="Notifications"
         aria-label={unread ? `Notifications, ${unread} unread` : 'Notifications'}
         aria-expanded={open}

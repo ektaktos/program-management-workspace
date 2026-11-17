@@ -9,6 +9,7 @@ import { DEFAULT_THEME, applyTheme, isThemeId } from '@/lib/themes';
 import { StyleTheme, DEFAULT_STYLE, STYLE_CACHE_KEY, applyStyle, normalizeStyle } from '@/lib/styleThemes';
 import { DayOrder, isDayOrder, pruneDayOrder } from '@/lib/dayOrder';
 import { buildWeeklyReport, mondayOf, weekLabel } from '@/lib/report';
+import { useGuideStore } from './useGuideStore';
 import { NotifItem, NotifKind, NotifPrefs, NotifTarget, DEFAULT_NOTIF_PREFS, normalizeNotifPrefs, inQuietHours, playSound } from '@/lib/notifications';
 
 const NOTIFIED_KEY  = 'pm_oyint_notified';
@@ -262,7 +263,7 @@ interface Store extends AppState, UIState, PlannerState {
   notifications:  NotifItem[];
   notifPrefs:     NotifPrefs;
   setNotifPrefs:  (patch: Partial<NotifPrefs>) => void;
-  notify:         (n: { kind: NotifKind; title: string; message: string; target?: NotifTarget }) => void;
+  notify:         (n: { kind: NotifKind; title: string; message: string; target?: NotifTarget; silent?: boolean }) => void;
   openNotification: (id: string) => void;
   markNotifRead:  (id: string) => void;
   markAllNotifsRead: () => void;
@@ -826,12 +827,13 @@ export const useAppStore = create<Store>((set, get) => ({
   },
 
   // ── Notifications ──
-  notify: ({ kind, title, message, target }) => {
+  notify: ({ kind, title, message, target, silent }) => {
     const { notifPrefs: p, addToast } = get();
     const item: NotifItem = { id: uid(), kind, title, message, at: Date.now(), read: false, target };
     const notifications = [item, ...get().notifications].slice(0, NOTIFS_MAX);
     set({ notifications });
     saveJson(NOTIFS_KEY, notifications);
+    if (silent) return;   // just kept in the bell (e.g. release notes already shown on screen)
     addToast({ title, message, type: 'alert', kind, notifId: item.id });
     // Quiet hours: still logged and shown in the app, just no sound or system pop-up
     if (inQuietHours(p)) return;
@@ -846,6 +848,7 @@ export const useAppStore = create<Store>((set, get) => ({
     const t = n?.target;
     if (!t) return;
     if (t.view === 'report') { get().downloadWeeklyReport(t.week ?? addDaysIso(mondayOf(todayIso()), -7)); return; }
+    if (t.view === 'whatsnew') { useGuideStore.getState().openWhatsNew(); return; }
     if (t.taskId && t.projectId && get().tasks.some(x => x.id === t.taskId)) get().navigateToTask(t.taskId, t.projectId);
     else get().setView(t.view, t.projectId);
   },

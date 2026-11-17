@@ -93,7 +93,7 @@ export default function Dashboard() {
   return (
     <div>
       {/* Stat cards */}
-      <div className="stat-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 16 }}>
+      <div className="stat-grid" data-tour="stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 16 }}>
         {statCards.map(c => (
           <div
             key={c.label}
@@ -290,7 +290,7 @@ export default function Dashboard() {
           </div>
 
           {/* Recent notes, as taped index cards */}
-          <div className="card">
+          <div className="card" data-tour="notes">
             <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: 'var(--text)' }}>
               Recent Notes
               <button type="button" className="btn btn-ghost btn-sm" style={{ fontSize: 12, color: 'var(--primary-dark)', fontWeight: 500, padding: '2px 4px' }} onClick={() => setNewNoteOpen(true)}>
