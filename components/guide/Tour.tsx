@@ -73,7 +73,8 @@ export default function Tour() {
     const el = findTarget(target);
     if (!el) { setRect(null); return; }
     const r = el.getBoundingClientRect();
-    setRect({ x: r.left - PAD, y: r.top - PAD, w: r.width + PAD * 2, h: r.height + PAD * 2 });
+    const next = { x: Math.round(r.left - PAD), y: Math.round(r.top - PAD), w: Math.round(r.width + PAD * 2), h: Math.round(r.height + PAD * 2) };
+    setRect(prev => (prev && prev.x === next.x && prev.y === next.y && prev.w === next.w && prev.h === next.h ? prev : next));
   }, [target]);
 
   // Each step: make sure the target is visible, then measure (again once any scroll or the
@@ -95,7 +96,9 @@ export default function Tour() {
     if (!tourOpen) return;
     window.addEventListener('resize', measure);
     window.addEventListener('scroll', measure, true);
-    return () => { window.removeEventListener('resize', measure); window.removeEventListener('scroll', measure, true); };
+    // Content can also move without a scroll (e.g. calendar meetings arriving above the target)
+    const follow = setInterval(measure, 250);
+    return () => { window.removeEventListener('resize', measure); window.removeEventListener('scroll', measure, true); clearInterval(follow); };
   }, [tourOpen, measure]);
 
   // Place the card once its size is known
