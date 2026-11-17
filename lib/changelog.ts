@@ -1,6 +1,11 @@
 // Release notes shown in "What's new" after an update. Newest first.
-// Add an entry when a push changes something people will notice; a push without one only
-// shows the plain "A new version is ready" card. Pure data: /api/version also reads it.
+//
+// EVERY PUSH THAT CHANGES SOMETHING PEOPLE WILL NOTICE ADDS AN ENTRY AT THE TOP, in the same commit:
+// a new feature, a changed screen or behaviour, or a fix someone could have run into. Give it a new
+// id (the date; a second release that day gets a letter: 2026-11-17b), a one-line summary for the
+// update card, and plain-language items. Pushes with no visible change (refactors, build fixes)
+// don't need one; they only show "Fixes and improvements" on the update card.
+// Accounts see every entry newer than the last one they saw. Pure data: /api/version reads it too.
 
 export type ChangeKind = 'new' | 'improved' | 'fixed';
 
@@ -24,6 +29,17 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    id: '2026-11-17b',
+    date: '2026-11-17',
+    summary: 'What’s new is in the bell, and the tour works better on phones',
+    items: [
+      { kind: 'improved', icon: 'bell', title: 'What’s new lives in the bell', desc: 'The bell has a What’s new button, so these notes are always one tap away, even after you clear your notifications.' },
+      { kind: 'improved', icon: 'compass', title: 'A better tour on phones', desc: 'The tour points at the Recent notes heading and gives tips that make sense on a touch screen.' },
+      { kind: 'fixed', icon: 'tool', title: 'The tour’s spotlight stays put', desc: 'The highlight no longer drifts off its target when the page shifts while loading.' },
+      { kind: 'new', icon: 'sparkles', title: 'Every update listed', desc: 'Missed a few updates? What’s new now shows each one you haven’t seen, with earlier updates underneath.' },
+    ],
+  },
+  {
     id: '2026-11-17',
     date: '2026-11-17',
     summary: 'A guided tour, help on every page and more reminders',
@@ -38,6 +54,13 @@ export const CHANGELOG: Release[] = [
 ];
 
 export const LATEST_RELEASE: Release = CHANGELOG[0];
+
+/** Releases newer than the one this account last saw (just the latest for a first look). */
+export function unseenReleases(seenId: string | undefined): Release[] {
+  const i = seenId ? CHANGELOG.findIndex(r => r.id === seenId) : -1;
+  if (i > 0) return CHANGELOG.slice(0, i);
+  return [LATEST_RELEASE];
+}
 
 export const CHANGE_KIND_LABEL: Record<ChangeKind, string> = { new: 'New', improved: 'Improved', fixed: 'Fixed' };
 

@@ -45,3 +45,17 @@ Transactional email goes through [Zoho CPaaS](https://www.zoho.com/zeptomail/hel
 - Alert reminders with browser notifications
 - Auto-overdue marking (checked every 60 seconds)
 - Installable PWA
+
+## Release notes ("What's new")
+
+People see what changed after every update, so **every push that changes something they'll notice
+adds an entry at the top of [`lib/changelog.ts`](lib/changelog.ts), in the same commit**: a new
+feature, a changed screen or behaviour, or a fix someone could have run into.
+
+- `id`: the date (`2026-11-17`); a second release that day gets a letter (`2026-11-17b`). Never reuse one.
+- `summary`: one line for the "A new version is ready" card.
+- `items`: plain-language changes tagged `new`, `improved` or `fixed`, each with an icon.
+
+After the update, each account sees every entry newer than the last one it saw, once; it stays under
+the bell and the ? button. Pushes with no visible change (refactors, build or dependency fixes) don't
+need an entry.
