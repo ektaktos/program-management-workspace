@@ -715,6 +715,7 @@ export default function WeeklyPlanner() {
                 onChange={e => setTodoInput(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') handleAddTodo(); }}
                 placeholder="Add a to-do..."
+                aria-label="Add a to-do"
               />
               <button onClick={handleAddTodo}>Add</button>
             </div>
@@ -747,6 +748,7 @@ export default function WeeklyPlanner() {
                 onChange={e => setFocusInput(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') handleAddFocusItem(); }}
                 placeholder="e.g. brand launch, deep work…"
+                aria-label="Add a focus for this week"
               />
               <button onClick={handleAddFocusItem}>Add</button>
             </div>
@@ -760,6 +762,7 @@ export default function WeeklyPlanner() {
               value={weekData.notes}
               onChange={e => updatePlannerWeekly(weekKey, { notes: e.target.value })}
               placeholder="How did the week go?..."
+              aria-label="Reflection on this week"
               style={{ minHeight: 100 }}
             />
           </div>

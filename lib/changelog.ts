@@ -29,6 +29,15 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    id: '2026-11-17c',
+    date: '2026-11-17',
+    summary: 'Easier tapping on phones and better screen-reader labels',
+    items: [
+      { kind: 'improved', icon: 'list', title: 'Easier tapping on phones', desc: 'The priority numbers and Move buttons in Today and the planner have a bigger tap area on touch screens.' },
+      { kind: 'improved', icon: 'tool', title: 'Clearer for screen readers', desc: 'Search, to-do, focus and reflection boxes now announce what they’re for.' },
+    ],
+  },
+  {
     id: '2026-11-17b',
     date: '2026-11-17',
     summary: 'What’s new is in the bell, and the tour works better on phones',

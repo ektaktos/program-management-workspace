@@ -245,6 +245,7 @@ export default function Dashboard() {
                 onChange={e => setTodoInput(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') handleAddTodo(); }}
                 placeholder="Add a to-do..."
+                aria-label="Add a to-do"
               />
               <button onClick={handleAddTodo}>Add</button>
             </div>

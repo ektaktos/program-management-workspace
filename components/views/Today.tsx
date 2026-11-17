@@ -255,6 +255,7 @@ export default function Today() {
                 onChange={e => setPlanInput(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') addPlanItem(); }}
                 placeholder={isToday ? 'Add something for today…' : `Add something for ${focusName}…`}
+                aria-label={isToday ? 'Add something for today' : `Add something for ${focusName}`}
               />
               <button onClick={addPlanItem}>Add</button>
             </div>
@@ -323,6 +324,7 @@ export default function Today() {
                 onChange={e => setTodoInput(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter' && todoInput.trim()) { addTodo(todoInput.trim()); setTodoInput(''); } }}
                 placeholder="Add a to-do…"
+                aria-label="Add a to-do"
               />
               <button onClick={() => { if (todoInput.trim()) { addTodo(todoInput.trim()); setTodoInput(''); } }}>Add</button>
             </div>

@@ -90,6 +90,7 @@ export default function AllTasks() {
         <input
           className="toolbar-input"
           placeholder="Search tasks..."
+          aria-label="Search tasks"
           value={searchQuery}
           onChange={e => setSearch(e.target.value)}
           style={{ flex: 1, minWidth: 160 }}

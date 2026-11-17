@@ -410,6 +410,7 @@ export default function Sidebar() {
               </svg>
               <input
                 placeholder="Search tasks..."
+                aria-label="Search tasks"
                 value={searchQuery}
                 onChange={e => { setSearch(e.target.value); if (e.target.value) setView('tasks'); }}
               />
