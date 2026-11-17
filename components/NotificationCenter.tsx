@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useAppStore } from '@/store/useAppStore';
-import { CAL_LEAD_OPTIONS, NotifItem, NotifKind, SOUND_IDS, SOUND_LABELS, SoundId, inQuietHours, playSound, timeAgo, unlockAudio } from '@/lib/notifications';
+import { CAL_LEAD_OPTIONS, MAX_CAL_LEADS, NotifItem, calLeadLabel, NotifKind, SOUND_IDS, SOUND_LABELS, SoundId, inQuietHours, playSound, timeAgo, unlockAudio } from '@/lib/notifications';
 
 export function NotifIcon({ kind }: { kind: NotifKind }) {
   const common = { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.9, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
@@ -105,6 +105,32 @@ function scheduleBackgroundTest() {
   }, BG_TEST_SECONDS * 1000);
 }
 
+// The reminders for every calendar event, as removable chips plus an "Add reminder" picker
+function CalendarLeads({ leads, onChange }: { leads: number[]; onChange: (leads: number[]) => void }) {
+  const unused = CAL_LEAD_OPTIONS.filter(m => !leads.includes(m)).sort((a, b) => b - a);
+  const set = (next: number[]) => onChange(Array.from(new Set(next)).sort((a, b) => b - a));
+  return (
+    <div className="notif-leads" role="group" aria-label="Calendar event reminders">
+      {leads.map(m => (
+        <span key={m} className="notif-lead">
+          {calLeadLabel(m)}
+          {leads.length > 1 && (
+            <button type="button" aria-label={`Remove the ${calLeadLabel(m).toLowerCase()} reminder`} title="Remove" onClick={() => set(leads.filter(x => x !== m))}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            </button>
+          )}
+        </span>
+      ))}
+      {leads.length < MAX_CAL_LEADS && unused.length > 0 && (
+        <select className="notif-select notif-lead-add" value="" aria-label="Add a calendar reminder" onChange={e => e.target.value && set([...leads, Number(e.target.value)])}>
+          <option value="">+ Add reminder</option>
+          {unused.map(m => <option key={m} value={m}>{calLeadLabel(m)}</option>)}
+        </select>
+      )}
+    </div>
+  );
+}
+
 function Settings() {
   const { notifPrefs: p, setNotifPrefs } = useAppStore();
   const [perm, setPerm] = useState<NotificationPermission | 'unsupported'>('default');
@@ -139,13 +165,9 @@ function Settings() {
       <div className="notif-set-row"><span>Planner meetings<small>Meetings with an alert set</small></span><Toggle label="Planner meetings" checked={p.meetingAlerts} onChange={v => setNotifPrefs({ meetingAlerts: v })} /></div>
       <div className="notif-set-row">
         <span>Calendar events<small>From your connected calendars</small></span>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-          <select className="notif-select" value={p.calendarLead} disabled={!p.calendarAlerts} aria-label="Calendar reminder time" onChange={e => setNotifPrefs({ calendarLead: Number(e.target.value) })}>
-            {CAL_LEAD_OPTIONS.map(m => <option key={m} value={m}>{m === 0 ? 'At start' : m < 60 ? `${m} min before` : '1 hr before'}</option>)}
-          </select>
-          <Toggle label="Calendar events" checked={p.calendarAlerts} onChange={v => setNotifPrefs({ calendarAlerts: v })} />
-        </span>
+        <Toggle label="Calendar events" checked={p.calendarAlerts} onChange={v => setNotifPrefs({ calendarAlerts: v })} />
       </div>
+      {p.calendarAlerts && <CalendarLeads leads={p.calendarLeads} onChange={calendarLeads => setNotifPrefs({ calendarLeads })} />}
       <div className="notif-set-row">
         <span>Morning summary<small>What&rsquo;s due, overdue and on the calendar</small></span>
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>

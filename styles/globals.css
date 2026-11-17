@@ -1284,6 +1284,13 @@ button.pday-appts-label:focus-visible { outline: 2px solid var(--primary-dark); 
 .notif-set-row > span:first-child { min-width: 0; }
 .notif-set-row small { display: block; font-size: 11px; color: var(--text-muted); margin-top: 1px; }
 .notif-select { width: auto; padding: 4px 6px; font-size: 12px; border-radius: 8px; }
+.notif-leads { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 0 14px 8px; }
+.notif-lead { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 500; color: var(--text); background: var(--primary-light); border: 1px solid var(--primary-dark); border-radius: 999px; padding: 4px 6px 4px 10px; line-height: 1.2; }
+.notif-lead:not(:has(button)) { padding-right: 10px; }
+.notif-lead button { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--text-muted); cursor: pointer; }
+.notif-lead button:hover, .notif-lead button:focus-visible { background: var(--surface); color: var(--text); }
+.notif-lead svg { width: 10px; height: 10px; }
+.notif-lead-add { border-radius: 999px; padding: 4px 8px; color: var(--text-muted); cursor: pointer; }
 .notif-sounds { display: flex; flex-wrap: wrap; gap: 6px; padding: 2px 14px 6px; }
 .notif-sounds.off { opacity: 0.5; }
 .notif-sound { border: 1px solid var(--border); background: var(--surface); color: var(--text); font-family: inherit; font-size: 12px; padding: 5px 10px; border-radius: 999px; cursor: pointer; }

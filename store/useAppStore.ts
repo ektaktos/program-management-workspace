@@ -982,10 +982,14 @@ export const useAppStore = create<Store>((set, get) => ({
         events.forEach(e => {
           if (e.allDay || s.doneCalendarEvents.includes(e.id)) return;   // ticked off already: no reminder
           const startAt = Date.parse(e.start);
-          const alertId = `cal_${e.id}_${e.start}`;
-          if (fired2.has(alertId) || now < startAt - p.calendarLead * 60_000) return;
-          fired2.add(alertId); changed2 = true;
-          if (now > startAt + 5 * 60_000) return;
+          // One id per reminder; the old single-reminder id (no lead suffix) counts as already sent
+          const legacy = fired2.has(`cal_${e.id}_${e.start}`);
+          const due = p.calendarLeads.filter(lead => now >= startAt - lead * 60_000 && !fired2.has(`cal_${e.id}_${e.start}_${lead}`));
+          if (!due.length) return;
+          due.forEach(lead => fired2.add(`cal_${e.id}_${e.start}_${lead}`));
+          changed2 = true;
+          // Several reminders due at once (the app was closed, or the event was just added) ring once
+          if (legacy || now > startAt + 5 * 60_000) return;
           const mins = Math.round((startAt - now) / 60_000);
           const at = new Date(startAt);
           const clock = fmtClock(`${String(at.getHours()).padStart(2, '0')}:${String(at.getMinutes()).padStart(2, '0')}`);

@@ -27,13 +27,29 @@ export const SOUND_LABELS: Record<SoundId, string> = {
   chime: 'Chime', bell: 'Temple bell', marimba: 'Marimba', droplet: 'Droplet', ping: 'Ping',
 };
 
-export const CAL_LEAD_OPTIONS = [0, 5, 10, 15, 30, 60];
+// Minutes before a calendar event; several can be chosen, so one meeting can remind you more than once
+export const CAL_LEAD_OPTIONS = [0, 5, 10, 15, 30, 60, 120, 1440];
+export const MAX_CAL_LEADS = 5;
+
+export function calLeadLabel(m: number): string {
+  if (m === 0) return 'At start';
+  if (m < 60) return `${m} min before`;
+  if (m < 1440) return `${m / 60} hr before`;
+  return '1 day before';
+}
+
+function isCalLeads(v: unknown): v is number[] {
+  return Array.isArray(v) && v.length >= 1 && v.length <= MAX_CAL_LEADS
+    && v.every(m => CAL_LEAD_OPTIONS.includes(m as number))
+    && new Set(v).size === v.length
+    && v.every((m, i) => i === 0 || (v[i - 1] as number) > (m as number));   // longest lead first
+}
 
 export interface NotifPrefs {
   taskAlerts: boolean;      // alerts set on tasks
   meetingAlerts: boolean;   // planner meetings with an alert
   calendarAlerts: boolean;  // events from subscribed calendars
-  calendarLead: number;     // minutes before a calendar event starts
+  calendarLeads: number[];  // minutes before a calendar event starts, longest first (1–5 reminders)
   digest: boolean;          // one morning summary per day
   digestTime: string;       // HH:MM
   weeklyReport: boolean;    // a nudge each new week that last week's report is ready
@@ -50,7 +66,7 @@ export const DEFAULT_NOTIF_PREFS: NotifPrefs = {
   taskAlerts: true,
   meetingAlerts: true,
   calendarAlerts: true,
-  calendarLead: 10,
+  calendarLeads: [10],
   digest: true,
   digestTime: '08:00',
   weeklyReport: true,
@@ -70,7 +86,7 @@ export function isNotifPrefs(v: unknown): v is NotifPrefs {
   const p = v as Record<string, unknown>;
   const bools = ['taskAlerts', 'meetingAlerts', 'calendarAlerts', 'digest', 'weeklyReport', 'sound', 'desktop', 'quiet'];
   if (!bools.every(k => typeof p[k] === 'boolean')) return false;
-  if (!CAL_LEAD_OPTIONS.includes(p.calendarLead as number)) return false;
+  if (!isCalLeads(p.calendarLeads)) return false;
   if (!(SOUND_IDS as readonly string[]).includes(p.soundId as string)) return false;
   if (typeof p.volume !== 'number' || !(p.volume >= 0 && p.volume <= 1)) return false;
   return [p.digestTime, p.quietFrom, p.quietTo].every(t => typeof t === 'string' && HM.test(t))
@@ -79,7 +95,16 @@ export function isNotifPrefs(v: unknown): v is NotifPrefs {
 
 // Fill gaps from older saved shapes so new fields get their defaults
 export function normalizeNotifPrefs(v: unknown): NotifPrefs {
-  const merged = { ...DEFAULT_NOTIF_PREFS, ...(v && typeof v === 'object' ? v as Partial<NotifPrefs> : {}) };
+  const saved = (v && typeof v === 'object' ? v : {}) as Partial<NotifPrefs> & { calendarLead?: unknown };
+  const merged = { ...DEFAULT_NOTIF_PREFS, ...saved };
+  // Older saves had a single calendarLead; keep that choice as the first reminder
+  if (!Array.isArray(saved.calendarLeads) && CAL_LEAD_OPTIONS.includes(saved.calendarLead as number)) {
+    merged.calendarLeads = [saved.calendarLead as number];
+  }
+  if (Array.isArray(merged.calendarLeads)) {
+    const leads = Array.from(new Set(merged.calendarLeads.filter(m => CAL_LEAD_OPTIONS.includes(m)))).sort((a, b) => b - a).slice(0, MAX_CAL_LEADS);
+    merged.calendarLeads = leads.length ? leads : DEFAULT_NOTIF_PREFS.calendarLeads;
+  }
   const clean = (Object.keys(DEFAULT_NOTIF_PREFS) as (keyof NotifPrefs)[])
     .reduce((acc, k) => ({ ...acc, [k]: merged[k] }), {} as NotifPrefs);
   return isNotifPrefs(clean) ? clean : DEFAULT_NOTIF_PREFS;
