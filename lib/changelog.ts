@@ -30,7 +30,7 @@ export const CHANGELOG: Release[] = [
     items: [
       { kind: 'new', icon: 'compass', title: 'A guided tour and help on every page', desc: 'Press ? in the top bar for how-to tips on whichever page you’re on, or take the one-minute tour.', action: { label: 'Take the tour', run: 'tour' } },
       { kind: 'new', icon: 'bell', title: 'Several reminders per meeting', desc: 'Calendar events can remind you up to five times, like a day before and 10 minutes before. Set them under the bell, then Settings.' },
-      { kind: 'new', icon: 'sparkles', title: 'Notes after each update', desc: 'When a new version arrives you’ll see what changed, here. Read it again any time from the bell.' },
+      { kind: 'new', icon: 'sparkles', title: 'Notes after each update', desc: 'When a new version arrives you’ll see what changed, here. Find it again any time under the bell or the ? button.' },
       { kind: 'improved', icon: 'lock', title: 'Your data is encrypted', desc: 'Project, task, note and planner text is stored encrypted on the server.' },
       { kind: 'fixed', icon: 'tool', title: 'Smoother loading', desc: 'Fonts now load from the app itself, so pages open without a flicker or an error.' },
     ],

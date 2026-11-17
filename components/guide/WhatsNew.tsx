@@ -73,7 +73,7 @@ export default function WhatsNew() {
           ))}
         </ul>
         <div className="g-row g-news-foot">
-          <span className="g-faint">Read it again any time from the bell</span>
+          <span className="g-faint">Find it again under the bell or ?</span>
           <button ref={gotRef} className="g-btn g-btn-primary" onClick={close}>Got it</button>
         </div>
       </div>

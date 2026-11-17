@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useAppStore } from '@/store/useAppStore';
+import { useGuideStore } from '@/store/useGuideStore';
 import { CAL_LEAD_OPTIONS, MAX_CAL_LEADS, NotifItem, calLeadLabel, NotifKind, SOUND_IDS, SOUND_LABELS, SoundId, inQuietHours, playSound, timeAgo, unlockAudio } from '@/lib/notifications';
 
 export function NotifIcon({ kind }: { kind: NotifKind }) {
@@ -35,6 +36,17 @@ function dayLabel(at: number): string {
   return d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' });
 }
 
+// Always in the bell: the notes for the latest update
+function WhatsNewButton({ onDone }: { onDone: () => void }) {
+  const openWhatsNew = useGuideStore(s => s.openWhatsNew);
+  return (
+    <button className="btn btn-ghost btn-sm notif-whatsnew" onClick={() => { onDone(); openWhatsNew(); }}>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden style={{ width: 13, height: 13 }}><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg>
+      What&rsquo;s new
+    </button>
+  );
+}
+
 function Inbox({ onDone }: { onDone: () => void }) {
   const { notifications, openNotification, markAllNotifsRead, clearNotifications } = useAppStore();
   const [, tick] = useState(0);
@@ -42,10 +54,13 @@ function Inbox({ onDone }: { onDone: () => void }) {
 
   if (notifications.length === 0) {
     return (
-      <div className="notif-empty">
-        <div style={{ fontSize: 13.5, fontWeight: 500, color: 'var(--text)', marginBottom: 4 }}>You&rsquo;re all caught up</div>
-        Task alerts, meeting and calendar reminders and your morning summary will collect here.
-      </div>
+      <>
+        <div className="notif-empty">
+          <div style={{ fontSize: 13.5, fontWeight: 500, color: 'var(--text)', marginBottom: 4 }}>You&rsquo;re all caught up</div>
+          Task alerts, meeting and calendar reminders and your morning summary will collect here.
+        </div>
+        <div className="notif-foot"><WhatsNewButton onDone={onDone} /></div>
+      </>
     );
   }
 
@@ -78,6 +93,8 @@ function Inbox({ onDone }: { onDone: () => void }) {
         ))}
       </div>
       <div className="notif-foot">
+        <WhatsNewButton onDone={onDone} />
+        <span style={{ flex: 1 }} />
         <button className="btn btn-ghost btn-sm" disabled={!unread} onClick={markAllNotifsRead}>Mark all read</button>
         <button className="btn btn-ghost btn-sm" onClick={clearNotifications}>Clear all</button>
       </div>

@@ -43,6 +43,7 @@ export default function Tour() {
   const setView = useAppStore(s => s.setView);
   const setSidebarOpen = useAppStore(s => s.setSidebarOpen);
   const [step, setStep] = useState(-1);          // -1: welcome card
+  const [mobile, setMobile] = useState(false);   // phone layout: bottom sheet, drawer sidebar
   const [rect, setRect] = useState<Rect | null>(null);
   const [place, setPlace] = useState<Place | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -55,23 +56,32 @@ export default function Tour() {
     setStep(tourWelcome ? -1 : 0);
   }, [tourOpen, tourWelcome, setView]);
 
+  useEffect(() => {
+    if (!tourOpen) return;
+    const check = () => setMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, [tourOpen]);
+
   const s = step >= 0 ? TOUR_STEPS[step] : null;
+  const target = s ? (mobile && s.mobileTarget) || s.target : '';
+  const tip = s ? (mobile && s.mobileTip) || s.tip : '';
 
   const measure = useCallback(() => {
-    if (!s) return;
-    const el = findTarget(s.target);
+    if (!target) return;
+    const el = findTarget(target);
     if (!el) { setRect(null); return; }
     const r = el.getBoundingClientRect();
     setRect({ x: r.left - PAD, y: r.top - PAD, w: r.width + PAD * 2, h: r.height + PAD * 2 });
-  }, [s]);
+  }, [target]);
 
   // Each step: make sure the target is visible, then measure (again once any scroll or the
   // sidebar drawer has settled)
   useEffect(() => {
-    if (!tourOpen || !s) return;
-    const mobile = window.innerWidth < 768;
-    if (mobile) setSidebarOpen(s.target.startsWith('nav-'));
-    const el = findTarget(s.target);
+    if (!tourOpen || !target) return;
+    if (window.innerWidth < 768) setSidebarOpen(target.startsWith('nav-'));
+    const el = findTarget(target);
     if (el) {
       const r = el.getBoundingClientRect();
       if (r.top < 70 || r.bottom > window.innerHeight - 20) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
@@ -79,7 +89,7 @@ export default function Tour() {
     measure();
     const t1 = setTimeout(measure, 120), t2 = setTimeout(measure, 380);
     return () => { clearTimeout(t1); clearTimeout(t2); };
-  }, [tourOpen, s, measure, setSidebarOpen]);
+  }, [tourOpen, target, measure, setSidebarOpen]);
 
   useEffect(() => {
     if (!tourOpen) return;
@@ -168,7 +178,7 @@ export default function Tour() {
           </div>
         </div>
         <p className="g-coach-body" id="g-coach-body">{s!.body}</p>
-        <div className="g-tip"><GuideIcon name="bulb" size={15} /><span>{s!.tip}</span></div>
+        <div className="g-tip"><GuideIcon name="bulb" size={15} /><span>{tip}</span></div>
         <div className="g-progress" aria-hidden>
           {TOUR_STEPS.map((_, i) => <span key={i} className={i <= step ? 'on' : ''} />)}
         </div>

@@ -6,6 +6,10 @@ export interface TourStep {
   title: string;
   body: string;
   tip: string;
+  // Phones (under 768px): a smaller target when the usual one is taller than the screen,
+  // and a tip without keyboard shortcuts
+  mobileTarget?: string;
+  mobileTip?: string;
 }
 
 // The tour runs on the Dashboard, where every target is on screen
@@ -24,13 +28,14 @@ export const TOUR_STEPS: TourStep[] = [
     tip: 'Connect your Outlook or Google calendar here with the Calendars button.' },
   { target: 'notes', section: 'Notes', title: 'Capture anything',
     body: 'Write notes on their own or for a project. They all live on the Notes page too.',
-    tip: 'Pin a note and it stays at the top of Recent notes.' },
+    tip: 'Pin a note and it stays at the top of Recent notes.', mobileTarget: 'notes-head' },
   { target: 'quickadd', section: 'Quick add', title: 'Add from anywhere',
     body: 'Capture a to-do, a planner task or a project task without leaving the page you’re on.',
-    tip: 'Shortcut: ⌘K on a Mac, Ctrl+K on Windows.' },
+    tip: 'Shortcut: ⌘K on a Mac, Ctrl+K on Windows.',
+    mobileTip: 'Tap + on any page; it’s always in the top bar.' },
   { target: 'bell', section: 'Notifications', title: 'Never miss a thing',
     body: 'Task alerts, meeting reminders, your morning summary and the weekly report, with sound.',
-    tip: 'Open Settings in the bell to choose reminders, sounds and quiet hours.' },
+    tip: 'Open Settings in the bell to choose reminders, sounds and quiet hours. What’s new is in there too.' },
   { target: 'help', section: 'Help', title: 'Help whenever you need it',
     body: 'Press ? for tips on whichever page you’re on, or to take this tour again.',
     tip: 'That’s the tour. You’re all set.' },
