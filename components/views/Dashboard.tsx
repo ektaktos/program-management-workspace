@@ -137,7 +137,7 @@ export default function Dashboard() {
             {c.meetings && (
               <button
                 type="button"
-                className="stat-meetings"
+                className={`stat-meetings${meetingsToday.cancelled ? ' has-cxl' : ''}`}
                 onClick={e => { e.stopPropagation(); setView('today'); }}
                 title={(meetingsToday.total === 0
                   ? 'No meetings today'
