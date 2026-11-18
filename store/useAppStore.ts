@@ -983,7 +983,7 @@ export const useAppStore = create<Store>((set, get) => ({
 
       if (p.calendarAlerts) {
         events.forEach(e => {
-          if (e.allDay || s.doneCalendarEvents.includes(e.id)) return;   // ticked off already: no reminder
+          if (e.allDay || e.cancelled || s.doneCalendarEvents.includes(e.id)) return;   // cancelled or ticked off: no reminder
           const startAt = Date.parse(e.start);
           // One id per reminder; the old single-reminder id (no lead suffix) counts as already sent
           const legacy = fired2.has(`cal_${e.id}_${e.start}`);
@@ -1009,7 +1009,7 @@ export const useAppStore = create<Store>((set, get) => ({
         const dueToday = open.filter(t => t.due === today).length;
         const overdue = open.filter(t => t.due && t.due < today).length;
         const meetings = s.plannerAppointments.filter(a => a.date === today).length
-          + events.filter(e => (e.allDay ? (e.startDate ?? '') <= today && today < (e.endDate ?? '') : isoDate(new Date(e.start)) === today)).length;
+          + events.filter(e => !e.cancelled && (e.allDay ? (e.startDate ?? '') <= today && today < (e.endDate ?? '') : isoDate(new Date(e.start)) === today)).length;
         const parts = [
           dueToday && `${dueToday} task${dueToday !== 1 ? 's' : ''} due today`,
           overdue && `${overdue} overdue`,

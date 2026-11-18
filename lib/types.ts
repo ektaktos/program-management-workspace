@@ -141,4 +141,5 @@ export interface CalendarEvent {
   end: string;
   startDate?: string;  // all-day only: YYYY-MM-DD
   endDate?: string;    // all-day only: exclusive
+  cancelled?: boolean; // called off but still in the calendar: shown struck through, never counted or reminded
 }

@@ -139,14 +139,16 @@ export default function Dashboard() {
                 type="button"
                 className="stat-meetings"
                 onClick={e => { e.stopPropagation(); setView('today'); }}
-                title={meetingsToday.total === 0
+                title={(meetingsToday.total === 0
                   ? 'No meetings today'
-                  : `${meetingsToday.total} meeting${meetingsToday.total !== 1 ? 's' : ''} today · ${meetingsToday.left} still to come — open Today`}
-                aria-label={`${meetingsToday.total} meetings today`}
+                  : `${meetingsToday.total} meeting${meetingsToday.total !== 1 ? 's' : ''} today · ${meetingsToday.left} still to come — open Today`)
+                  + (meetingsToday.cancelled ? ` · ${meetingsToday.cancelled} cancelled` : '')}
+                aria-label={`${meetingsToday.total} meetings today${meetingsToday.cancelled ? `, ${meetingsToday.cancelled} cancelled` : ''}`}
               >
                 <span className="stat-meetings-num">{meetingsToday.total}</span>
                 <span className="stat-meetings-lbl">meeting{meetingsToday.total !== 1 ? 's' : ''}</span>
                 <span className="stat-meetings-lbl stat-meetings-when">today</span>
+                {meetingsToday.cancelled > 0 && <span className="stat-meetings-cxl">{meetingsToday.cancelled} cancelled</span>}
               </button>
             )}
           </div>

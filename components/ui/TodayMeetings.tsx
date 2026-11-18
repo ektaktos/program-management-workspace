@@ -22,6 +22,7 @@ export interface TodayMeeting {
   past: boolean;
   done: boolean;
   ticked?: boolean;      // calendar event marked done in the workspace
+  cancelled?: boolean;   // called off in the calendar: listed, struck through, not counted
 }
 
 // A day's planner meetings + events from enabled subscribed calendars, in time order (default: today).
@@ -49,19 +50,21 @@ export function useTodayMeetings(date?: string) {
       return {
         id: e.id, title: e.title, time: e.allDay ? '' : localTimeOf(e.start), endTime: e.allDay ? undefined : localTimeOf(e.end),
         allDay: e.allDay, source: src?.name ?? 'Calendar', color: src?.color ?? 'var(--border-strong)',
-        location: e.location, past: ended || ticked, done: ended || ticked, ticked,
+        location: e.location, past: ended || ticked || !!e.cancelled, done: (ended || ticked) && !e.cancelled, ticked, cancelled: !!e.cancelled,
       };
     }),
   ].sort((a, b) => (a.allDay === b.allDay ? a.time.localeCompare(b.time) : a.allDay ? -1 : 1));
 
-  const left = meetings.filter(m => !m.past).length;
-  const nextId = meetings.find(m => !m.past && !m.allDay)?.id;
-  return { meetings, left, nextId, total: meetings.length };
+  // Cancelled meetings stay in the list so you can see them, but never count, come next or remind
+  const live = meetings.filter(m => !m.cancelled);
+  const left = live.filter(m => !m.past).length;
+  const nextId = live.find(m => !m.past && !m.allDay)?.id;
+  return { meetings, left, nextId, total: live.length, cancelled: meetings.length - live.length };
 }
 
 export default function TodayMeetingsCard({ date }: { date?: string }) {
   const { setView, setCalendarsOpen, calendarSources, updatePlannerAppointment, toggleCalendarEventDone } = useAppStore();
-  const { meetings, left, nextId, total } = useTodayMeetings(date);
+  const { meetings, left, nextId, total, cancelled } = useTodayMeetings(date);
   const isToday = !date || date === todayIso();
   const dayName = date ? new Date(date + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'long' }) : '';
 
@@ -79,17 +82,18 @@ export default function TodayMeetingsCard({ date }: { date?: string }) {
           <button className="btn btn-ghost btn-sm" style={{ fontSize: 12 }} onClick={() => setView('planner')}>Planner</button>
         </div>
       </div>
-      <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2, marginBottom: total ? 10 : 0 }}>
+      <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2, marginBottom: meetings.length ? 10 : 0 }}>
         {total === 0
           ? (isToday ? 'No meetings today.' : `No meetings on ${dayName}.`)
           : left === 0 ? (isToday ? 'All done for today.' : `${total} meeting${total !== 1 ? 's' : ''}, all past.`)
           : `${left} still to come${total - left ? ` · ${total - left} done` : ''}`}
+        {cancelled > 0 && ` · ${cancelled} cancelled`}
       </div>
       <div className="mt-tickets">
         {meetings.map(m => {
           const [hm, ap] = m.allDay ? ['All', 'day'] : fmt12(m.time).split(' ');
           return (
-            <div key={m.id} className={`mt-ticket${m.past ? ' past' : ''}${m.id === nextId ? ' next' : ''}`}>
+            <div key={m.id} className={`mt-ticket${m.past ? ' past' : ''}${m.cancelled ? ' cancelled' : ''}${m.id === nextId ? ' next' : ''}`}>
               <div className="mt-stub" style={{ background: `color-mix(in srgb, ${m.color} 26%, var(--surface))` }}>
                 <span className="mt-stub-time">{hm}</span>
                 <span className="mt-stub-ap">{ap}</span>
@@ -111,7 +115,9 @@ export default function TodayMeetingsCard({ date }: { date?: string }) {
                   </div>
                 </div>
                 {m.id === nextId && <span className="badge badge-primary" style={{ fontSize: 10.5 }}>Next</span>}
-                {m.apptId ? (
+                {m.cancelled ? (
+                  <span className="cancel-tag" title="Cancelled in your calendar">Cancelled</span>
+                ) : m.apptId ? (
                   <span
                     className={`todo-check${m.done ? ' checked' : ''}`}
                     title={m.done ? 'Mark as not done' : 'Mark as done'}

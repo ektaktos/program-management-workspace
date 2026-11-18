@@ -37,6 +37,7 @@ export async function GET(req: NextRequest) {
         end: new Date(o.endMs).toISOString(),
         startDate: o.startDate,
         endDate: o.endDate,
+        ...(o.cancelled ? { cancelled: true } : {}),
       }));
     } catch (e) {
       errors.push({ sourceId: s.id, message: (e as Error).message });

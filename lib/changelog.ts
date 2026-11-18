@@ -29,6 +29,15 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    id: '2026-11-18',
+    date: '2026-11-18',
+    summary: 'Cancelled meetings no longer count',
+    items: [
+      { kind: 'fixed', icon: 'calendar', title: 'Cancelled meetings are noted, not counted', desc: 'Meetings your calendar marks “Canceled” now show struck through with a Cancelled tag. The meeting count on the Dashboard, Today and the planner leaves them out, and the Dashboard notes how many were cancelled.' },
+      { kind: 'fixed', icon: 'bell', title: 'No reminders for cancelled meetings', desc: 'Calendar reminders, the morning summary, the Upcoming list and the weekly report skip meetings that were called off.' },
+    ],
+  },
+  {
     id: '2026-11-17c',
     date: '2026-11-17',
     summary: 'Easier tapping on phones and better screen-reader labels',

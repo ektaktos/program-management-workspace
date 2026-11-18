@@ -98,7 +98,7 @@ export default function Today() {
   }
 
   // Strip data: tasks done/total and meetings per day of this week
-  const enabledCal = calendarEvents.filter(e => calendarSources.find(c => c.id === e.sourceId)?.enabled);
+  const enabledCal = calendarEvents.filter(e => !e.cancelled && calendarSources.find(c => c.id === e.sourceId)?.enabled);
   const strip = weekDays.map(iso => {
     const plan = planFor(iso);
     const meetings = plannerAppointments.filter(a => a.date === iso).length + calendarEventsOn(enabledCal, iso).length;

@@ -417,6 +417,8 @@ export default function WeeklyPlanner() {
   const sourceById = new Map(calendarSources.map(c => [c.id, c]));
   const visibleCalEvents = calendarEvents.filter(e => sourceById.get(e.sourceId)?.enabled);
   const calOn = (iso: string) => calendarEventsOn(visibleCalEvents, iso);
+  // Cancelled meetings stay listed (struck through) but don't count or take up time
+  const liveCalOn = (iso: string) => calOn(iso).filter(e => !e.cancelled);
   const calTitle = (e: CalendarEvent) => {
     const src = sourceById.get(e.sourceId);
     const when = e.allDay ? 'All day' : `${fmt12(localTimeOf(e.start))}–${fmt12(localTimeOf(e.end))}`;
@@ -509,7 +511,7 @@ export default function WeeklyPlanner() {
       const iso = isoOf(days[i]);
       const timed: Blk[] = [];
       const anytime: { key: string; title: string; color: string; onClick?: () => void; done?: boolean }[] = [];
-      for (const e of calOn(iso)) {
+      for (const e of liveCalOn(iso)) {
         const src = sourceById.get(e.sourceId);
         if (e.allDay) { anytime.push({ key: e.id, title: e.title, color: src?.color ?? 'var(--border-strong)' }); continue; }
         const st = toMin(localTimeOf(e.start));
@@ -940,8 +942,8 @@ export default function WeeklyPlanner() {
                         >
                           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ width: 10, height: 10 }}><rect x="1" y="2" width="14" height="13" rx="2"/><line x1="1" y1="6" x2="15" y2="6"/><line x1="5" y1="1" x2="5" y2="4"/><line x1="11" y1="1" x2="11" y2="4"/></svg>
                           Meetings
-                          {(dayAppts.length + calOn(iso).length) > 0 && (
-                            <span className="pday-appts-count">{dayAppts.length + calOn(iso).length}</span>
+                          {(dayAppts.length + liveCalOn(iso).length) > 0 && (
+                            <span className="pday-appts-count">{dayAppts.length + liveCalOn(iso).length}</span>
                           )}
                           <svg className="pday-appts-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ width: 10, height: 10, marginLeft: 'auto' }}><polyline points="6 9 12 15 18 9"/></svg>
                         </button>
@@ -950,9 +952,10 @@ export default function WeeklyPlanner() {
                           <div className="pday-empty">No meetings</div>
                         )}
                         {calOn(iso).map(e => (
-                          <div key={e.id} className="pappt pappt-cal" title={calTitle(e)} style={{ borderLeftColor: sourceById.get(e.sourceId)?.color }}>
+                          <div key={e.id} className={`pappt pappt-cal${e.cancelled ? ' cancelled' : ''}`} title={(e.cancelled ? 'Cancelled\n' : '') + calTitle(e)} style={{ borderLeftColor: sourceById.get(e.sourceId)?.color }}>
                             <span className="pappt-time">{e.allDay ? 'All day' : fmt12(localTimeOf(e.start))}</span>
                             <span className="pappt-title">{e.title}</span>
+                            {e.cancelled && <span className="cancel-tag">Cancelled</span>}
                           </div>
                         ))}
                         {dayAppts.map(a => (
@@ -1136,7 +1139,7 @@ export default function WeeklyPlanner() {
                         const ce = item as CalendarEvent;
                         const src = sourceById.get(ce.sourceId);
                         return (
-                          <div key={ce.id} className="pagenda-event pagenda-cal" style={{ borderLeftColor: src?.color }} title={calTitle(ce)}>
+                          <div key={ce.id} className={`pagenda-event pagenda-cal${ce.cancelled ? ' cancelled' : ''}`} style={{ borderLeftColor: src?.color }} title={(ce.cancelled ? 'Cancelled\n' : '') + calTitle(ce)}>
                             <div className="pagenda-time">{ce.allDay ? 'All day' : fmt12(localTimeOf(ce.start))}</div>
                             <div className="pagenda-body">
                               <div className="pagenda-title">{ce.title}</div>
@@ -1144,7 +1147,7 @@ export default function WeeklyPlanner() {
                                 {ce.allDay ? '' : `${fmt12(localTimeOf(ce.start))}–${fmt12(localTimeOf(ce.end))}`}{parseLocation(ce.location) ? `${ce.allDay ? '' : ' · '}${parseLocation(ce.location)!.label}` : ''}
                               </div>
                             </div>
-                            <span className="pagenda-cat">{src?.name ?? 'Calendar'}</span>
+                            <span className="pagenda-cat">{ce.cancelled ? 'Cancelled' : src?.name ?? 'Calendar'}</span>
                           </div>
                         );
                       } else if (type === 'task') {

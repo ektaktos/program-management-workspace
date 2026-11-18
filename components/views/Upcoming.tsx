@@ -129,7 +129,7 @@ export default function Upcoming() {
     items.push({ key: `ap-${a.id}`, kind: 'meeting', date: a.date, sortKey: a.time, title: a.title, color: 'var(--meeting)', time: a.time, meta: ['Planner meeting'], apptId: a.id });
   }
   const sourceById = new Map(calendarSources.map(c => [c.id, c]));
-  const visibleCal = calendarEvents.filter(e => sourceById.get(e.sourceId)?.enabled);
+  const visibleCal = calendarEvents.filter(e => !e.cancelled && sourceById.get(e.sourceId)?.enabled);
   for (let i = 0; i < span; i++) {
     const iso = addDaysIso(today, i);
     for (const e of calendarEventsOn(visibleCal, iso)) {

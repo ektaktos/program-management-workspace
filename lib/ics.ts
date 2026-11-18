@@ -12,7 +12,12 @@ export interface CalendarOccurrence {
   endMs: number;
   startDate?: string;   // all-day only: YYYY-MM-DD
   endDate?: string;     // all-day only: YYYY-MM-DD, exclusive
+  cancelled?: boolean;  // still in the feed but called off (e.g. Outlook's "Canceled: …")
 }
+
+// Outlook (and some other calendars) keep a cancelled meeting in the published feed and only rename it
+// "Canceled: <title>"; STATUS:CANCELLED events are dropped outright.
+const CANCELLED_PREFIX = /^\s*(?:cancell?ed|annul[ée]e?s?|abgesagt|cancelad[oa]|geannuleerd)\s*[:：\-–—]\s*/i;
 
 interface Prop { value: string; params: Record<string, string> }
 type Props = Record<string, Prop[]>;
@@ -32,6 +37,7 @@ interface Parsed {
   exdates: number[];        // UTC ms (timed) or date-midnight UTC ms (all-day)
   recurrenceId?: number;
   cancelled: boolean;
+  calledOff: boolean;       // title says it was cancelled (kept, but shown as cancelled)
 }
 
 // ── Line handling ─────────────────────────────────────────────────────────────
@@ -250,9 +256,12 @@ function parseFeed(text: string): { events: Parsed[]; ctx: ZoneCtx } {
     const rid = props['RECURRENCE-ID']?.[0];
     const ridT = rid ? parseTime(rid) : null;
 
+    const rawTitle = unescapeText(props.SUMMARY?.[0]?.value ?? '(No title)') || '(No title)';
+    const prefix = rawTitle.match(CANCELLED_PREFIX);
     events.push({
       uid: props.UID?.[0]?.value ?? `${startMs}-${props.SUMMARY?.[0]?.value ?? ''}`,
-      title: unescapeText(props.SUMMARY?.[0]?.value ?? '(No title)') || '(No title)',
+      title: prefix ? rawTitle.slice(prefix[0].length) || rawTitle : rawTitle,
+      calledOff: !!prefix,
       location: props.LOCATION?.[0] ? unescapeText(props.LOCATION[0].value) || undefined : undefined,
       start, durationMs, allDay, rrule, exdates,
       recurrenceId: ridT ? timeToMs(ridT, ctx) : undefined,
@@ -398,6 +407,7 @@ export function occurrencesInRange(text: string, fromMs: number, toMs: number): 
     const endMs = startMs + (e.durationMs || (e.allDay ? 864e5 : 0));
     if (!(startMs < toMs && Math.max(endMs, startMs + 1) > fromMs)) return;
     const occ: CalendarOccurrence = { uid: e.uid, title: e.title, location: e.location, allDay: e.allDay, startMs, endMs };
+    if (e.calledOff) occ.cancelled = true;
     if (e.allDay) {
       occ.startDate = new Date(startMs).toISOString().slice(0, 10);
       occ.endDate = new Date(Math.max(endMs, startMs + 864e5)).toISOString().slice(0, 10);

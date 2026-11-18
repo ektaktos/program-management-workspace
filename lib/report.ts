@@ -84,7 +84,8 @@ function weekCore(inp: ReportInput, start: string) {
   return { end, events, plannedTasks, finishedTasks, planned, donePlanned, extraDone, done: donePlanned + extraDone };
 }
 
-export function buildWeeklyReport(inp: ReportInput, start: string): WeeklyReport {
+export function buildWeeklyReport(input: ReportInput, start: string): WeeklyReport {
+  const inp: ReportInput = { ...input, calendarEvents: input.calendarEvents.filter(e => !e.cancelled) };
   const core = weekCore(inp, start);
   const { end } = core;
   const partial = inp.today <= end;

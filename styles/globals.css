@@ -1539,6 +1539,12 @@ tr:hover .q-due.empty, .oc-row:hover .q-due.empty, .q-due.empty:focus-visible { 
 .dash-note-proj-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .stat-meetings-when { margin-top: -2px; font-style: italic; }
+.stat-meetings-cxl { font-size: 10px; font-weight: 600; color: var(--danger-text, var(--danger)); text-decoration: line-through; text-decoration-thickness: 1px; margin-top: 1px; }
+.cancel-tag { flex-shrink: 0; font-size: 10.5px; font-weight: 600; letter-spacing: 0.3px; padding: 2px 8px; border-radius: 999px; background: var(--danger-light); color: var(--danger-text, var(--danger)); }
+.mt-ticket.cancelled { opacity: 0.6; }
+.mt-ticket.cancelled .meet-title, .pappt.cancelled .pappt-title, .pagenda-event.cancelled .pagenda-title { text-decoration: line-through; }
+.pappt.cancelled, .pagenda-event.cancelled { opacity: 0.6; }
+.pappt.cancelled .cancel-tag { align-self: flex-start; }
 @media (max-width: 768px) { .stat-meetings { width: 80px; height: 80px; } }
 
 /* Phones: planner toolbar stacks (review/calendars, week nav, then day limit + layout switch) */
