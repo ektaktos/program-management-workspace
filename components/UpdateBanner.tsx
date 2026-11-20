@@ -6,7 +6,10 @@ import GuideIcon from './guide/GuideIcon';
 
 // A tab left open keeps running the code it loaded. This notices a newer deploy and offers a reload.
 const RUNNING = process.env.BUILD_ID;
-const CHECK_EVERY_MS = 5 * 60_000;
+// Checked every minute while the app is open, plus on returning to it, coming back online, and the
+// first click or key after a quiet minute (browsers slow or pause timers in background tabs and on
+// sleeping laptops, so the timer alone can miss a deploy for a long time).
+const CHECK_EVERY_MS = 60_000;
 const CHUNK_RELOAD_KEY = 'pm_chunk_reload_at';
 // The deployed build the user last reloaded for. If a reload still lands on older code (a cache or
 // another server instance answering), we don't nag again until a different build is deployed.
@@ -51,8 +54,10 @@ export default function UpdateBanner() {
       window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash);
     }
 
+    let lastCheck = 0;
     async function check() {
       if (stopped || document.visibilityState !== 'visible') return;
+      lastCheck = Date.now();
       try {
         const res = await fetch('/api/version', { cache: 'no-store' });
         if (!res.ok) return;
@@ -85,10 +90,15 @@ export default function UpdateBanner() {
     const onError = (e: ErrorEvent) => onChunkError(e.error ?? e.message);
     const onRejection = (e: PromiseRejectionEvent) => onChunkError(e.reason);
 
+    const checkIfQuiet = () => { if (Date.now() - lastCheck > CHECK_EVERY_MS) check(); };
+
     check();
     const timer = setInterval(check, CHECK_EVERY_MS);
     document.addEventListener('visibilitychange', check);
     window.addEventListener('focus', check);
+    window.addEventListener('online', check);
+    window.addEventListener('pointerdown', checkIfQuiet, { passive: true });
+    window.addEventListener('keydown', checkIfQuiet);
     window.addEventListener('error', onError);
     window.addEventListener('unhandledrejection', onRejection);
     return () => {
@@ -96,6 +106,9 @@ export default function UpdateBanner() {
       clearInterval(timer);
       document.removeEventListener('visibilitychange', check);
       window.removeEventListener('focus', check);
+      window.removeEventListener('online', check);
+      window.removeEventListener('pointerdown', checkIfQuiet);
+      window.removeEventListener('keydown', checkIfQuiet);
       window.removeEventListener('error', onError);
       window.removeEventListener('unhandledrejection', onRejection);
     };

@@ -29,6 +29,14 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    id: '2026-11-20c',
+    date: '2026-11-20',
+    summary: 'Update notices show up sooner',
+    items: [
+      { kind: 'fixed', icon: 'sparkles', title: 'Faster “new version” notices', desc: 'With the app open, it now checks for a new version every minute (it was every five), and again the moment you click or type after a quiet spell, so the Update now card appears soon after an update.' },
+    ],
+  },
+  {
     id: '2026-11-20b',
     date: '2026-11-20',
     summary: 'Completion counts planner tasks linked to a project',
