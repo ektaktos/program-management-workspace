@@ -65,12 +65,16 @@ export default function Dashboard() {
   const doneTasks       = tasks.filter(t => t.status === 'done').length;
   const overdueTasks    = tasks.filter(t => t.status === 'overdue').length;
   const activeProjects  = projects.filter(p => p.status === 'Active');
-  const completionPct   = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
   // The Tasks card matches All Tasks: project tasks plus tasks added in the Weekly Planner
   // (linked ones follow their project's archive and area; unlinked ones show when no area filter is on)
   const planTasks = plannerEvents.filter(e => e.projectId
     ? visibleProjectIds.has(e.projectId) || !allProjects.some(p => p.id === e.projectId)
     : !areaFilter);
+  // Completion is across projects: project tasks plus planner tasks linked to a (visible) project
+  const linkedPlan      = planTasks.filter(e => e.projectId && visibleProjectIds.has(e.projectId));
+  const projectWork     = totalTasks + linkedPlan.length;
+  const projectWorkDone = doneTasks + linkedPlan.filter(e => e.done).length;
+  const completionPct   = projectWork > 0 ? Math.round((projectWorkDone / projectWork) * 100) : 0;
   const allTaskCount  = totalTasks + planTasks.length;
   const allDoneCount  = doneTasks + planTasks.filter(e => e.done).length;
 

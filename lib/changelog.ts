@@ -29,6 +29,14 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    id: '2026-11-20b',
+    date: '2026-11-20',
+    summary: 'Completion counts planner tasks linked to a project',
+    items: [
+      { kind: 'improved', icon: 'sparkles', title: 'Completion includes linked planner tasks', desc: 'Planner tasks you have linked to a project now count toward the Completion figure on the Dashboard, alongside that project’s own tasks. Planner tasks with no project still don’t.' },
+    ],
+  },
+  {
     id: '2026-11-20',
     date: '2026-11-20',
     summary: 'All Tasks now includes your planner tasks',
