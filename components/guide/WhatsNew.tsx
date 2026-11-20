@@ -27,10 +27,11 @@ function Items({ release, animate, onAct }: { release: Release; animate: boolean
   );
 }
 
-// Release notes: every update this account hasn't seen yet (shown once after an update), with
+// Release notes: every update this account hasn't seen yet (shown once after an update, and always
+// right after "Update now": what that update brought), with
 // earlier updates underneath. Opened again from the bell or the help panel.
 export default function WhatsNew() {
-  const { whatsNewOpen, onboarding, closeWhatsNew, startTour, openHelp } = useGuideStore();
+  const { whatsNewOpen, whatsNewSince, onboarding, closeWhatsNew, startTour, openHelp } = useGuideStore();
   const notify = useAppStore(s => s.notify);
   const setView = useAppStore(s => s.setView);
   const gotRef = useRef<HTMLButtonElement>(null);
@@ -40,7 +41,7 @@ export default function WhatsNew() {
 
   useEffect(() => {
     if (!whatsNewOpen) return;
-    setShown(unseenReleases(onboarding?.seenRelease));
+    setShown(unseenReleases(whatsNewSince ?? onboarding?.seenRelease));
     setEarlierOpen(false);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [whatsNewOpen]);

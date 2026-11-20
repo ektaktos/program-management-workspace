@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { LATEST_RELEASE } from '@/lib/changelog';
 import GuideIcon from './guide/GuideIcon';
+import { rememberUpdateFrom } from '@/store/useGuideStore';
 
 // A tab left open keeps running the code it loaded. This notices a newer deploy and offers a reload.
 const RUNNING = process.env.BUILD_ID;
@@ -135,7 +136,7 @@ export default function UpdateBanner() {
         <span>{summary || 'Fixes and improvements'}</span>
       </span>
       <button className="g-link" onClick={later}>Later</button>
-      <button className="g-btn g-btn-primary" onClick={() => reloadFresh(deployed)}>Update now</button>
+      <button className="g-btn g-btn-primary" onClick={() => { rememberUpdateFrom(); reloadFresh(deployed); }}>Update now</button>
     </div>
   );
 }

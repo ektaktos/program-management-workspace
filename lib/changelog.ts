@@ -29,6 +29,14 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    id: '2026-11-20d',
+    date: '2026-11-20',
+    summary: 'What’s new opens after you update',
+    items: [
+      { kind: 'improved', icon: 'sparkles', title: 'See what an update brought', desc: 'After you tap Update now, the app reloads and opens What’s new on its own, showing the changes in the version you just moved to.' },
+    ],
+  },
+  {
     id: '2026-11-20c',
     date: '2026-11-20',
     summary: 'Update notices show up sooner',
