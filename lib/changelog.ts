@@ -34,6 +34,7 @@ export const CHANGELOG: Release[] = [
     summary: 'Update notices show up sooner',
     items: [
       { kind: 'fixed', icon: 'sparkles', title: 'Faster “new version” notices', desc: 'With the app open, it now checks for a new version every minute (it was every five), and again the moment you click or type after a quiet spell, so the Update now card appears soon after an update.' },
+      { kind: 'fixed', icon: 'tool', title: 'Update now is never hidden', desc: 'The Update now card used to sit behind What’s new and other pop-ups when they were open. It now stays on top and clickable.' },
     ],
   },
   {

@@ -114,6 +114,12 @@ export default function UpdateBanner() {
     };
   }, []);
 
+  // Lets overlays such as What's new leave room for the card (styles/globals.css)
+  useEffect(() => {
+    document.body.classList.toggle('has-update', !!deployed);
+    return () => document.body.classList.remove('has-update');
+  }, [deployed]);
+
   if (!deployed) return null;
 
   function later() {

@@ -1904,7 +1904,9 @@ tr:hover .q-due.empty, .oc-row:hover .q-due.empty, .q-due.empty:focus-visible { 
 .g-news-foot { padding: 12px 22px 18px; border-top: 1px solid var(--border); }
 
 /* "A new version is ready" */
-.g-update { position: fixed; left: 50%; bottom: 18px; z-index: 400; transform: translateX(-50%); width: min(460px, calc(100vw - 24px)); display: flex; align-items: center; gap: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 10px 10px 10px 12px; box-shadow: var(--shadow-lg); animation: g-update-in .5s cubic-bezier(.2,.9,.2,1) both; }
+.g-update { position: fixed; left: 50%; bottom: 18px; z-index: 1150; transform: translateX(-50%); width: min(460px, calc(100vw - 24px)); display: flex; align-items: center; gap: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 10px 10px 10px 12px; box-shadow: var(--shadow-lg); animation: g-update-in .5s cubic-bezier(.2,.9,.2,1) both; }
+/* While the update card shows, overlays (What's new, the welcome card) leave room for it underneath */
+body.has-update .g-scrim.g-center { padding-bottom: 104px; }
 @keyframes g-update-in { from { opacity: 0; transform: translate(-50%, 24px); } }
 .g-update-spark { position: relative; width: 36px; height: 36px; border-radius: 12px; flex: none; display: flex; align-items: center; justify-content: center; background: var(--primary-light); color: var(--primary-dark); }
 .g-update-spark::after { content: ""; position: absolute; inset: -4px; border-radius: 15px; border: 2px solid var(--primary); opacity: 0; animation: g-pulse 2s ease-out infinite; }
