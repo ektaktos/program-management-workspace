@@ -66,7 +66,7 @@ export const HELP_TOPICS: HelpTopic[] = [
     { title: 'Edit or delete', text: 'Use Edit and Delete in the top bar while a project is open. Finished work can go to the Archive.' },
   ] },
   { id: 'tasks', label: 'All Tasks', views: ['tasks'], tips: [
-    { title: 'Every task, one ledger', text: 'Tasks from every project, with columns for the details you’ve set.' },
+    { title: 'Every task, one ledger', text: 'Tasks from every project and the ones added in the Weekly Planner (tagged Planner). Narrow it with the source filter.' },
     { title: 'Edit inline', text: 'Change details like priority and due date right in the row, without opening the task.' },
     { title: 'Open or delete', text: 'Click a task to open it; delete it from the row or from inside the task.' },
   ] },

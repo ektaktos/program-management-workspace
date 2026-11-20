@@ -26,7 +26,7 @@ function CheckIcon() {
 }
 
 export default function Dashboard() {
-  const { projects: allProjects, tasks: allTasks, notes, todos, addTodo, updateTodo, toggleTodo, deleteTodo, updateNote, setView, navigateToTask, archivedProjectIds, archivedTaskIds, areaFilter } = useAppStore();
+  const { projects: allProjects, tasks: allTasks, plannerEvents, notes, todos, addTodo, updateTodo, toggleTodo, deleteTodo, updateNote, setView, navigateToTask, archivedProjectIds, archivedTaskIds, areaFilter } = useAppStore();
   const meetingsToday = useTodayMeetings();
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [newNoteOpen, setNewNoteOpen] = useState(false);
@@ -66,6 +66,13 @@ export default function Dashboard() {
   const overdueTasks    = tasks.filter(t => t.status === 'overdue').length;
   const activeProjects  = projects.filter(p => p.status === 'Active');
   const completionPct   = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
+  // The Tasks card matches All Tasks: project tasks plus tasks added in the Weekly Planner
+  // (linked ones follow their project's archive and area; unlinked ones show when no area filter is on)
+  const planTasks = plannerEvents.filter(e => e.projectId
+    ? visibleProjectIds.has(e.projectId) || !allProjects.some(p => p.id === e.projectId)
+    : !areaFilter);
+  const allTaskCount  = totalTasks + planTasks.length;
+  const allDoneCount  = doneTasks + planTasks.filter(e => e.done).length;
 
   const upcomingTasks = tasks
     .filter(t => t.due && t.status !== 'done')
@@ -80,7 +87,7 @@ export default function Dashboard() {
 
   const statCards = [
     { label: 'Completion', value: completionPct,     pct: true, sub: 'across all projects',   onClick: undefined },
-    { label: 'Tasks',      value: totalTasks,        sub: `${doneTasks} completed`,           onClick: () => setView('tasks'), meetings: true },
+    { label: 'Tasks',      value: allTaskCount,      sub: `${allDoneCount} completed`,        onClick: () => setView('tasks'), meetings: true },
     { label: 'Projects',   value: projects.length, sub: `${activeProjects.length} active`,   onClick: () => setView('projects') },
     {
       label: 'Overdue', value: overdueTasks,

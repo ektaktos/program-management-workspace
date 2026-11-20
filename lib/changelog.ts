@@ -29,6 +29,16 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    id: '2026-11-20',
+    date: '2026-11-20',
+    summary: 'All Tasks now includes your planner tasks',
+    items: [
+      { kind: 'new', icon: 'list', title: 'Planner tasks in All Tasks', desc: 'Tasks you add in the Weekly Planner now appear in All Tasks with a Planner tag, beside your project tasks. Tick them off, open them to edit or delete them, and sort them with everything else. To-dos stay on their own list.', action: { label: 'Open All Tasks', run: 'view:tasks' } },
+      { kind: 'new', icon: 'compass', title: 'Filter by where a task lives', desc: 'A new filter shows projects and planner together, projects only or planner only, and remembers your choice.' },
+      { kind: 'improved', icon: 'sparkles', title: 'The Tasks count includes the planner', desc: 'The Tasks card on the Dashboard counts planner tasks too, so it matches All Tasks. Completion is still measured across your projects.' },
+    ],
+  },
+  {
     id: '2026-11-18',
     date: '2026-11-18',
     summary: 'Cancelled meetings no longer count',
