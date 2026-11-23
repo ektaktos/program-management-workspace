@@ -5,9 +5,9 @@ import { CalendarEvent, PlannerAppointment, PlannerEvent, PlannerWeekData, Proje
 import { addDaysIso, isoOf } from './utils';
 
 export interface ReportInput {
-  tasks: Task[];
-  projects: Project[];
-  plannerEvents: PlannerEvent[];
+  tasks: Task[];                       // not archived, in a live project
+  projects: Project[];                 // live (not archived)
+  plannerEvents: PlannerEvent[];       // not linked to an archived project
   plannerAppointments: PlannerAppointment[];
   plannerWeekly: Record<string, PlannerWeekData>;
   calendarEvents: CalendarEvent[];     // already limited to enabled calendars
@@ -25,6 +25,8 @@ export interface WeeklyReport {
   rate: number | null; prevDone: number; prevRate: number | null; avgDone: number;
   dueInWeek: number; onTime: number; late: number; missed: number; onTimeRate: number | null;
   overdueNow: number; highOverdue: number; oldestOverdueDays: number | null;
+  // All tasks as of today, as on the dashboard and in All Tasks: project tasks plus planner tasks
+  allTasks: number; allDone: number; completion: number | null;
   meetings: number; meetingMins: number; prevMeetings: number;
   goalsDone: number; goalsTotal: number;
   carryOver: { title: string; date: string; project?: string }[];
@@ -65,6 +67,9 @@ function taskDoneDay(t: Task): string | undefined {
   if (t.completedAt) return dayOfMs(t.completedAt);
   return t.plannedDate;
 }
+
+// A planner task is overdue once its day has passed without being ticked off (as in All Tasks)
+const planLate = (e: PlannerEvent, today: string) => !e.done && !!e.date && e.date < today;
 
 function calMinutes(e: CalendarEvent): number {
   if (e.allDay) return 0;
@@ -132,11 +137,13 @@ export function buildWeeklyReport(input: ReportInput, start: string): WeeklyRepo
     } else if (!partial || t.due! < inp.today) missed++;
   });
 
-  // ── Overdue right now ──
+  // ── Overdue right now: project tasks past their deadline, and planner tasks whose day has passed ──
   const liveProjectIds = new Set(inp.projects.map(p => p.id));
   const openTasks = inp.tasks.filter(t => t.status !== 'done' && liveProjectIds.has(t.projectId));
   const overdue = openTasks.filter(t => t.status === 'overdue' || (t.due && t.due < inp.today));
-  const oldest = overdue.reduce<string | null>((m, t) => (t.due && (!m || t.due < m) ? t.due : m), null);
+  const planOverdue = inp.plannerEvents.filter(e => planLate(e, inp.today));
+  const oldest = [...overdue.map(t => t.due), ...planOverdue.map(e => e.date)]
+    .reduce<string | null>((m, d) => (d && (!m || d < m) ? d : m), null);
   const oldestOverdueDays = oldest ? Math.round((Date.parse(inp.today) - Date.parse(oldest)) / DAY) : null;
 
   // ── Weekly priorities set in the planner ──
@@ -184,18 +191,23 @@ export function buildWeeklyReport(input: ReportInput, start: string): WeeklyRepo
   const projects: ProjectRow[] = inp.projects.map(p => {
     const pt = inp.tasks.filter(t => t.projectId === p.id);
     const open = pt.filter(t => t.status !== 'done');
+    const planOpen = inp.plannerEvents.filter(e => e.projectId === p.id && !e.done);
     const lm = lastMove(p.id);
     const daysSince = lm ? Math.max(0, Math.floor((endMs - lm) / DAY)) : null;
     return {
       id: p.id, name: p.name, color: p.color,
       done: core.finishedTasks.filter(t => t.projectId === p.id).length
         + core.events.filter(e => e.projectId === p.id && e.done).length,
-      open: open.length,
-      overdue: open.filter(t => t.status === 'overdue' || (t.due && t.due < inp.today)).length,
+      open: open.length + planOpen.length,
+      overdue: open.filter(t => t.status === 'overdue' || (t.due && t.due < inp.today)).length
+        + planOpen.filter(e => planLate(e, inp.today)).length,
       daysSince,
-      stalled: p.status === 'Active' && open.length > 0 && (daysSince === null || daysSince >= 14),
+      stalled: p.status === 'Active' && open.length + planOpen.length > 0 && (daysSince === null || daysSince >= 14),
     };
   }).sort((a, b) => b.done - a.done || b.overdue - a.overdue || a.name.localeCompare(b.name));
+
+  const allTasks = inp.tasks.length + inp.plannerEvents.length;
+  const allDone = inp.tasks.filter(t => t.status === 'done').length + inp.plannerEvents.filter(e => e.done).length;
 
   const rate = pct(core.donePlanned, core.planned);
   const prevRate = pct(prev.donePlanned, prev.planned);
@@ -204,7 +216,7 @@ export function buildWeeklyReport(input: ReportInput, start: string): WeeklyRepo
     done: core.done, planned: core.planned, donePlanned: core.donePlanned, extraDone: core.extraDone,
     rate, prevDone: prev.done, prevRate, avgDone,
     dueInWeek: dueTasks.length, onTime, late, missed, onTimeRate: pct(onTime, onTime + late + missed),
-    overdueNow: overdue.length, highOverdue: overdue.filter(t => t.priority === 'high').length, oldestOverdueDays,
+    overdueNow: overdue.length + planOverdue.length, allTasks, allDone, completion: pct(allDone, allTasks), highOverdue: overdue.filter(t => t.priority === 'high').length, oldestOverdueDays,
     meetings, meetingMins, prevMeetings,
     goalsDone: goals.filter(g => g.done).length, goalsTotal: goals.length,
     carryOver, days, trend, byPriority, byCategory, hours, hoursSample: stamps.length, projects,

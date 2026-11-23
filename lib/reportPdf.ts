@@ -49,25 +49,29 @@ export function buildReportPdf(r: WeeklyReport, opts: { accentHex?: string; gene
   doc.text(M, y, r.partial ? 'This week so far (in progress)' : `${r.start} to ${r.end}`, { size: 9.5, color: MUTED });
   y += 20;
 
-  // ── Headline numbers: 3 x 2 tiles ──
+  // ── Headline numbers: 4 x 2 tiles ──
   const tiles: { label: string; value: string; sub: string; delta?: { text: string; good: boolean | null } }[] = [
     { label: 'FINISHED', value: String(r.done), sub: r.extraDone ? `${r.donePlanned} planned + ${r.extraDone} unplanned` : 'tasks done',
       delta: r.prevDone > 0 ? { text: r.done === r.prevDone ? 'same as last week' : `${r.done > r.prevDone ? '+' : '−'}${Math.abs(r.done - r.prevDone)} vs last week`, good: r.done === r.prevDone ? null : r.done > r.prevDone } : undefined },
     { label: 'PLAN COMPLETED', value: r.rate === null ? '—' : `${r.rate}%`, sub: r.planned ? `${r.donePlanned} of ${r.planned} planned` : 'nothing planned',
       delta: r.rate !== null && r.prevRate !== null ? { text: r.rate === r.prevRate ? 'same as last week' : `${r.rate > r.prevRate ? '+' : '−'}${Math.abs(r.rate - r.prevRate)} pts vs last week`, good: r.rate === r.prevRate ? null : r.rate > r.prevRate } : undefined },
+    { label: 'COMPLETION', value: r.completion === null ? '—' : `${r.completion}%`, sub: r.allTasks ? `${r.allDone} of ${r.allTasks} tasks done` : 'no tasks yet' },
     { label: 'DEADLINES ON TIME', value: r.onTimeRate === null ? '—' : `${r.onTimeRate}%`, sub: r.dueInWeek ? `${r.onTime} on time · ${r.late} late · ${r.missed} missed` : 'no deadlines this week' },
     { label: 'MEETINGS', value: String(r.meetings), sub: r.meetingMins ? `${fmtHours(r.meetingMins)} in calendar meetings` : 'meetings this week',
       delta: r.prevMeetings > 0 ? { text: r.meetings === r.prevMeetings ? 'same as last week' : `${r.meetings > r.prevMeetings ? '+' : '−'}${Math.abs(r.meetings - r.prevMeetings)} vs last week`, good: r.meetings === r.prevMeetings ? null : r.meetings < r.prevMeetings } : undefined },
     { label: 'OVERDUE NOW', value: String(r.overdueNow), sub: r.overdueNow ? `${r.highOverdue} high priority${r.oldestOverdueDays ? ` · oldest ${r.oldestOverdueDays} days` : ''}` : 'all on track' },
     { label: 'WEEKLY PRIORITIES', value: r.goalsTotal ? `${r.goalsDone}/${r.goalsTotal}` : '—', sub: r.goalsTotal ? 'set in the planner' : 'none set in the planner' },
+    { label: 'ALL TASKS', value: String(r.allTasks), sub: `${r.allTasks - r.allDone} open · projects + planner` },
   ];
-  const gap = 10, tw = (W - gap * 2) / 3, th = 70;
+  const tileCols = 4, gap = 10, tw = (W - gap * (tileCols - 1)) / tileCols, th = 70;
   tiles.forEach((t, i) => {
-    const cx = M + (i % 3) * (tw + gap), cy = y + Math.floor(i / 3) * (th + gap);
+    const cx = M + (i % tileCols) * (tw + gap), cy = y + Math.floor(i / tileCols) * (th + gap);
     doc.roundRect(cx, cy, tw, th, WHITE, 6, RULE);
     doc.text(cx + 10, cy + 16, t.label, { size: 7, bold: true, color: MUTED });
     doc.text(cx + 10, cy + 39, t.value, { size: 20, bold: true, color: t.label === 'OVERDUE NOW' && r.overdueNow ? BAD : INK });
-    doc.text(cx + 10, cy + 52, doc.fit(t.sub, tw - 20, 7.5), { size: 7.5, color: MUTED });
+    // Tiles without a delta line have room to wrap the sub line onto a second line
+    if (t.delta) doc.text(cx + 10, cy + 52, doc.fit(t.sub, tw - 20, 7.5), { size: 7.5, color: MUTED });
+    else doc.wrap(t.sub, tw - 20, 7.5).slice(0, 2).forEach((l, k) => doc.text(cx + 10, cy + 52 + k * 10, doc.fit(l, tw - 20, 7.5), { size: 7.5, color: MUTED }));
     if (t.delta) doc.text(cx + 10, cy + 63, t.delta.text, { size: 7.5, color: t.delta.good === null ? FAINT : t.delta.good ? GOOD : BAD });
   });
   y += th * 2 + gap + 8;
@@ -203,7 +207,7 @@ export function buildReportPdf(r: WeeklyReport, opts: { accentHex?: string; gene
   }
 
   // ── How it's counted ──
-  const note = 'How this is counted: finished = planner tasks ticked off plus project tasks completed that week. Plan completed = the share of the week’s planned tasks that got done. Project tasks finished before completion times were recorded count on their planned day. Meetings include planner meetings and events from your connected calendars.';
+  const note = 'How this is counted: finished = planner tasks ticked off plus project tasks completed that week. Plan completed = the share of the week’s planned tasks that got done. Completion and All tasks cover every task as of today, project tasks plus planner tasks, as on the dashboard. Overdue counts project tasks past their deadline and planner tasks whose day has passed. Project tasks finished before completion times were recorded count on their planned day. Meetings include planner meetings and events from your connected calendars.';
   const noteLines = doc.wrap(note, W, 7.5);
   ensure(noteLines.length * 10 + 20);
   y += 14;

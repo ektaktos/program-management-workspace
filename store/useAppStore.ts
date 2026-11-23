@@ -896,7 +896,7 @@ export const useAppStore = create<Store>((set, get) => ({
     const liveIds = new Set(live.map(p => p.id));
     const report = buildWeeklyReport({
       tasks: s.tasks.filter(t => !s.archivedTaskIds.includes(t.id) && liveIds.has(t.projectId)),
-      projects: live, plannerEvents: s.plannerEvents, plannerAppointments: s.plannerAppointments,
+      projects: live, plannerEvents: s.plannerEvents.filter(e => !e.projectId || !s.archivedProjectIds.includes(e.projectId)), plannerAppointments: s.plannerAppointments,
       plannerWeekly: s.plannerWeekly, calendarEvents: cal, today: todayIso(),
     }, weekStart);
     const { buildReportPdf, saveBytes } = await import('@/lib/reportPdf');
@@ -1025,7 +1025,7 @@ export const useAppStore = create<Store>((set, get) => ({
         const live = s.projects.filter(pr => !s.archivedProjectIds.includes(pr.id));
         const r = buildWeeklyReport({
           tasks: s.tasks.filter(t => !s.archivedTaskIds.includes(t.id) && liveProjects.has(t.projectId)),
-          projects: live, plannerEvents: s.plannerEvents, plannerAppointments: s.plannerAppointments,
+          projects: live, plannerEvents: s.plannerEvents.filter(e => !e.projectId || !s.archivedProjectIds.includes(e.projectId)), plannerAppointments: s.plannerAppointments,
           plannerWeekly: s.plannerWeekly, calendarEvents: [], today,
         }, lastWeek);
         if (r.done > 0 || r.planned > 0) {

@@ -29,6 +29,16 @@ export interface Release {
 
 export const CHANGELOG: Release[] = [
   {
+    id: '2026-11-23',
+    date: '2026-11-23',
+    summary: 'Completion and the weekly report count every task',
+    items: [
+      { kind: 'improved', icon: 'compass', title: 'Completion counts every task', desc: 'The dashboard’s Completion now covers all your tasks, project tasks and Weekly Planner tasks alike, so it lines up with the Tasks card beside it and with All Tasks.', action: { label: 'Open All Tasks', run: 'view:tasks' } },
+      { kind: 'improved', icon: 'list', title: 'Overdue includes planner tasks', desc: 'A planner task whose day has passed without being ticked off now counts as overdue on the dashboard, as it already did in All Tasks.' },
+      { kind: 'improved', icon: 'sparkles', title: 'Weekly report matches the dashboard', desc: 'The PDF report adds Completion and All tasks tiles, counts overdue planner tasks, and shows each project’s open and overdue planner tasks in the projects table. Planner tasks from archived projects are left out, as on the dashboard.' },
+    ],
+  },
+  {
     id: '2026-11-20d',
     date: '2026-11-20',
     summary: 'What’s new opens after you update',

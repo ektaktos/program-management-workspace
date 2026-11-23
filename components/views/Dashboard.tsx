@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { useAppStore } from '@/store/useAppStore';
-import { calcProjectProgress, projectInArea } from '@/lib/utils';
+import { calcProjectProgress, isoOf, projectInArea } from '@/lib/utils';
 import ProgressBar from '../ui/ProgressBar';
 import NoteModal from '../modals/NoteModal';
 import { Note } from '@/lib/types';
@@ -63,20 +63,19 @@ export default function Dashboard() {
 
   const totalTasks      = tasks.length;
   const doneTasks       = tasks.filter(t => t.status === 'done').length;
-  const overdueTasks    = tasks.filter(t => t.status === 'overdue').length;
   const activeProjects  = projects.filter(p => p.status === 'Active');
-  // The Tasks card matches All Tasks: project tasks plus tasks added in the Weekly Planner
-  // (linked ones follow their project's archive and area; unlinked ones show when no area filter is on)
+  // Tasks, Completion and Overdue all match All Tasks: project tasks plus tasks added in the Weekly
+  // Planner (linked ones follow their project's archive and area; unlinked ones show when no area
+  // filter is on). A planner task is overdue once its day has passed without being ticked off.
   const planTasks = plannerEvents.filter(e => e.projectId
     ? visibleProjectIds.has(e.projectId) || !allProjects.some(p => p.id === e.projectId)
     : !areaFilter);
-  // Completion is across projects: project tasks plus planner tasks linked to a (visible) project
-  const linkedPlan      = planTasks.filter(e => e.projectId && visibleProjectIds.has(e.projectId));
-  const projectWork     = totalTasks + linkedPlan.length;
-  const projectWorkDone = doneTasks + linkedPlan.filter(e => e.done).length;
-  const completionPct   = projectWork > 0 ? Math.round((projectWorkDone / projectWork) * 100) : 0;
+  const todayKey      = isoOf(new Date());
   const allTaskCount  = totalTasks + planTasks.length;
   const allDoneCount  = doneTasks + planTasks.filter(e => e.done).length;
+  const completionPct = allTaskCount > 0 ? Math.round((allDoneCount / allTaskCount) * 100) : 0;
+  const overdueTasks  = tasks.filter(t => t.status === 'overdue').length
+    + planTasks.filter(e => !e.done && e.date && e.date < todayKey).length;
 
   const upcomingTasks = tasks
     .filter(t => t.due && t.status !== 'done')
@@ -90,7 +89,7 @@ export default function Dashboard() {
   const recentNotes = [...pinnedNotes, ...shownNotes.filter(n => !n.pinned).slice(0, Math.max(0, 4 - pinnedNotes.length))];
 
   const statCards = [
-    { label: 'Completion', value: completionPct,     pct: true, sub: 'across all projects',   onClick: undefined },
+    { label: 'Completion', value: completionPct,     pct: true, sub: 'across all tasks',      onClick: undefined },
     { label: 'Tasks',      value: allTaskCount,      sub: `${allDoneCount} completed`,        onClick: () => setView('tasks'), meetings: true },
     { label: 'Projects',   value: projects.length, sub: `${activeProjects.length} active`,   onClick: () => setView('projects') },
     {
